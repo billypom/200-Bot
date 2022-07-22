@@ -233,6 +233,9 @@ async def d(
                 temp = db.query("SELECT player_name FROM player WHERE player_id = %s;", (ctx.author.id,))
                 channel = await client.get_channel(tier_temp[0][0])
                 await channel.send(f'{temp[0][0]} has dropped from the lineup')
+        except Exception as e:
+            await send_to_debug_channel(ctx, f'WHAT1 {e}')
+            # i should never ever see this...
         return
     else:
         await ctx.respond("You are not in a mogi")
