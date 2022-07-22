@@ -79,7 +79,7 @@ client = discord.Bot(intents=intents, activity=discord.Game(str("200cc Lounge"))
 def update_mogilist():
     mogilist = {}
     with DBA.DBAccess() as db:
-        temp = db.query("SELECT t.tier_name, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id;", (,))
+        temp = db.query("SELECT t.tier_name, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;", (1,))
         print(temp)
     # Create a dictionary
     # tier_name : [player_names]
