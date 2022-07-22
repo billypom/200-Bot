@@ -75,6 +75,32 @@ Lounge = [461383953937596416]
 intents = discord.Intents(messages=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str("200cc Lounge")))
 
+
+def update_mogilist():
+    mogilist = {}
+    with DBA.DBAccess() as db:
+        temp = db.query("SELECT t.tier_name, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id;", (,))
+        print(temp)
+    # Create a dictionary
+    # tier_name : [player_names]
+
+
+def lounge_threads():
+    while(True):
+        update_mogilist()
+        time.sleep(15)
+
+
+poll_thread = threading.Thread(target=lounge_threads)
+poll_thread.start()
+
+
+
+
+
+
+
+
 @client.event
 async def on_application_command_error(ctx, error):
     if ctx.guild == None:
@@ -84,7 +110,7 @@ async def on_application_command_error(ctx, error):
         embed.add_field(name="Error: ", value=str(error), inline=False)
         embed.add_field(name="Discord ID: ", value=ctx.author.id, inline=False)
         await channel.send(content=None, embed=embed)
-        await ctx.respond("Sorry! My commands won't work in DMs. Please use your team's server to access war searching and matchmaking :)")
+        await ctx.respond("Sorry! My commands won't work in DMs. Please use 200cc Lounge :)")
         return
     else:
         channel = client.get_channel(debug_channel)
@@ -98,6 +124,8 @@ async def on_application_command_error(ctx, error):
 
 @client.event
 async def on_message(ctx):
+    # get discord id and channel id
+    # if user and channel id in lineups
     message = ctx.content
     print(message)
 
@@ -210,6 +238,7 @@ async def verify(
     description="Can up for a mogi",
     guild_ids=Lounge
 )
+@commands.cooldown(1, 15, commands.BucketType.user)
 async def c(
     ctx,
     ):
@@ -223,12 +252,23 @@ async def c(
     try:
         with DBA.DBAccess() as db:
             db.execute("INSERT INTO lineups (player_id, tier_id) values (%s, %s);", (ctx.author.id, ctx.channel.id))
-            await ctx.respond('You have joined the mogi!')
+            await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
             channel = client.get_channel(ctx.channel.id)
             await channel.send(f'<@{ctx.author.id}> has joined the mogi!')
     except Exception as e:
         await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secrets.my_discord}. {e}')
         await send_to_debug_channel(ctx, e)
+        return
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query("SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;", (ctx.channel.id,))
+            count = temp[0][0]
+    except Exception as e:
+        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secrets.my_discord}. {e}')
+        await send_to_debug_channel(ctx, e)
+        return
+    if count >= 12:
+        # start the mogi, vote on format, create teams
     return
 
 @client.slash_command(
