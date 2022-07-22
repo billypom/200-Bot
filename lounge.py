@@ -94,12 +94,12 @@ def update_mogilist():
     print(f'mllu channel: {secrets.mogilist_lu_channel}')
     ml = client.get_channel(secrets.mogilist_channel)
     ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id), client.loop)
-    asyncio.run_coroutine_threadsafe(ml_message.edit(content=f'new temp: {str(len(temp)/2)}'), client.loop)
+    asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'new temp: {str(len(temp)/2)}'), client.loop)
 
 
     mllu = client.get_channel(secrets.mogilist_lu_channel)
     mllu_message = asyncio.run_coroutine_threadsafe(mllu.fetch_message(ml_lu_channel_message_id), client.loop)
-    asyncio.run_coroutine_threadsafe(mllu_message.edit(content=f'new temp: {temp}'), client.loop)
+    asyncio.run_coroutine_threadsafe(mllu_message.result().edit(content=f'new temp: {temp}'), client.loop)
 
     
     # Create a dictionary
