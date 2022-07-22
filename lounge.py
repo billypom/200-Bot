@@ -57,7 +57,8 @@
 
 
 
-# Can up - 
+# Can up - keep track of who is in lineup
+
 
 
 
