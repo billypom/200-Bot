@@ -91,12 +91,12 @@ client = discord.Bot(intents=intents, activity=discord.Game(str("200cc Lounge"))
 )
 async def verify(
     ctx, 
-    message: discord.Option(str, "MKC Profile Link", required=True
+    message: discord.Option(str, "MKC Link", required=True
     )):
     await ctx.defer(ephemeral=True)
     x = await check_if_player_exists(ctx)
     if x:
-        await ctx.respond("``Error 210:``" + str(ctx.author.display_name) +  " already verified.")
+        await ctx.respond("``Error 1:``" + str(ctx.author.display_name) +  " already verified.")
         return
     else:
         pass
@@ -111,7 +111,7 @@ async def verify(
             mkc_player_id = reg_array[1]
             #print("mkc player_id :" + str(mkc_player_id))
         else:
-            await ctx.respond("``Error 200:`` Oops! Something went wrong. Check your link or try again later")
+            await ctx.respond("``Error 2:`` Oops! Something went wrong. Check your link or try again later")
             return
     # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
     elif "forums" in message:
@@ -123,7 +123,7 @@ async def verify(
             mkc_user_id = temp[2]
         else:
             # player doesnt exist on forums
-            await ctx.respond("``Error 201:`` Oops! Something went wrong. Check your link or try again later")
+            await ctx.respond("``Error 3:`` Oops! Something went wrong. Check your link or try again later")
             return
 
         # MKC registry api
@@ -131,19 +131,19 @@ async def verify(
         if mkc_player_id != -1:
             pass
         else:
-            await ctx.respond("``Error 202:`` Oops! Something went wrong. Check your link or try again later")
+            await ctx.respond("``Error 4:`` Oops! Something went wrong. Check your link or try again later")
             return
     else:
-        await ctx.respond("``Error 203:`` Oops! Something went wrong. Check your link or try again later")
+        await ctx.respond("``Error 5:`` Oops! Something went wrong. Check your link or try again later")
         return
 
     # MKC indiv api on 930 (player_id)
     is_banned = await mkc_request_registry_info(mkc_player_id, "is_banned")
     if is_banned == -1:
-        await ctx.respond("``Error 204:`` Oops! Something went wrong. Check your link or try again later")
+        await ctx.respond("``Error 6:`` Oops! Something went wrong. Check your link or try again later")
         return
     elif is_banned:
-        await ctx.respond("``Error 205:`` Oops! Something went wrong. Check your link or try again later")
+        await ctx.respond("``Error 7:`` Oops! Something went wrong. Check your link or try again later")
         return
     else:
         pass
@@ -153,7 +153,7 @@ async def verify(
     if str(discord_tag) == str(ctx.author):
         pass
     else:
-        await ctx.respond("``Error 206:`` Account is not associated. Check your privacy settings on mariokartcentral.com")
+        await ctx.respond("``Error 8:`` Account is not associated. Check your privacy settings on mariokartcentral.com")
         verify_description = vlog_msg.error2
         verify_color = discord.Color.red()
         await send_to_verification_log(ctx, message, verify_color, verify_description)
@@ -162,7 +162,7 @@ async def verify(
     if is_banned:
         verify_description = vlog_msg.error3
         verify_color = discord.Color.red()
-        await ctx.respond("``Error 203:`` Oops! Something went wrong. Check your link or try again later")
+        await ctx.respond("``Error 9:`` Oops! Something went wrong. Check your link or try again later")
         await send_to_verification_log(ctx, message, verify_color, verify_description)
         return
     else:
@@ -170,7 +170,7 @@ async def verify(
         verify_color = discord.Color.green()
         x = await check_if_mkc_player_id_used(mkc_player_id)
         if x:
-            await ctx.respond(f"``Error 208: Duplicate player`` If you think this is a mistake, please contact {secrets.my_discord} immediately. ")
+            await ctx.respond(f"``Error 10: Duplicate player`` If you think this is a mistake, please contact {secrets.my_discord} immediately. ")
             verify_description = vlog_msg.error4
             verify_color = discord.Color.red()
             await send_to_verification_log(ctx, message, verify_color, verify_description)
@@ -189,13 +189,21 @@ async def c(
     ctx,
     ):
     await ctx.defer()
-    x = await check_if_in_tier
+    x = await check_if_in_tier(ctx)
     if x:
-        pass
-    else:
-        await ctx.respond("")
+        await ctx.respond("``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.")
         return
-    return
+    else:
+        pass
+    try:
+        with DBA.DBAccess() as db:
+            db.execute("INSERT INTO lineups (player_id, tier_id) values (%s, %s);", (ctx.author.id, ctx.channel.id))
+            await ctx.respond('You have joined the mogi!')
+            channel = client.get_channel(ctx.channel.id)
+            await channel.send(f'<@{ctx.author.id}> has joined the mogi!')
+    except Exception:
+        await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secrets.my_discord}.')
+
 
 # /setfc
 @client.slash_command(
@@ -210,16 +218,16 @@ async def fc(
         await ctx.defer(ephemeral=False)
         try:
             with DBA.DBAccess() as db:
-                temp = db.query("SELECT friend_code FROM player WHERE player_id = %s;", (ctx.author.id, ))
+                temp = db.query("SELECT fc FROM player WHERE player_id = %s;", (ctx.author.id, ))
                 await ctx.respond(temp[0][0])
         except Exception:
-            await ctx.respond("``Error 51:`` No friend code found. Use ``/fc XXXX-XXXX-XXXX`` to set.")
+            await ctx.respond("``Error 12:`` No friend code found. Use ``/fc XXXX-XXXX-XXXX`` to set.")
     else:
         await ctx.defer(ephemeral=True)
         y = await check_if_banned_characters(fc)
         if y:
-            await send_to_verification_log(ctx, message, discord.Color.blurple(), vlog_msg.error1)
-            return "``Error 1289:`` Invalid fc. Use ``/fc XXXX-XXXX-XXXX``"
+            await send_to_verification_log(ctx, fc, discord.Color.blurple(), vlog_msg.error1)
+            return "``Error 13:`` Invalid fc. Use ``/fc XXXX-XXXX-XXXX``"
         x = await check_if_player_exists(ctx)
         if x:
             pass
@@ -236,7 +244,16 @@ async def fc(
 
 
 
-
+async def check_if_in_tier(ctx):
+    try:
+        with DBA.DBAccess() as db:
+            db.query("SELECT player_id FROM player_mogi WHERE player_id = %s;", (ctx.author.id,))
+            if temp[0][0] == ctx.author.id:
+                return True
+            else:
+                return False
+    except Exception:
+        return False
 
 
 async def create_player(ctx):
@@ -249,10 +266,10 @@ async def create_player(ctx):
             with DBA.DBAccess() as db:
                 # TODO: 
                 # REWRITE TO GATHER MORE DATA AND MATCH NEW DATABASE
-                db.execute("INSERT INTO player (player_id, player_name, mkc_player_id) VALUES (%s, %s, %s);", (ctx.author.id, ctx.author.display_name, mkc_player_id))
+                db.execute("INSERT INTO player (player_id, player_name, mkc_id) VALUES (%s, %s, %s);", (ctx.author.id, ctx.author.display_name, mkc_player_id))
                 return "Verified & registered successfully"
         else:
-            return f"``Error 98:`` Contact {secrets.my_discord} if you think this is a mistake."
+            return f"``Error 14:`` Contact {secrets.my_discord} if you think this is a mistake."
             # 1. a player trying to use someone elses link (could be banned player)
             # 2. a genuine player locked from usage by another player (banned player might have locked them out)
             # 3. someone is verifying multiple times
@@ -265,7 +282,7 @@ async def update_friend_code(ctx, message):
                 db.execute("UPDATE player SET friend_code = %s WHERE player_id = %s;", (message, ctx.author.id))
                 return "Friend Code updated"
         except Exception:
-            return "``Error 51:`` Player not found"
+            return "``Error 15:`` Player not found"
     else:
         return "Invalid fc. Use ``/fc XXXX-XXXX-XXXX``"
 
