@@ -132,7 +132,7 @@ async def on_application_command_error(ctx, error):
         embed.add_field(name='Error: ', value=str(error), inline=False)
         embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
         await channel.send(content=None, embed=embed)
-        await ctx.respond('Sorry! My commands won't work in DMs. Please use 200cc Lounge :)')
+        await ctx.respond('Sorry! My commands do not work in DMs. Please use 200cc Lounge :)')
         return
     else:
         channel = client.get_channel(secrets.debug_channel)
