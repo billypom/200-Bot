@@ -310,6 +310,8 @@ async def sub(
     subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
     ):
     await ctx.defer()
+    print(leaving_player)
+    print(subbing_player)
     # check if match is ongoing (12 players in lineups table)
     x = await check_if_mogi_is_ongoing(ctx)
     if x:
@@ -323,7 +325,6 @@ async def sub(
     else:
         await ctx.respond('You are not in the mogi. You cannot sub out another player')
         return
-    
     # replace src dst
     # 
 
