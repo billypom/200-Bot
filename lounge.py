@@ -75,6 +75,31 @@ Lounge = [461383953937596416]
 intents = discord.Intents(messages=True, guilds=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str("200cc Lounge")))
 
+@client.event
+async def on_application_command_error(ctx, error):
+    if ctx.guild == None:
+        channel = client.get_channel(debug_channel)
+        embed = discord.Embed(title="Error", description="ctx.guild = None. This message was sent in a DM...?", color = discord.Color.blurple())
+        embed.add_field(name="Name: ", value=ctx.author, inline=False)
+        embed.add_field(name="Error: ", value=str(error), inline=False)
+        embed.add_field(name="Discord ID: ", value=ctx.author.id, inline=False)
+        await channel.send(content=None, embed=embed)
+        await ctx.respond("Sorry! My commands won't work in DMs. Please use your team's server to access war searching and matchmaking :)")
+        return
+    else:
+        channel = client.get_channel(debug_channel)
+        embed = discord.Embed(title="Error", description=":eyes:", color = discord.Color.blurple())
+        embed.add_field(name="Name: ", value=ctx.author, inline=False)
+        embed.add_field(name="Error: ", value=str(error), inline=False)
+        embed.add_field(name="Discord ID: ", value=ctx.author.id, inline=False)
+        await channel.send(content=None, embed=embed)
+        await ctx.respond(f"Sorry! An unknown error occurred. Contact {secrets.my_discord} if you think this is a mistake.")
+        return
+
+@client.event
+async def on_message(ctx):
+    message = ctx.content
+    print(message)
 
 
 
@@ -231,13 +256,11 @@ async def d(
         try:
             with DBA.DBAccess() as db:
                 temp = db.query("SELECT player_name FROM player WHERE player_id = %s;", (ctx.author.id,))
+                channel = client.get_channel(tier_temp[0][0])
+                await channel.send(f'{temp[0][0]} has dropped from the lineup')
         except Exception as e:
             await send_to_debug_channel(ctx, f'WHAT1 {e}')
             # i should never ever see this...
-        print(tier_temp[0][0])
-        channel = client.get_channel(tier_temp[0][0])
-        print(temp[0][0])
-        await channel.send(f'{temp[0][0]} has dropped from the lineup')
         return
     else:
         await ctx.respond("You are not in a mogi")
