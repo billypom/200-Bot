@@ -87,10 +87,10 @@ def update_mogilist():
             MOGILIST[temp[i][0]].append(temp[i][1])
         else:
             MOGILIST[temp[i][0]]=[temp[i][1]]
-    mogilist_channel = client.get_channel(secrets.mogilist_channel)
-    asyncio.run_coroutine_threadsafe(mogilist_channel.send(f'TEMP'), client.loop)
-    mogilist_lu_channel = client.get_channel(secrets.mogilist_lu_channel)
-    asyncio.run_coroutine_threadsafe(mogilist_lu_channel.send(f'temp'), client.oop)
+    ml = client.get_channel(secrets.mogilist_channel)
+    asyncio.run_coroutine_threadsafe(ml.send(f'TEMP'), client.loop)
+    mllu = client.get_channel(secrets.mogilist_lu_channel)
+    asyncio.run_coroutine_threadsafe(mllu.send(f'temp'), client.oop)
 
     
     # Create a dictionary
