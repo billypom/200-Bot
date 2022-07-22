@@ -72,16 +72,28 @@ import concurrent.futures
 from bs4 import BeautifulSoup as Soup
 
 Lounge = [461383953937596416]
+MOGILIST = {}
 
 intents = discord.Intents(messages=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str("200cc Lounge")))
 
 
 def update_mogilist():
-    mogilist = {}
     with DBA.DBAccess() as db:
         temp = db.query("SELECT t.tier_name, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;", (1,))
         print(temp)
+    for i in range(len(temp))
+    if temp[i][0] in MOGILIST:
+        MOGILIST[temp[i][0]].append(temp[i][1])
+    else:
+        MOGILIST[temp[i][0]]=[temp[i][1]]
+    for 
+    mogilist_channel = client.get_channel(secrets.mogilist_channel)
+    mogilist_channel.send(f'TEMP')
+    mogilist_lu_channel = client.get_channel(secrets.mogilist_lu_channel)
+    mogilist_lu_channel.send(f'temp')
+
+    
     # Create a dictionary
     # tier_name : [player_names]
 
