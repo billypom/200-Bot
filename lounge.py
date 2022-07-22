@@ -105,7 +105,7 @@ poll_thread.start()
 @client.event
 async def on_application_command_error(ctx, error):
     if ctx.guild == None:
-        channel = client.get_channel(debug_channel)
+        channel = client.get_channel(secrets.debug_channel)
         embed = discord.Embed(title="Error", description="ctx.guild = None. This message was sent in a DM...?", color = discord.Color.blurple())
         embed.add_field(name="Name: ", value=ctx.author, inline=False)
         embed.add_field(name="Error: ", value=str(error), inline=False)
@@ -114,7 +114,7 @@ async def on_application_command_error(ctx, error):
         await ctx.respond("Sorry! My commands won't work in DMs. Please use 200cc Lounge :)")
         return
     else:
-        channel = client.get_channel(debug_channel)
+        channel = client.get_channel(secrets.debug_channel)
         embed = discord.Embed(title="Error", description=":eyes:", color = discord.Color.blurple())
         embed.add_field(name="Name: ", value=ctx.author, inline=False)
         embed.add_field(name="Error: ", value=str(error), inline=False)
