@@ -279,7 +279,7 @@ async def c(
         await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secrets.my_discord}. {e}')
         await send_to_debug_channel(ctx, e)
         return
-    if count = 12:
+    if count == 12:
         await ctx.respond('Mogi is full')
         return
     try:
@@ -292,7 +292,7 @@ async def c(
         await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secrets.my_discord}. {e}')
         await send_to_debug_channel(ctx, e)
         return
-    if count = 12:
+    if count == 12:
         print(f'count: {count}')
 
 
@@ -408,7 +408,7 @@ async def check_if_mogi_is_ongoing(ctx):
             temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
     except Exception:
         return False
-    if temp[0][0] = 12:
+    if temp[0][0] == 12:
         return True
     else:
         return False
