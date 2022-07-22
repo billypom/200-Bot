@@ -201,8 +201,8 @@ async def c(
             await ctx.respond('You have joined the mogi!')
             channel = client.get_channel(ctx.channel.id)
             await channel.send(f'<@{ctx.author.id}> has joined the mogi!')
-    except Exception:
-        await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secrets.my_discord}.')
+    except Exception as e:
+        await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secrets.my_discord}. {e}')
 
 
 # /setfc
