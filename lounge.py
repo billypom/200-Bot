@@ -235,7 +235,7 @@ async def d(
             await send_to_debug_channel(ctx, f'WHAT1 {e}')
             # i should never ever see this...
         print(tier_temp[0][0])
-        channel = await client.get_channel(int(tier_temp[0][0]))
+        channel = client.get_channel(tier_temp[0][0])
         print(temp[0][0])
         await channel.send(f'{temp[0][0]} has dropped from the lineup')
         return
