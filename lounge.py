@@ -98,6 +98,7 @@ def update_mogilist():
 
 
 def lounge_threads():
+    time.sleep(10)
     while(True):
         update_mogilist()
         time.sleep(15)
