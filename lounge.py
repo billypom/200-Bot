@@ -87,6 +87,9 @@ def update_mogilist():
             MOGILIST[temp[i][0]].append(temp[i][1])
         else:
             MOGILIST[temp[i][0]]=[temp[i][1]]
+    print(f'temp: {temp}')
+    print(f'ml channel: {secrets.mogilist_channel}')
+    print(f'mllu channel: {secrets.mogilist_lu_channel}')
     ml = client.get_channel(secrets.mogilist_channel)
     asyncio.run_coroutine_threadsafe(ml.send(f'TEMP'), client.loop)
     mllu = client.get_channel(secrets.mogilist_lu_channel)
