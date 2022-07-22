@@ -217,13 +217,9 @@ async def d(
     await ctx.defer(ephemeral=True)
     x = await check_if_in_tier(ctx)
     if x:
-        try:
-            with DBA.DBAccess() as db:
-                tier_temp = db.query("SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s;", (ctx.author.id,))
-        except Exception as e:
-            await send_to_debug_channel(ctx, e)
-            await ctx.respond("You are not in a mogi")
-            return
+        # No try block - check is above...
+        with DBA.DBAccess() as db:
+            tier_temp = db.query("SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s;", (ctx.author.id,))
         try:
             with DBA.DBAccess() as db:
                 db.execute("DELETE FROM lineups WHERE player_id = %s;", (ctx.author.id,))
@@ -238,6 +234,10 @@ async def d(
                 channel = await client.get_channel(tier_temp[0][0])
                 await channel.send(f'{temp[0][0]} has dropped from the lineup')
         return
+    else:
+        await ctx.respond("You are not in a mogi")
+        return
+
 
 
 # /setfc
