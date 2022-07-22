@@ -74,7 +74,7 @@ from bs4 import BeautifulSoup as Soup
 Lounge = [461383953937596416]
 MOGILIST = {}
 
-intents = discord.Intents(messages=True, message_content=True)
+intents = discord.Intents(messages=True, guilds=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str("200cc Lounge")))
 
 
@@ -93,7 +93,7 @@ def update_mogilist():
     ml = client.get_channel(secrets.mogilist_channel)
     asyncio.run_coroutine_threadsafe(ml.send(f'TEMP'), client.loop)
     mllu = client.get_channel(secrets.mogilist_lu_channel)
-    asyncio.run_coroutine_threadsafe(mllu.send(f'temp'), client.oop)
+    asyncio.run_coroutine_threadsafe(mllu.send(f'temp'), client.loop)
 
     
     # Create a dictionary
