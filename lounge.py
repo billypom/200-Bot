@@ -268,6 +268,7 @@ async def c(
         await send_to_debug_channel(ctx, e)
         return
     if count >= 12:
+        print('hey')
         # start the mogi, vote on format, create teams
     return
 
