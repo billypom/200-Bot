@@ -89,12 +89,13 @@ def update_mogilist():
             MOGILIST[temp[i][0]].append(temp[i][1])
         else:
             MOGILIST[temp[i][0]]=[temp[i][1]]
-    print(f'temp: {temp}')
-    print(f'ml channel: {secrets.mogilist_channel}')
-    print(f'mllu channel: {secrets.mogilist_lu_channel}')
+
+    # TODO: actually get the right data, format it, and put it in the ml and mllu channels. good enough for now tho
+
     ml = client.get_channel(secrets.mogilist_channel)
+    # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
     ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id), client.loop)
-    asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'new temp: {str(len(temp)/2)}'), client.loop)
+    asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'new temp: {str(len(temp))}'), client.loop)
 
 
     mllu = client.get_channel(secrets.mogilist_lu_channel)
