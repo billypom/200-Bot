@@ -77,13 +77,12 @@ ml_lu_channel_message_id = 1000138727697424415
 MOGILIST = {}
 
 intents = discord.Intents(messages=True, guilds=True, message_content=True)
-client = discord.Bot(intents=intents, activity=discord.Game(str("200cc Lounge")))
+client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 
 
 def update_mogilist():
     with DBA.DBAccess() as db:
-        temp = db.query("SELECT t.tier_name, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;", (1,))
-        print(temp)
+        temp = db.query('SELECT t.tier_name, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
     for i in range(len(temp)):
         if temp[i][0] in MOGILIST:
             MOGILIST[temp[i][0]].append(temp[i][1])
@@ -128,21 +127,21 @@ poll_thread.start()
 async def on_application_command_error(ctx, error):
     if ctx.guild == None:
         channel = client.get_channel(secrets.debug_channel)
-        embed = discord.Embed(title="Error", description="ctx.guild = None. This message was sent in a DM...?", color = discord.Color.blurple())
-        embed.add_field(name="Name: ", value=ctx.author, inline=False)
-        embed.add_field(name="Error: ", value=str(error), inline=False)
-        embed.add_field(name="Discord ID: ", value=ctx.author.id, inline=False)
+        embed = discord.Embed(title='Error', description='ctx.guild = None. This message was sent in a DM...?', color = discord.Color.blurple())
+        embed.add_field(name='Name: ', value=ctx.author, inline=False)
+        embed.add_field(name='Error: ', value=str(error), inline=False)
+        embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
         await channel.send(content=None, embed=embed)
-        await ctx.respond("Sorry! My commands won't work in DMs. Please use 200cc Lounge :)")
+        await ctx.respond('Sorry! My commands won't work in DMs. Please use 200cc Lounge :)')
         return
     else:
         channel = client.get_channel(secrets.debug_channel)
-        embed = discord.Embed(title="Error", description=":eyes:", color = discord.Color.blurple())
-        embed.add_field(name="Name: ", value=ctx.author, inline=False)
-        embed.add_field(name="Error: ", value=str(error), inline=False)
-        embed.add_field(name="Discord ID: ", value=ctx.author.id, inline=False)
+        embed = discord.Embed(title='Error', description=':eyes:', color = discord.Color.blurple())
+        embed.add_field(name='Name: ', value=ctx.author, inline=False)
+        embed.add_field(name='Error: ', value=str(error), inline=False)
+        embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
         await channel.send(content=None, embed=embed)
-        await ctx.respond(f"Sorry! An unknown error occurred. Contact {secrets.my_discord} if you think this is a mistake.")
+        await ctx.respond(f'Sorry! An unknown error occurred. Contact {secrets.my_discord} if you think this is a mistake.')
         return
 
 @client.event
@@ -161,36 +160,36 @@ async def on_message(ctx):
 
 # /verify <link>
 @client.slash_command(
-    name="verify",
-    description="Verify your MKC account",
+    name='verify',
+    description='Verify your MKC account',
     guild_ids=Lounge
 )
 async def verify(
     ctx, 
-    message: discord.Option(str, "MKC Link", required=True
+    message: discord.Option(str, 'MKC Link', required=True
     )):
     await ctx.defer(ephemeral=True)
     x = await check_if_player_exists(ctx)
     if x:
-        await ctx.respond("``Error 1:``" + str(ctx.author.display_name) +  " already verified.")
+        await ctx.respond(f'``Error 1:`` {str(ctx.author.display_name)} is already verified.')
         return
     else:
         pass
     # Regex on https://www.mariokartcentral.com/mkc/registry/players/930
-    if "registry" in message:
+    if 'registry' in message:
         regex_pattern = 'players/\d*'
         if re.search(regex_pattern, str(message)):
             regex_group = re.search(regex_pattern, message)
             x = regex_group.group()
-            #print("registry link: regex found: " + str(x))
+            #print('registry link: regex found: ' + str(x))
             reg_array = re.split('/', x)
             mkc_player_id = reg_array[1]
-            #print("mkc player_id :" + str(mkc_player_id))
+            #print('mkc player_id :' + str(mkc_player_id))
         else:
-            await ctx.respond("``Error 2:`` Oops! Something went wrong. Check your link or try again later")
+            await ctx.respond('``Error 2:`` Oops! Something went wrong. Check your link or try again later')
             return
     # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
-    elif "forums" in message:
+    elif 'forums' in message:
         regex_pattern = 'members/.*\.\d*'
         if re.search(regex_pattern, str(message)):
             regex_group = re.search(regex_pattern, message)
@@ -199,7 +198,7 @@ async def verify(
             mkc_user_id = temp[2]
         else:
             # player doesnt exist on forums
-            await ctx.respond("``Error 3:`` Oops! Something went wrong. Check your link or try again later")
+            await ctx.respond('``Error 3:`` Oops! Something went wrong. Check your link or try again later')
             return
 
         # MKC registry api
@@ -207,29 +206,29 @@ async def verify(
         if mkc_player_id != -1:
             pass
         else:
-            await ctx.respond("``Error 4:`` Oops! Something went wrong. Check your link or try again later")
+            await ctx.respond('``Error 4:`` Oops! Something went wrong. Check your link or try again later')
             return
     else:
-        await ctx.respond("``Error 5:`` Oops! Something went wrong. Check your link or try again later")
+        await ctx.respond('``Error 5:`` Oops! Something went wrong. Check your link or try again later')
         return
 
     # MKC indiv api on 930 (player_id)
-    is_banned = await mkc_request_registry_info(mkc_player_id, "is_banned")
+    is_banned = await mkc_request_registry_info(mkc_player_id, 'is_banned')
     if is_banned == -1:
-        await ctx.respond("``Error 6:`` Oops! Something went wrong. Check your link or try again later")
+        await ctx.respond('``Error 6:`` Oops! Something went wrong. Check your link or try again later')
         return
     elif is_banned:
-        await ctx.respond("``Error 7:`` Oops! Something went wrong. Check your link or try again later")
+        await ctx.respond('``Error 7:`` Oops! Something went wrong. Check your link or try again later')
         return
     else:
         pass
 
     # Check if user verifying and user in mkc database is the same user
-    discord_tag = await mkc_request_registry_info(mkc_player_id, "discord_tag")
+    discord_tag = await mkc_request_registry_info(mkc_player_id, 'discord_tag')
     if str(discord_tag) == str(ctx.author):
         pass
     else:
-        await ctx.respond("``Error 8:`` Account is not associated. Check your privacy settings on mariokartcentral.com")
+        await ctx.respond('``Error 8:`` Account is not associated. Check your privacy settings on mariokartcentral.com')
         verify_description = vlog_msg.error2
         verify_color = discord.Color.red()
         await send_to_verification_log(ctx, message, verify_color, verify_description)
@@ -238,7 +237,7 @@ async def verify(
     if is_banned:
         verify_description = vlog_msg.error3
         verify_color = discord.Color.red()
-        await ctx.respond("``Error 9:`` Oops! Something went wrong. Check your link or try again later")
+        await ctx.respond('``Error 9:`` Oops! Something went wrong. Check your link or try again later')
         await send_to_verification_log(ctx, message, verify_color, verify_description)
         return
     else:
@@ -246,7 +245,7 @@ async def verify(
         verify_color = discord.Color.green()
         x = await check_if_mkc_player_id_used(mkc_player_id)
         if x:
-            await ctx.respond(f"``Error 10: Duplicate player`` If you think this is a mistake, please contact {secrets.my_discord} immediately. ")
+            await ctx.respond(f'``Error 10: Duplicate player`` If you think this is a mistake, please contact {secrets.my_discord} immediately. ')
             verify_description = vlog_msg.error4
             verify_color = discord.Color.red()
             await send_to_verification_log(ctx, message, verify_color, verify_description)
@@ -257,8 +256,8 @@ async def verify(
 
 
 @client.slash_command(
-    name="c",
-    description="Can up for a mogi",
+    name='c',
+    description='🙋 Can up for a mogi',
     guild_ids=Lounge
 )
 @commands.cooldown(1, 15, commands.BucketType.user)
@@ -268,13 +267,24 @@ async def c(
     await ctx.defer(ephemeral=True)
     x = await check_if_in_tier(ctx)
     if x:
-        await ctx.respond("``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.")
+        await ctx.respond('``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.')
         return
     else:
         pass
     try:
         with DBA.DBAccess() as db:
-            db.execute("INSERT INTO lineups (player_id, tier_id) values (%s, %s);", (ctx.author.id, ctx.channel.id))
+            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
+            count = temp[0][0]
+    except Exception as e:
+        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secrets.my_discord}. {e}')
+        await send_to_debug_channel(ctx, e)
+        return
+    if count = 12:
+        await ctx.respond('Mogi is full')
+        return
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('INSERT INTO lineups (player_id, tier_id) values (%s, %s);', (ctx.author.id, ctx.channel.id))
             await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
             channel = client.get_channel(ctx.channel.id)
             await channel.send(f'<@{ctx.author.id}> has joined the mogi!')
@@ -282,22 +292,44 @@ async def c(
         await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secrets.my_discord}. {e}')
         await send_to_debug_channel(ctx, e)
         return
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query("SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;", (ctx.channel.id,))
-            count = temp[0][0]
-    except Exception as e:
-        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secrets.my_discord}. {e}')
-        await send_to_debug_channel(ctx, e)
-        return
-    if count >= 12:
-        print('hey')
+    if count = 12:
+        print(f'count: {count}')
+
+
         # start the mogi, vote on format, create teams
     return
 
 @client.slash_command(
-    name="d",
-    description="Drop from the mogi",
+    name='sub',
+    description='Sub out a player',
+    guild_ids=Lounge
+)
+async def sub(
+    ctx,
+    leaving_player: discord.Option(discord.Member, 'Leaving player', required=True),
+    subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
+    ):
+    await ctx.defer()
+    # check if match is ongoing (12 players in lineups table)
+    x = await check_if_mogi_is_ongoing(ctx)
+    if x:
+        pass
+    else:
+        await ctx.respond('Mogi has not started')
+        return
+    y = await check_if_ctx_in_mogi(ctx)
+    if y:
+        pass
+    else:
+        await ctx.respond('You are not in the mogi. You cannot sub out another player')
+        return
+    
+    # replace src dst
+    # 
+
+@client.slash_command(
+    name='d',
+    description='Drop from the mogi',
     guild_ids=Lounge
 )
 async def d(
@@ -308,54 +340,54 @@ async def d(
     if x:
         # No try block - check is above...
         with DBA.DBAccess() as db:
-            tier_temp = db.query("SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s;", (ctx.author.id,))
+            tier_temp = db.query('SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s;', (ctx.author.id,))
         try:
             with DBA.DBAccess() as db:
-                db.execute("DELETE FROM lineups WHERE player_id = %s;", (ctx.author.id,))
-                await ctx.respond(f"You have dropped from tier {tier_temp[0][1]}")
+                db.execute('DELETE FROM lineups WHERE player_id = %s;', (ctx.author.id,))
+                await ctx.respond(f'You have dropped from tier {tier_temp[0][1]}')
         except Exception as e:
             await send_to_debug_channel(ctx, e)
             await ctx.respond(f'``Error 17:`` Oops! Something went wrong. Contact {secrets.my_discord}')
             return
         try:
             with DBA.DBAccess() as db:
-                temp = db.query("SELECT player_name FROM player WHERE player_id = %s;", (ctx.author.id,))
+                temp = db.query('SELECT player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
                 channel = client.get_channel(tier_temp[0][0])
                 await channel.send(f'{temp[0][0]} has dropped from the lineup')
         except Exception as e:
-            await send_to_debug_channel(ctx, f'WHAT1 {e}')
+            await send_to_debug_channel(ctx, f'WHAT! 1 {e}')
             # i should never ever see this...
         return
     else:
-        await ctx.respond("You are not in a mogi")
+        await ctx.respond('You are not in a mogi')
         return
 
 
 
 # /setfc
 @client.slash_command(
-    name="fc",
-    description="Display or set your friend code",
+    name='fc',
+    description='Display or set your friend code',
     guild_ids=Lounge
 )
 async def fc(
     ctx,
-    fc: discord.Option(str, "XXXX-XXXX-XXXX", required=False)):
+    fc: discord.Option(str, 'XXXX-XXXX-XXXX', required=False)):
     if fc == None:
         await ctx.defer(ephemeral=True)
         try:
             with DBA.DBAccess() as db:
-                temp = db.query("SELECT fc FROM player WHERE player_id = %s;", (ctx.author.id, ))
+                temp = db.query('SELECT fc FROM player WHERE player_id = %s;', (ctx.author.id, ))
                 await ctx.respond(temp[0][0])
         except Exception as e:
-            await ctx.respond("``Error 12:`` No friend code found. Use ``/fc XXXX-XXXX-XXXX`` to set.")
+            await ctx.respond('``Error 12:`` No friend code found. Use ``/fc XXXX-XXXX-XXXX`` to set.')
             await send_to_debug_channel(ctx, e)
     else:
         await ctx.defer(ephemeral=True)
         y = await check_if_banned_characters(fc)
         if y:
             await send_to_verification_log(ctx, fc, discord.Color.blurple(), vlog_msg.error1)
-            return "``Error 13:`` Invalid fc. Use ``/fc XXXX-XXXX-XXXX``"
+            return '``Error 13:`` Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
         x = await check_if_player_exists(ctx)
         if x:
             pass
@@ -370,12 +402,21 @@ async def fc(
 
 
 
-
+async def check_if_mogi_is_ongoing(ctx):
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
+    except Exception:
+        return False
+    if temp[0][0] = 12:
+        return True
+    else:
+        return False
 
 async def check_if_in_tier(ctx):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query("SELECT player_id FROM lineups WHERE player_id = %s;", (ctx.author.id,))
+            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
             if temp[0][0] == ctx.author.id:
                 return True
             else:
@@ -387,33 +428,33 @@ async def check_if_in_tier(ctx):
 async def create_player(ctx):
     x = await check_if_player_exists(ctx)
     if x:
-        return "Player already registered"
+        return 'Player already registered'
     else:
         mkc_player_id = int(await mkc_request_mkc_player_id(int(await lounge_request_mkc_user_id(ctx))))
         if mkc_player_id != -1:
             with DBA.DBAccess() as db:
                 # TODO: 
                 # REWRITE TO GATHER MORE DATA AND MATCH NEW DATABASE
-                db.execute("INSERT INTO player (player_id, player_name, mkc_id) VALUES (%s, %s, %s);", (ctx.author.id, ctx.author.display_name, mkc_player_id))
-                return "Verified & registered successfully"
+                db.execute('INSERT INTO player (player_id, player_name, mkc_id) VALUES (%s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_player_id))
+                return 'Verified & registered successfully'
         else:
-            return f"``Error 14:`` Contact {secrets.my_discord} if you think this is a mistake."
+            return f'``Error 14:`` Contact {secrets.my_discord} if you think this is a mistake.'
             # 1. a player trying to use someone elses link (could be banned player)
             # 2. a genuine player locked from usage by another player (banned player might have locked them out)
             # 3. someone is verifying multiple times
 
 async def update_friend_code(ctx, message):
-    fc_pattern = "\d\d\d\d-?\d\d\d\d-?\d\d\d\d"
+    fc_pattern = '\d\d\d\d-?\d\d\d\d-?\d\d\d\d'
     if re.search(fc_pattern, message):
         try:
             with DBA.DBAccess() as db:
-                db.execute("UPDATE player SET friend_code = %s WHERE player_id = %s;", (message, ctx.author.id))
-                return "Friend Code updated"
+                db.execute('UPDATE player SET friend_code = %s WHERE player_id = %s;', (message, ctx.author.id))
+                return 'Friend Code updated'
         except Exception as e:
             await send_to_debug_channel(ctx, e)
-            return "``Error 15:`` Player not found"
+            return '``Error 15:`` Player not found'
     else:
-        return "Invalid fc. Use ``/fc XXXX-XXXX-XXXX``"
+        return 'Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
 
 
 
@@ -424,18 +465,18 @@ async def update_friend_code(ctx, message):
 # ctx | message | discord.Color.red() | my custom message
 async def send_to_verification_log(ctx, message, verify_color, verify_description):
     channel = client.get_channel(secrets.verification_channel)
-    embed = discord.Embed(title="Verification", description=verify_description, color = verify_color)
-    embed.add_field(name="Name: ", value=ctx.author, inline=False)
-    embed.add_field(name="Message: ", value=message, inline=False)
-    embed.add_field(name="Discord ID: ", value=ctx.author.id, inline=False)
+    embed = discord.Embed(title='Verification', description=verify_description, color = verify_color)
+    embed.add_field(name='Name: ', value=ctx.author, inline=False)
+    embed.add_field(name='Message: ', value=message, inline=False)
+    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
     await channel.send(content=None, embed=embed)
 
 async def send_to_debug_channel(ctx, error):
     channel = client.get_channel(secrets.debug_channel)
-    embed = discord.Embed(title="Error", description=">.<", color = discord.Color.blurple())
-    embed.add_field(name="Name: ", value=ctx.author, inline=False)
-    embed.add_field(name="Error: ", value=str(error), inline=False)
-    embed.add_field(name="Discord ID: ", value=ctx.author.id, inline=False)
+    embed = discord.Embed(title='Error', description='>.<', color = discord.Color.blurple())
+    embed.add_field(name='Name: ', value=ctx.author, inline=False)
+    embed.add_field(name='Error: ', value=str(error), inline=False)
+    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
     await channel.send(content=None, embed=embed)
 
 
@@ -443,7 +484,7 @@ async def send_to_debug_channel(ctx, error):
 async def check_if_mkc_player_id_used(mkc_player_id):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query("SELECT mkc_player_id from player WHERE mkc_player_id = %s;", (mkc_player_id,))
+            temp = db.query('SELECT mkc_player_id from player WHERE mkc_player_id = %s;', (mkc_player_id,))
             if int(temp[0][0]) == int(mkc_player_id):
                 return True
             else:
@@ -455,7 +496,7 @@ async def check_if_mkc_player_id_used(mkc_player_id):
 async def check_if_player_exists(ctx):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query("SELECT player_id FROM player WHERE player_id = %s;", (ctx.author.id, ))
+            temp = db.query('SELECT player_id FROM player WHERE player_id = %s;', (ctx.author.id, ))
             if temp[0][0] == ctx.author.id:
                 return True
             else:
@@ -476,7 +517,7 @@ async def check_if_banned_characters(message):
 
 async def mkc_request_mkc_player_id(mkc_user_id):
     # MKC Registry API
-    #print("mkc user id: aaaaaaaa")
+    #print('mkc user id: aaaaaaaa')
     #print(mkc_user_id)
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(mt_mkc_request_mkc_player_id, mkc_user_id)
