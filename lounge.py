@@ -72,7 +72,7 @@ from bs4 import BeautifulSoup as Soup
 
 Lounge = [461383953937596416]
 
-intents = discord.Intents(messages=True, guilds=True)
+intents = discord.Intents(messages=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str("200cc Lounge")))
 
 @client.event
