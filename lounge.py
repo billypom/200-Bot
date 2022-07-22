@@ -231,13 +231,13 @@ async def d(
         try:
             with DBA.DBAccess() as db:
                 temp = db.query("SELECT player_name FROM player WHERE player_id = %s;", (ctx.author.id,))
-                print(tier_temp[0][0])
-                channel = await client.get_channel(str(tier_temp[0][0]))
-                print(temp[0][0])
-                await channel.send(f'{temp[0][0]} has dropped from the lineup')
         except Exception as e:
             await send_to_debug_channel(ctx, f'WHAT1 {e}')
             # i should never ever see this...
+        print(tier_temp[0][0])
+        channel = await client.get_channel(str(tier_temp[0][0]))
+        print(temp[0][0])
+        await channel.send(f'{temp[0][0]} has dropped from the lineup')
         return
     else:
         await ctx.respond("You are not in a mogi")
