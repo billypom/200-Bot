@@ -72,6 +72,8 @@ import concurrent.futures
 from bs4 import BeautifulSoup as Soup
 
 Lounge = [461383953937596416]
+ml_channel_message_id = 1000138727621918872
+ml_lu_channel_message_id = 1000138727697424415
 MOGILIST = {}
 
 intents = discord.Intents(messages=True, guilds=True, message_content=True)
@@ -91,9 +93,13 @@ def update_mogilist():
     print(f'ml channel: {secrets.mogilist_channel}')
     print(f'mllu channel: {secrets.mogilist_lu_channel}')
     ml = client.get_channel(secrets.mogilist_channel)
-    asyncio.run_coroutine_threadsafe(ml.send(f'TEMP'), client.loop)
+    ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id))
+    asyncio.run_coroutine_threadsafe(ml_message.edit(content=f'new temp: {str(len(temp)/2)}'), client.loop)
+
+
     mllu = client.get_channel(secrets.mogilist_lu_channel)
-    asyncio.run_coroutine_threadsafe(mllu.send(f'temp'), client.loop)
+    mllu_message = asyncio.run_coroutine_threadsafe(mllu.fetch_message(ml_lu_channel_message_id))
+    asyncio.run_coroutine_threadsafe(mllu_message.edit(content=f'new temp: {temp}'), client.loop)
 
     
     # Create a dictionary
