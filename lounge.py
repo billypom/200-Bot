@@ -188,7 +188,7 @@ async def verify(
 async def c(
     ctx,
     ):
-    await ctx.defer()
+    await ctx.defer(ephemeral=True)
     x = await check_if_in_tier(ctx)
     if x:
         await ctx.respond("``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.")
@@ -203,6 +203,41 @@ async def c(
             await channel.send(f'<@{ctx.author.id}> has joined the mogi!')
     except Exception as e:
         await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secrets.my_discord}. {e}')
+        await send_to_debug_channel(ctx, e)
+    return
+
+@client.slash_command(
+    name="d",
+    description="Drop from the mogi",
+    guild_ids=Lounge
+)
+async def d(
+    ctx,
+    ):
+    await ctx.defer(ephemeral=True)
+    x await check_if_in_tier(ctx)
+    if x:
+        try:
+            with DBA.DBAccess() as db:
+                tier_temp = db.query("SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s;", (ctx.author.id,))
+        except Exception as e:
+            await send_to_debug_channel(ctx, e)
+            await ctx.respond("You are not in a mogi")
+            return
+        try:
+            with DBA.DBAccess() as db:
+                db.execute("DELETE FROM lineups WHERE player_id = %s;", (ctx.author.id,))
+                await ctx.respond(f"You have dropped from tier {tier_temp[0][1]}")
+        except Exception as e:
+            await send_to_debug_channel(ctx, e)
+            await ctx.respond(f'``Error 17:`` Oops! Something went wrong. Contact {secrets.my_discord}')
+            return
+        try:
+            with DBA.DBAccess() as db:
+                temp = db.query("SELECT player_name FROM player WHERE player_id = %s;", (ctx.author.id,))
+                channel = await client.get_channel(tier_temp[0][0])
+                await channel.send(f'{temp[0][0]} has dropped from the lineup')
+        return
 
 
 # /setfc
@@ -215,13 +250,14 @@ async def fc(
     ctx,
     fc: discord.Option(str, "XXXX-XXXX-XXXX", required=False)):
     if fc == None:
-        await ctx.defer(ephemeral=False)
+        await ctx.defer(ephemeral=True)
         try:
             with DBA.DBAccess() as db:
                 temp = db.query("SELECT fc FROM player WHERE player_id = %s;", (ctx.author.id, ))
                 await ctx.respond(temp[0][0])
-        except Exception:
+        except Exception as e:
             await ctx.respond("``Error 12:`` No friend code found. Use ``/fc XXXX-XXXX-XXXX`` to set.")
+            await send_to_debug_channel(ctx, e)
     else:
         await ctx.defer(ephemeral=True)
         y = await check_if_banned_characters(fc)
@@ -247,7 +283,7 @@ async def fc(
 async def check_if_in_tier(ctx):
     try:
         with DBA.DBAccess() as db:
-            db.query("SELECT player_id FROM player_mogi WHERE player_id = %s;", (ctx.author.id,))
+            db.query("SELECT player_id FROM lineups WHERE player_id = %s;", (ctx.author.id,))
             if temp[0][0] == ctx.author.id:
                 return True
             else:
@@ -281,7 +317,8 @@ async def update_friend_code(ctx, message):
             with DBA.DBAccess() as db:
                 db.execute("UPDATE player SET friend_code = %s WHERE player_id = %s;", (message, ctx.author.id))
                 return "Friend Code updated"
-        except Exception:
+        except Exception as e:
+            await send_to_debug_channel(ctx, e)
             return "``Error 15:`` Player not found"
     else:
         return "Invalid fc. Use ``/fc XXXX-XXXX-XXXX``"
@@ -301,6 +338,14 @@ async def send_to_verification_log(ctx, message, verify_color, verify_descriptio
     embed.add_field(name="Discord ID: ", value=ctx.author.id, inline=False)
     await channel.send(content=None, embed=embed)
 
+async def send_to_debug_channel(ctx, error):
+    channel = client.get_channel(secrets.debug_channel)
+    embed = discord.Embed(title="Error", description=">.<", color = discord.Color.blurple())
+    embed.add_field(name="Name: ", value=ctx.author, inline=False)
+    embed.add_field(name="Error: ", value=str(error), inline=False)
+    embed.add_field(name="Discord ID: ", value=ctx.author.id, inline=False)
+    await channel.send(content=None, embed=embed)
+
 
 
 async def check_if_mkc_player_id_used(mkc_player_id):
@@ -311,7 +356,8 @@ async def check_if_mkc_player_id_used(mkc_player_id):
                 return True
             else:
                 return False
-    except Exception:
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
         return False
 
 async def check_if_player_exists(ctx):
@@ -322,7 +368,8 @@ async def check_if_player_exists(ctx):
                 return True
             else:
                 return False
-    except Exception:
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
         return False
 
 async def check_if_banned_characters(message):
