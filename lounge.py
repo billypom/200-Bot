@@ -215,7 +215,7 @@ async def d(
     ctx,
     ):
     await ctx.defer(ephemeral=True)
-    x await check_if_in_tier(ctx)
+    x = await check_if_in_tier(ctx)
     if x:
         try:
             with DBA.DBAccess() as db:
