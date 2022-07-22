@@ -286,7 +286,7 @@ async def fc(
 async def check_if_in_tier(ctx):
     try:
         with DBA.DBAccess() as db:
-            db.query("SELECT player_id FROM lineups WHERE player_id = %s;", (ctx.author.id,))
+            temp = db.query("SELECT player_id FROM lineups WHERE player_id = %s;", (ctx.author.id,))
             if temp[0][0] == ctx.author.id:
                 return True
             else:
