@@ -560,30 +560,34 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
     await channel.send(response)
     with DBA.DBAccess() as db:
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
-    # returns the index of the voted on format, and the list [ffa, 2v2, 3v3, 4v4, 6v6]
+    # returns the index of the voted on format, and a dictionary of format:voters
     poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
-    await channel.send(poll_results[1])
-    poll_results_response = '''
+    teams_results = await create_teams(ctx, poll_results[0])
+    await channel.send(poll_results[1]) # Temp send the dictionary of votes so i can see them...
 
+    # create formatted message
+    for player in poll_results[1]['FFA']:
+        ffa_voters.append(player)
+    for player in poll_results[1]['2v2']:
+        2v2_voters.append(player)
+    for player in poll_results[1]['3v3']:
+        3v3_voters.append(player)
+    for player in poll_results[1]['4v4']:
+        4v4_voters.append(player)
+    for player in poll_results[1]['6v6']:
+        6v6_voters.append(player)
+    poll_results_response = f'''Poll Ended!
+`1.` FFA - {len(ffa_voters)} {ffa_voters}
+`2.` 2v2 - {len(2v2_voters)} {2v2_voters}
+`3.` 3v3 - {len(3v3_voters)} {3v3_voters}
+`4.` 4v4 - {len(4v4_voters)} {4v4_voters}
+`6.` 6v6 - {len(6v6_voters)} {6v6_voters}
+
+{teams_results}
+
+/submit stuff
 
 '''
-    teams_response = await create_teams(ctx, poll_results[0])
-    await channel.send(teams_response)
-
-    
-
-
-async def create_teams(ctx, poll_results):
-    with DBA.DBAccess() as db:
-        player_db = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
-    players_list = []
-    for i in range(len(player_db)):
-        players_list.append(player_db[i][0])
-    random.shuffle(players_list)
-
-    # temp return
-    return players_list
-
 
     
 # Poll Ended!
@@ -605,6 +609,17 @@ async def create_teams(ctx, poll_results):
 
 # Table: !scoreboard 6 Deshawn Co. III, iiRxl, naive, Ty, Tatsuya, ObesoYoshiraMK, Splinkle, Maxarx, IhavePants, Ai Xiang, Helfire Club, Nino
 
+
+async def create_teams(ctx, poll_results):
+    with DBA.DBAccess() as db:
+        player_db = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
+    players_list = []
+    for i in range(len(player_db)):
+        players_list.append(player_db[i][0])
+    random.shuffle(players_list)
+
+    # temp return
+    return players_list
 
 
 # Somebody did a bad
@@ -670,8 +685,6 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         unix_now = time.mktime(dtobject_now.timetuple())
     with DBA.DBAccess() as db:
         db.execute('UPDATE tier SET voting = 0 WHERE tier_id = %s;', (ctx.channel.id,))
-    with DBA.DBAccess() as db:
-        db.execute('UPDATE lineups SET vote = NULL WHERE tier_id = %s;', (ctx.channel.id,))
     if format_list[0] == 6:
         return 1
     elif format_list[1] == 6:
@@ -688,7 +701,13 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         ind = [i for i, v in enumerate(format_list) if v == max_val]
 
         # Create a dictionary where key=format, value=list of players who voted
-        poll_dictionary = {}
+        poll_dictionary = {
+            "FFA":[],
+            "2v2":[],
+            "3v3":[],
+            "4v4":[],
+            "6v6":[],
+        }
         with DBA.DBAccess() as db:
             votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
         for i in range(len(votes_temp)):
@@ -711,6 +730,9 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
             else:
                 print('not in dictionary..,.yet')
                 poll_dictionary[player_format_choice]=[votes_temp[i][1]]
+        # Clear votes after we dont need them anymore...
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE lineups SET vote = NULL WHERE tier_id = %s;', (ctx.channel.id,))
         return [random.choice(ind), poll_dictionary]
 
 async def check_if_mogi_is_ongoing(ctx):
