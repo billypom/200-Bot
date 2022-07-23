@@ -560,6 +560,7 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
     with DBA.DBAccess() as db:
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
     poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
+    await channel.send(poll_results)
 
     
 
@@ -646,6 +647,8 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         if 6 in format_list:
             break
         unix_now = time.mktime(dtobject_now.timetuple())
+    with DBA.DBAccess() as db:
+        db.execute('UPDATE tier SET voting = 0 WHERE tier_id = %s;', (ctx.channel.id,))
     if format_list[0] == 6:
         return 1
     elif format_list[1] == 6:
