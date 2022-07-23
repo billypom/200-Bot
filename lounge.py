@@ -265,7 +265,7 @@ async def c(
     ctx,
     ):
     await ctx.defer(ephemeral=True)
-    x = await check_if_in_tier(ctx)
+    x = await check_if_uid_in_tier(ctx.author.id)
     if x:
         await ctx.respond('``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.')
         return
@@ -308,7 +308,7 @@ async def d(
     ctx,
     ):
     await ctx.defer(ephemeral=True)
-    x = await check_if_in_tier(ctx)
+    x = await check_if_uid_in_tier(ctx.author.id)
     if x:
         # No try block - check is above...
         with DBA.DBAccess() as db:
@@ -334,6 +334,28 @@ async def d(
         await ctx.respond('You are not in a mogi')
         return
 
+@client.slash_command(
+    name='l',
+    description='Show the mogi lineup',
+    guild_ids=Lounge
+)
+async def l(
+    ctx,
+    ):
+    await ctx.defer()
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query("SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s;", (ctx.channel.id,))
+    except Exception as e:
+        await ctx.respond(f'``Error 20:`` Oops! Something went wrong. Please contact {secrets.my_discord}')
+        return
+    response = 'Lineup:\n'
+    for i in range(temp):
+        response = f'{response}\n`{i+1}`{temp[i][0]}'
+    await ctx.respond(response)
+    return
+
+
 
 @client.slash_command(
     name='sub',
@@ -346,23 +368,36 @@ async def sub(
     subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
     ):
     await ctx.defer()
-    print(leaving_player.id)
-    print(subbing_player.id)
-    # check if match is ongoing (12 players in lineups table)
     x = await check_if_mogi_is_ongoing(ctx)
     if x:
         pass
     else:
         await ctx.respond('Mogi has not started')
         return
-    y = await check_if_ctx_in_mogi(ctx)
+    # Only players in the mogi can sub out others
+    y = await check_if_uid_in_tier(ctx.author.id)
     if y:
         pass
     else:
         await ctx.respond('You are not in the mogi. You cannot sub out another player')
         return
-    # replace src dst
-    # 
+    z = await check_if_uid_in_tier(leaving_player.id)
+    if z:
+        pass
+    else:
+        await ctx.respond(f'<@{leaving_player.id}> is not in this mogi.')
+        return
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
+    except Exception as e:
+        await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secrets.my_discord}')
+        await send_to_debug_channel(ctx, e)
+        return
+    await ctx.respond(f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}>')
+    await send_to_sub_log(ctx, f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}>')
+    return
+
 
 
 # /setfc
@@ -398,12 +433,6 @@ async def fc(
         await ctx.respond(confirmation_msg)
 
 
-
-
-
-
-async def get_uid_from_username(ctx):
-    pass
 
 async def create_player(ctx):
     x = await check_if_player_exists(ctx)
@@ -459,6 +488,14 @@ async def send_to_debug_channel(ctx, error):
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
     await channel.send(content=None, embed=embed)
 
+async def send_to_sub_log(ctx, message):
+    channel = client.get_channel(secrets.sub_channel)
+    embed = discord.Embed(title='Sub', description=':3', color = discord.Color.blurple())
+    embed.add_field(name='Name: ', value=ctx.author, inline=False)
+    embed.add_field(name='Message: ', value=str(message), inline=False)
+    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
+    await channel.send(content=None, embed=embed)
+
 
 
 
@@ -482,11 +519,11 @@ async def check_if_mogi_is_ongoing(ctx):
     else:
         return False
 
-async def check_if_in_tier(ctx):
+async def check_if_uid_in_tier(uid):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
-            if temp[0][0] == ctx.author.id:
+            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (uid,))
+            if temp[0][0] == uid:
                 return True
             else:
                 return False
