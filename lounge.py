@@ -83,7 +83,7 @@ intents = discord.Intents(messages=True, guilds=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 
 with DBA.DBAccess() as db:
-    get_tier_list = db.query('SELECT tier_id FROM tier;'(0,))
+    get_tier_list = db.query('SELECT tier_id FROM tier;', (0,))
     for i in range(len(get_tier_list)):
         TIER_ID_LIST.append(get_tier_list[i][0])
     print(TIER_ID_LIST)
