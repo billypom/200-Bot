@@ -162,6 +162,7 @@ async def on_message(ctx):
             get_tier = db.query('SELECT voting FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
         if get_tier[0][0] == ctx.channel.id:
             if str(ctx.content) in ['1', '2', '3', '4', '6']:
+                print('its in there lol')
                 try:
                     with DBA.DBAccess() as db:
                         temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
