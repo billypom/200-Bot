@@ -350,7 +350,7 @@ async def l(
         await ctx.respond(f'``Error 20:`` Oops! Something went wrong. Please contact {secrets.my_discord}')
         return
     response = 'Lineup:\n'
-    for i in range(temp):
+    for i in range(len(temp)):
         response = f'{response}\n`{i+1}`{temp[i][0]}'
     await ctx.respond(response)
     return
