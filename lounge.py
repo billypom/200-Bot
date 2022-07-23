@@ -580,6 +580,9 @@ async def create_teams(ctx, poll_results):
     for i in range(len(player_db)):
         players_list.append(player_db[i][0])
     random.shuffle(players_list)
+    
+    # temp return
+    return players_list
 
 
     
