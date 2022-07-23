@@ -555,7 +555,7 @@ Poll ends in 1 minute or when a format reaches 6 votes.'''
 
 
 async def start_mogi(ctx):
-
+    pass
 # Poll Ended!
 
 # 1. FFA - 3 (Splinkle, Tatsuya, IhavePants)
