@@ -78,11 +78,15 @@ lounge_id = 999835318104625252
 ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
 MOGILIST = {}
-TIER_A_VOTING = False
-TIER_Z_VOTING = False
-
+TIER_ID_LIST = []
 intents = discord.Intents(messages=True, guilds=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
+
+with DBA.DBAccess() as db:
+    get_tier_list = db.query('SELECT tier_id FROM tier;'(0,))
+    for i in range(len(get_tier_list)):
+        TIER_ID_LIST.append(get_tier_list[i][0])
+    print(TIER_ID_LIST)
 
 
 def update_mogilist():
@@ -153,20 +157,21 @@ async def on_application_command_error(ctx, error):
 async def on_message(ctx):
     if ctx.author.id == lounge_id:
         return
-    if TIER_A_VOTING or TIER_Z_VOTING:
-        if str(ctx.content) in ['1', '2', '3', '4', '6']:
-            try:
-                with DBA.DBAccess() as db:
-                    temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
-            except Exception as e:
-                await send_to_debug_channel(ctx, e)
-                return
-            try:
-                with DBA.DBAccess() as db:
-                    db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content),))
-            except Exception as e:
-                await send_to_debug_channel(ctx, e)
-                return
+    if ctx.channel.id in TIER_ID_LIST:
+        if stuff:
+            if str(ctx.content) in ['1', '2', '3', '4', '6']:
+                try:
+                    with DBA.DBAccess() as db:
+                        temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
+                except Exception as e:
+                    await send_to_debug_channel(ctx, e)
+                    return
+                try:
+                    with DBA.DBAccess() as db:
+                        db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content),))
+                except Exception as e:
+                    await send_to_debug_channel(ctx, e)
+                    return
     # get discord id and channel id
     # if user and channel id in lineups
     message = ctx.content
@@ -551,10 +556,14 @@ async def start_format_vote(ctx):
 
 Type the number or format to vote!
 Poll ends in 2 minutes or when a format reaches 6 votes.'''
+    print(f'tier a voting: {TIER_A_VOTING}')
+    print(f'tier z voting: {TIER_Z_VOTING}')
     await channel.send(response)
     with DBA.DBAccess() as db:
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
     poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
+    print(f'tier a voting: {TIER_A_VOTING}')
+    print(f'tier z voting: {TIER_Z_VOTING}')
 
     
 
