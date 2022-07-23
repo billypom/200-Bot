@@ -326,6 +326,7 @@ async def c(
     if count >= 2:
         print('count >=2')
         mogi_format = await start_format_vote(ctx)
+        # Chooses a host. Says the start time
         await start_mogi(ctx)
 
 
@@ -491,7 +492,7 @@ async def fc(
 
 
 
-
+# Takes a ctx, returns a response
 async def create_player(ctx):
     x = await check_if_player_exists(ctx)
     if x:
@@ -510,6 +511,7 @@ async def create_player(ctx):
             # 2. a genuine player locked from usage by another player (banned player might have locked them out)
             # 3. someone is verifying multiple times
 
+# Takes a ctx & a string, returns a response
 async def update_friend_code(ctx, message):
     fc_pattern = '\d\d\d\d-?\d\d\d\d-?\d\d\d\d'
     if re.search(fc_pattern, message):
@@ -523,6 +525,7 @@ async def update_friend_code(ctx, message):
     else:
         return 'Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
 
+# Takes a ctx, returns 
 async def start_format_vote(ctx):
     try:
         with DBA.DBAccess() as db:
@@ -531,9 +534,6 @@ async def start_format_vote(ctx):
         await send_to_debug_channel(ctx, e)
         await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
         return 0
-
-    # TIER VOTING BOOLEAN LOL ------------------------------------------------------------
-
 
     channel = client.get_channel(ctx.channel.id)
     try:
@@ -580,7 +580,7 @@ async def create_teams(ctx, poll_results):
     for i in range(len(player_db)):
         players_list.append(player_db[i][0])
     random.shuffle(players_list)
-    
+
     # temp return
     return players_list
 
@@ -692,6 +692,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         with DBA.DBAccess() as db:
             votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
         for i in range(len(votes_temp)):
+            print(f'votes temp: {votes_temp}')
             if votes_temp[i][0] == 1:
                 player_format_choice = 'FFA'
             elif votes_temp[i][0] == 2:
@@ -705,8 +706,10 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
             else:
                 continue
             if player_format_choice in poll_dictionary:
+                print('in dictionary')
                 poll_dictionary[player_format_choice].append(votes_temp[i][1])
             else:
+                print('not in dictionary..,.yet')
                 poll_dictionary[player_format_choice]=[votes_temp[i][1]]
         return [random.choice(ind), poll_dictionary]
 
