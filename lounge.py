@@ -68,13 +68,17 @@ import time
 import json
 import requests
 import asyncio
+import random
 import concurrent.futures
 from bs4 import BeautifulSoup as Soup
+from waiting import wait
 
 Lounge = [461383953937596416]
 ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
 MOGILIST = {}
+TIER_A_VOTING = False
+TIER_Z_VOTING = False
 
 intents = discord.Intents(messages=True, guilds=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -146,6 +150,20 @@ async def on_application_command_error(ctx, error):
 
 @client.event
 async def on_message(ctx):
+    if TIER_A_VOTING or TIER_Z_VOTING:
+        if str(ctx.content) in ['1', '2', '3', '4', '6']:
+            try:
+                with DBA.DBAccess() as db:
+                    temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
+            except Exception as e:
+                await send_to_debug_channel(ctx, e)
+                return
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content),))
+            except Exception as e:
+                await send_to_debug_channel(ctx, e)
+                return
     # get discord id and channel id
     # if user and channel id in lineups
     message = ctx.content
@@ -292,8 +310,10 @@ async def c(
         await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secrets.my_discord}. {e}')
         await send_to_debug_channel(ctx, e)
         return
-    if count == 12:
-        print(f'count: {count}')
+    if count == 2:
+        mogi_format = await start_format_vote(ctx)
+        await start_mogi(ctx)
+
 
 
         # start the mogi, vote on format, create teams
@@ -346,7 +366,7 @@ async def l(
     await ctx.defer()
     try:
         with DBA.DBAccess() as db:
-            temp = db.query("SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s;", (ctx.channel.id,))
+            temp = db.query("SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC;", (ctx.channel.id,))
     except Exception as e:
         await ctx.respond(f'``Error 20:`` Oops! Something went wrong. Please contact {secrets.my_discord}')
         return
@@ -435,6 +455,28 @@ async def fc(
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 async def create_player(ctx):
     x = await check_if_player_exists(ctx)
     if x:
@@ -466,8 +508,72 @@ async def update_friend_code(ctx, message):
     else:
         return 'Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
 
+async def start_format_vote(ctx):
+    try:
+        with DBA.DBAccess() as db:
+            query_result = db.query('SELECT tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+            tier = query_result[0][0]
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
+        channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
+        return 0
+
+    # TIER VOTING BOOLEAN LOL ------------------------------------------------------------
+    if tier == 'a':
+        TIER_A_VOTING = True
+    elif tier == 'z':
+        TIER_Z_VOTING = True
+
+    channel = client.get_channel(ctx.channel.id)
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC;', (ctx.channel.id))
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
+        channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
+        return 0
+    response = ''
+    for i in range(len(temp)):
+        response = f'{response} <@{temp[i][0]}>'
+    response = f'''{response} mogi has 12 players\n
+`Poll Started!`\n
+\n
+`1.` FFA\n
+`2.` 2v2\n
+`3.` 3v3\n
+`4.` 4v4\n
+`6.` 6v6\n
+\n
+Type the number or format to vote!\n
+Poll ends in 1 minute or when a format reaches 6 votes.'''
+    await channel.send(response)
+    with DBA.DBAccess() as db:
+        unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id))
+    poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
+
+    
 
 
+async def start_mogi(ctx):
+
+# Poll Ended!
+
+# 1. FFA - 3 (Splinkle, Tatsuya, IhavePants)
+# 2. 2v2 - 6 (Ai Xiang, Deshawn Co. III, ObesoYoshiraMK, Helfire Club, naive, iiRxl)
+# 3. 3v3 - 0
+# 4. 4v4 - 0
+# 6. 6v6 - 0
+# Winner: 2v2
+
+# Room MMR: 7213
+# Team 1: Deshawn Co. III, iiRxl (MMR: 9846)
+# Team 2: naive, Ty (MMR: 7728)
+# Team 3: Tatsuya, ObesoYoshiraMK (MMR: 7033)
+# Team 4: Splinkle, Maxarx (MMR: 6378)
+# Team 5: IhavePants, Ai Xiang (MMR: 6318)
+# Team 6: Helfire Club, Nino (MMR: 4734)
+
+# Table: !scoreboard 6 Deshawn Co. III, iiRxl, naive, Ty, Tatsuya, ObesoYoshiraMK, Splinkle, Maxarx, IhavePants, Ai Xiang, Helfire Club, Nino
 
 
 
@@ -506,6 +612,51 @@ async def send_to_sub_log(ctx, message):
 
 
 
+async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
+    dtobject_now = datetime.datetime.now('UTC')
+    unix_now = time.mktime(dtobject_now.timetuple())
+    format_list = [0,0,0,0,0]
+    while (unix_now - last_joiner_unix_timestamp) < 120:
+        await asyncio.sleeo(1)
+        with DBA.DBAccess() as db:
+            ffa_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,1))
+            format_list[0] = ffa_temp[0][0]
+        with DBA.DBAccess() as db:
+            v2_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,2))
+            format_list[1] = v2_temp[0][0]
+        with DBA.DBAccess() as db:
+            v3_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,3))
+            format_list[2] = v3_temp[0][0]
+        with DBA.DBAccess() as db:
+            v4_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,4))
+            format_list[3] = v4_temp[0][0]
+        with DBA.DBAccess() as db:
+            v6_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,6))
+            format_list[4] = v6_temp[0][0]
+        if ffa == 6 or v2 == 6 or v3 == 6 or v4 == 6 or v6 == 6:
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+            break
+    if format_list[0] == 6:
+        return 1
+    elif format_list[1] == 6:
+        return 2
+    elif format_list[2] == 6:
+        return 3
+    elif format_list[3] == 6:
+        return 4
+    elif format_list[4] == 6:
+        return 6
+    else:
+        max_val = max(format_list)
+        ind = [i for i, v in enumerate(format_list) if v == max_val]
+        return random.choice(ind)
+
+    
+    
+    
+    
+    
 
 
 
