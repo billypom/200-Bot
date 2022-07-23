@@ -159,22 +159,23 @@ async def on_message(ctx):
         return
     if ctx.channel.id in TIER_ID_LIST:
         with DBA.DBAccess() as db:
-            get_tier = db.query('SELECT voting FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
-        if get_tier[0][0] == ctx.channel.id:
-            if str(ctx.content) in ['1', '2', '3', '4', '6']:
-                print('its in there lol')
-                try:
-                    with DBA.DBAccess() as db:
-                        temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
-                except Exception as e:
-                    await send_to_debug_channel(ctx, e)
-                    return
-                try:
-                    with DBA.DBAccess() as db:
-                        db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content),))
-                except Exception as e:
-                    await send_to_debug_channel(ctx, e)
-                    return
+            get_tier = db.query('SELECT voting, tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+        if get_tier[0][0]:
+            if get_tier[0][1] == ctx.channel.id:
+                if str(ctx.content) in ['1', '2', '3', '4', '6']:
+                    print('its in there lol')
+                    try:
+                        with DBA.DBAccess() as db:
+                            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
+                    except Exception as e:
+                        await send_to_debug_channel(ctx, e)
+                        return
+                    try:
+                        with DBA.DBAccess() as db:
+                            db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content),))
+                    except Exception as e:
+                        await send_to_debug_channel(ctx, e)
+                        return
     # get discord id and channel id
     # if user and channel id in lineups
     message = ctx.content
