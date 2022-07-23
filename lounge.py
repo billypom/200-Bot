@@ -405,7 +405,7 @@ async def fc(
 
 
 async def get_uid_from_username(ctx):
-
+    pass
 
 async def create_player(ctx):
     x = await check_if_player_exists(ctx)
