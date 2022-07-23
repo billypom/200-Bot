@@ -306,8 +306,8 @@ async def c(
 )
 async def sub(
     ctx,
-    leaving_player: discord.Option(discord.Member, 'Leaving player', required=True),
-    subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
+    leaving_player: discord.Option(discord.User, 'Leaving player', required=True),
+    subbing_player: discord.Option(discord.User, 'Subbing player', required=True)
     ):
     await ctx.defer()
     print(leaving_player)
