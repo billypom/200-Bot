@@ -553,7 +553,7 @@ Type the number or format to vote!
 Poll ends in 2 minutes or when a format reaches 6 votes.'''
     await channel.send(response)
     with DBA.DBAccess() as db:
-        unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id))
+        unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
     poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
 
     
