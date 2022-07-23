@@ -765,15 +765,15 @@ async def create_teams(ctx, poll_results):
     keys_list = list(poll_results[1])
     winning_format = keys_list[poll_results[0]]
     number_of_teams = 0
-    if winning_format = 'FFA':
+    if winning_format == 'FFA':
         number_of_teams = 12
-    elif winning_format = '2v2':
+    elif winning_format == '2v2':
         number_of_teams = 6
-    elif winning_format = '3v3':
+    elif winning_format == '3v3':
         number_of_teams = 4
-    elif winning_format = '4v4':
+    elif winning_format == '4v4':
         number_of_teams = 3
-    elif winning_format = '6v6':
+    elif winning_format == '6v6':
         number_of_teams = 2
     else:
         return 0
