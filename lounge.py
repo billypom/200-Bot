@@ -560,8 +560,10 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
     await channel.send(response)
     with DBA.DBAccess() as db:
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
+    # returns the index of the voted on format from a list [ffa, 2v2, 3v3, 4v4, 6v6]
     poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
-    await channel.send(poll_results)
+    teams_response = await create_teams(ctx, poll_results)
+    await channel.send(teams_response)
 
     
 
