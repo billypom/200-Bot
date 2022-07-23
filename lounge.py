@@ -172,7 +172,7 @@ async def on_message(ctx):
                         return
                     try:
                         with DBA.DBAccess() as db:
-                            db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content),))
+                            db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content), ctx.author.id))
                     except Exception as e:
                         await send_to_debug_channel(ctx, e)
                         return
