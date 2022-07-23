@@ -646,6 +646,8 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
             format_list[4] = v6_temp[0][0]
         if 6 in format_list:
             break
+        print(f'{unix_now} - {last_joiner_unix_timestamp}')
+        dtobject_now = datetime.datetime.now()
         unix_now = time.mktime(dtobject_now.timetuple())
     with DBA.DBAccess() as db:
         db.execute('UPDATE tier SET voting = 0 WHERE tier_id = %s;', (ctx.channel.id,))
