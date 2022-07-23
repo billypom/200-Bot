@@ -339,6 +339,7 @@ async def d(
     description='Show the mogi lineup',
     guild_ids=Lounge
 )
+@commands.cooldown(1, 30, commands.BucketType.user)
 async def l(
     ctx
     ):
@@ -349,12 +350,12 @@ async def l(
     except Exception as e:
         await ctx.respond(f'``Error 20:`` Oops! Something went wrong. Please contact {secrets.my_discord}')
         return
-    response = 'Lineup:\n'
+    response = '`Mogi List`:'
     for i in range(len(temp)):
-        response = f'{response}\n`{i+1}`{temp[i][0]}'
-    await ctx.respond(response)
+        response = f'{response}\n`{i+1}.` {temp[i][0]}'
+    response = f'{response}\n\n\nYou can type `/l` again in 30 seconds'
+    await ctx.respond(response, delete_after=30)
     return
-
 
 
 @client.slash_command(
