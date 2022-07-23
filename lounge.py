@@ -700,22 +700,11 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
             elif votes_temp[i][0] == 6:
                 player_format_choice = '6v6'
             else:
-                player_format_choice = 'none'
+                continue
             if player_format_choice in poll_dictionary:
                 poll_dictionary[player_format_choice].append(votes_temp[i][1])
             else:
-                if votes_temp[i][0] == 1:
-                    poll_dictionary['FFA']=[votes_temp[i][1]]
-                elif votes_temp[i][0] == 2:
-                    poll_dictionary['2v2']=[votes_temp[i][1]]
-                elif votes_temp[i][0] == 3:
-                    poll_dictionary['3v3']=[votes_temp[i][1]]
-                elif votes_temp[i][0] == 4:
-                    poll_dictionary['4v4']=[votes_temp[i][1]]
-                elif votes_temp[i][0] == 6:
-                    poll_dictionary['6v6']=[votes_temp[i][1]]
-                else:
-                    pass
+                poll_dictionary[player_format_choice]=[votes_temp[i][1]]
         return [random.choice(ind), poll_dictionary]
 
 async def check_if_mogi_is_ongoing(ctx):
