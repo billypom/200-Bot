@@ -342,14 +342,12 @@ async def d(
 )
 async def sub(
     ctx,
-    leaving_player: discord.Option(discord.User, 'Leaving player', required=True),
-    subbing_player: discord.Option(discord.User, 'Subbing player', required=True)
+    leaving_player: discord.Option(discord.Member, 'Leaving player', required=True),
+    subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
     ):
     await ctx.defer()
     print(leaving_player.id)
     print(subbing_player.id)
-    user = await commands.UserConverter().convert(ctx, leaving_player)
-    print(user)
     # check if match is ongoing (12 players in lineups table)
     x = await check_if_mogi_is_ongoing(ctx)
     if x:
