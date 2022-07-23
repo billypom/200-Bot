@@ -78,7 +78,7 @@ lounge_id = 999835318104625252
 ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
 MOGILIST = {}
-TIER_ID_LIST = []
+TIER_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
 intents = discord.Intents(messages=True, guilds=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -326,7 +326,7 @@ async def c(
         return
     if count >= 2:
         print('count >=2')
-        mogi_started_successfully = await start_format_vote(ctx)
+        mogi_started_successfully = await start_mogi(ctx)
         if mogi_started_successfully:
             pass
             # Chooses a host. Says the start time
@@ -534,7 +534,7 @@ async def update_friend_code(ctx, message):
         return 'Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
 
 # Takes a ctx, returns 
-async def start_format_vote(ctx):
+async def start_mogi(ctx):
     try:
         with DBA.DBAccess() as db:
             db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
@@ -546,8 +546,8 @@ async def start_format_vote(ctx):
     channel = client.get_channel(ctx.channel.id)
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (ctx.channel.id,))
-            db.execute('UPDATE lineups SET can_drop = 0 WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (ctx.channel.id,))
+            temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+            db.execute('UPDATE lineups SET can_drop = 0 WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
@@ -568,9 +568,9 @@ Type a number to vote!
 Poll ends in 2 minutes or when a format reaches 6 votes.'''
     await channel.send(response)
     with DBA.DBAccess() as db:
-        unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
+        unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     # returns the index of the voted on format, and a dictionary of format:voters
-    poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
+    poll_results = await check_for_poll_results(ctx, unix_temp[MAX_PLAYERS_IN_MOGI-1][0])
     if poll_results[0] == 0:
         # Cancel Mogi
         await channel.send('No votes. Mogi will be cancelled.')
@@ -578,11 +578,11 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
         return
     teams_results = await create_teams(ctx, poll_results)
 
-    ffa_voters = []
-    v2_voters = []
-    v3_voters = []
-    v4_voters = []
-    v6_voters = []
+    ffa_voters = list()
+    v2_voters = list()
+    v3_voters = list()
+    v4_voters = list()
+    v6_voters = list()
     # create formatted message
     for player in poll_results[1]['FFA']:
         ffa_voters.append(player)
@@ -624,14 +624,6 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
 # 4. 4v4 - 0
 # 6. 6v6 - 0
 # Winner: 2v2
-
-# Room MMR: 7213
-# Team 1: Deshawn Co. III, iiRxl (MMR: 9846)
-# Team 2: naive, Ty (MMR: 7728)
-# Team 3: Tatsuya, ObesoYoshiraMK (MMR: 7033)
-# Team 4: Splinkle, Maxarx (MMR: 6378)
-# Team 5: IhavePants, Ai Xiang (MMR: 6318)
-# Team 6: Helfire Club, Nino (MMR: 4734)
 
 # Table: !scoreboard 6 Deshawn Co. III, iiRxl, naive, Ty, Tatsuya, ObesoYoshiraMK, Splinkle, Maxarx, IhavePants, Ai Xiang, Helfire Club, Nino
 
@@ -693,7 +685,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
             "6v6":[],
         }
         with DBA.DBAccess() as db:
-            votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
+            votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
         for i in range(len(votes_temp)):
             print(f'votes temp: {votes_temp}')
             if votes_temp[i][0] == 1:
@@ -782,6 +774,29 @@ async def check_if_banned_characters(message):
             return True
     return False
 
+
+
+
+# takes in a uid, returns mmr
+async def get_player_mmr(uid):
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (uid,))
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
+        return -1
+    return temp[0][0]
+
+
+
+
+
+
+
+
+
+
+# poll_results is [index of the voted on format, a dictionary of format:voters]
 async def create_teams(ctx, poll_results):
     keys_list = list(poll_results[1])
     winning_format = keys_list[poll_results[0]]
@@ -799,11 +814,42 @@ async def create_teams(ctx, poll_results):
     else:
         return 0
     with DBA.DBAccess() as db:
-        player_db = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
-    players_list = []
+        player_db = db.query('SELECT p.player_name p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+    players_list = list()
+    room_mmr = 0
     for i in range(len(player_db)):
-        players_list.append(player_db[i][0])
-    random.shuffle(players_list)
+        players_list.append([player_db[i][0], player_db[i][1], player_db[i][2]])
+        room_mmr = room_mmr + player_db[i][2]
+    random.shuffle(players_list) # [[popuko, 7238917831],[2p,7u3891273812]]
+    room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
+    response_string = f'`Room MMR:` {room_mmr}\n'
+
+
+
+    # divide the list into (number_of_teams) parts
+    chunked_list = list()
+    for i in range(0, len(players_list), number_of_teams):
+        chunked_list.append(players_list[i:i+number_of_teams])
+    # for each divided team, get mmr for all players, average them, add data to response string?
+    mogi_teams_dict = {}
+    for team in chunked_list:
+        temp_mmr = 0
+        for player in team:
+            temp_mmr = temp_mmr + player[2]
+        team_mmr = temp_mmr/len(team)
+
+
+    # Room MMR: 7213
+    # Team 1: Deshawn Co. III, iiRxl (MMR: 9846)
+    # Team 2: naive, Ty (MMR: 7728)
+    # Team 3: Tatsuya, ObesoYoshiraMK (MMR: 7033)
+    # Team 4: Splinkle, Maxarx (MMR: 6378)
+    # Team 5: IhavePants, Ai Xiang (MMR: 6318)
+    # Team 6: Helfire Club, Nino (MMR: 4734)
+
+    # order teams based on MMR
+    # choose a host
+    # create a return string
 
     # temp return
     return players_list
@@ -811,7 +857,7 @@ async def create_teams(ctx, poll_results):
 async def cancel_mogi(ctx):
     # Delete player records for first 12 in lineups table
     with DBA.DBAccess() as db:
-        db.execute('DELETE FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (ctx.channel.id,))
+        db.execute('DELETE FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     return
 
 
