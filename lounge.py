@@ -562,7 +562,11 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
     # returns the index of the voted on format, and a dictionary of format:voters
     poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
-    teams_results = await create_teams(ctx, poll_results[0])
+    if poll_results[0] = 0:
+        # Cancel Mogi
+        await channel.send('No votes. Mogi will be cancelled.')
+        await cancel_mogi(ctx)
+    teams_results = await create_teams(ctx, poll_results)
 
     ffa_voters = []
     v2_voters = []
@@ -587,15 +591,16 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
     }
     poll_results_response = f'''`Poll Ended!`
 
-`1.` FFA - {len(ffa_voters)} {str(ffa_voters).translate(remove_chars)}
-`2.` 2v2 - {len(v2_voters)} {str(v2_voters).translate(remove_chars)}
-`3.` 3v3 - {len(v3_voters)} {str(v3_voters).translate(remove_chars)}
-`4.` 4v4 - {len(v4_voters)} {str(v4_voters).translate(remove_chars)}
-`6.` 6v6 - {len(v6_voters)} {str(v6_voters).translate(remove_chars)}
+`1.` FFA - {len(ffa_voters)} ({str(ffa_voters).translate(remove_chars)})
+`2.` 2v2 - {len(v2_voters)} ({str(v2_voters).translate(remove_chars)})
+`3.` 3v3 - {len(v3_voters)} ({str(v3_voters).translate(remove_chars)})
+`4.` 4v4 - {len(v4_voters)} ({str(v4_voters).translate(remove_chars)})
+`6.` 6v6 - {len(v6_voters)} ({str(v6_voters).translate(remove_chars)})
+`Winner:` {}
 
 {teams_results}
 
-/submit stuff
+`Table: /submit stuff`
 
 '''
     await channel.send(poll_results_response)
@@ -649,6 +654,9 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         print(f'{unix_now} - {last_joiner_unix_timestamp}')
         dtobject_now = datetime.datetime.now()
         unix_now = time.mktime(dtobject_now.timetuple())
+    if all([v == 0 for v in format_list]):
+        return [0, { '0': 0 }] # If all zeros, return 0. cancel mogi
+    # Close the voting
     with DBA.DBAccess() as db:
         db.execute('UPDATE tier SET voting = 0 WHERE tier_id = %s;', (ctx.channel.id,))
     if format_list[0] == 6:
@@ -754,6 +762,21 @@ async def check_if_banned_characters(message):
     return False
 
 async def create_teams(ctx, poll_results):
+    keys_list = list(poll_results[1])
+    winning_format = keys_list[poll_results[0]]
+    number_of_teams = 0
+    if winning_format = 'FFA':
+        number_of_teams = 12
+    elif winning_format = '2v2':
+        number_of_teams = 6
+    elif winning_format = '3v3':
+        number_of_teams = 4
+    elif winning_format = '4v4':
+        number_of_teams = 3
+    elif winning_format = '6v6':
+        number_of_teams = 2
+    else:
+        return 0
     with DBA.DBAccess() as db:
         player_db = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
     players_list = []
@@ -763,6 +786,13 @@ async def create_teams(ctx, poll_results):
 
     # temp return
     return players_list
+
+async def cancel_mogi(ctx):
+    # Delete player records for first 12 in lineups table
+    with DBA.DBAccess() as db:
+        db.execute('DELETE FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (ctx.channel.id,))
+    return
+
 
 # Somebody did a bad
 # ctx | message | discord.Color.red() | my custom message
