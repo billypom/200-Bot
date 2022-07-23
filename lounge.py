@@ -638,9 +638,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         with DBA.DBAccess() as db:
             v6_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,6))
             format_list[4] = v6_temp[0][0]
-        if ffa == 6 or v2 == 6 or v3 == 6 or v4 == 6 or v6 == 6:
-            with DBA.DBAccess() as db:
-                temp = db.query('SELECT tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+        if 6 in format_list:
             break
     if format_list[0] == 6:
         return 1
