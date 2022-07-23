@@ -325,6 +325,8 @@ async def sub(
     else:
         await ctx.respond('You are not in the mogi. You cannot sub out another player')
         return
+    user = await commands.UserConverter().convert(ctx, leaving_player)
+    print(user)
     # replace src dst
     # 
 
