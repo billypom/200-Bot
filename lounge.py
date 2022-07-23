@@ -325,12 +325,12 @@ async def c(
         return
     if count >= 2:
         print('count >=2')
-        mogi_format = await start_format_vote(ctx)
-        # Chooses a host. Says the start time
-        # await start_mogi(ctx)
-
-
-
+        mogi_started_successfully = await start_format_vote(ctx)
+        if mogi_started_successfully:
+            # Chooses a host. Says the start time
+            # await start_mogi(ctx)
+        else:
+            return
         # start the mogi, vote on format, create teams
     return
 
@@ -566,6 +566,7 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
         # Cancel Mogi
         await channel.send('No votes. Mogi will be cancelled.')
         await cancel_mogi(ctx)
+        return
     teams_results = await create_teams(ctx, poll_results)
 
     ffa_voters = []
