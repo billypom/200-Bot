@@ -563,7 +563,6 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
     # returns the index of the voted on format, and a dictionary of format:voters
     poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
     teams_results = await create_teams(ctx, poll_results[0])
-    await channel.send(poll_results[1]) # Temp send the dictionary of votes so i can see them...
 
     ffa_voters = []
     v2_voters = []
@@ -581,12 +580,18 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
         v4_voters.append(player)
     for player in poll_results[1]['6v6']:
         v6_voters.append(player)
-    poll_results_response = f'''Poll Ended!
-`1.` FFA - {len(ffa_voters)} {ffa_voters}
-`2.` 2v2 - {len(v2_voters)} {v2_voters}
-`3.` 3v3 - {len(v3_voters)} {v3_voters}
-`4.` 4v4 - {len(v4_voters)} {v4_voters}
-`6.` 6v6 - {len(v6_voters)} {v6_voters}
+    remove_chars = {
+        39:None,
+        91:None,
+        93:None,
+    }
+    poll_results_response = f'''`Poll Ended!`
+
+`1.` FFA - {len(ffa_voters)} {ffa_voters.translate(remove_chars)}
+`2.` 2v2 - {len(v2_voters)} {v2_voters.translate(remove_chars)}
+`3.` 3v3 - {len(v3_voters)} {v3_voters.translate(remove_chars)}
+`4.` 4v4 - {len(v4_voters)} {v4_voters.translate(remove_chars)}
+`6.` 6v6 - {len(v6_voters)} {v6_voters.translate(remove_chars)}
 
 {teams_results}
 
@@ -614,51 +619,6 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
 # Team 6: Helfire Club, Nino (MMR: 4734)
 
 # Table: !scoreboard 6 Deshawn Co. III, iiRxl, naive, Ty, Tatsuya, ObesoYoshiraMK, Splinkle, Maxarx, IhavePants, Ai Xiang, Helfire Club, Nino
-
-
-async def create_teams(ctx, poll_results):
-    with DBA.DBAccess() as db:
-        player_db = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
-    players_list = []
-    for i in range(len(player_db)):
-        players_list.append(player_db[i][0])
-    random.shuffle(players_list)
-
-    # temp return
-    return players_list
-
-
-# Somebody did a bad
-# ctx | message | discord.Color.red() | my custom message
-async def send_to_verification_log(ctx, message, verify_color, verify_description):
-    channel = client.get_channel(secrets.verification_channel)
-    embed = discord.Embed(title='Verification', description=verify_description, color = verify_color)
-    embed.add_field(name='Name: ', value=ctx.author, inline=False)
-    embed.add_field(name='Message: ', value=message, inline=False)
-    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
-    await channel.send(content=None, embed=embed)
-
-async def send_to_debug_channel(ctx, error):
-    channel = client.get_channel(secrets.debug_channel)
-    embed = discord.Embed(title='Error', description='>.<', color = discord.Color.blurple())
-    embed.add_field(name='Name: ', value=ctx.author, inline=False)
-    embed.add_field(name='Error: ', value=str(error), inline=False)
-    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
-    await channel.send(content=None, embed=embed)
-
-async def send_to_sub_log(ctx, message):
-    channel = client.get_channel(secrets.sub_channel)
-    embed = discord.Embed(title='Sub', description=':3', color = discord.Color.blurple())
-    embed.add_field(name='Name: ', value=ctx.author, inline=False)
-    embed.add_field(name='Message: ', value=str(message), inline=False)
-    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
-    await channel.send(content=None, embed=embed)
-
-
-
-
-
-
 
 
 
@@ -792,6 +752,56 @@ async def check_if_banned_characters(message):
         if value in message:
             return True
     return False
+
+async def create_teams(ctx, poll_results):
+    with DBA.DBAccess() as db:
+        player_db = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
+    players_list = []
+    for i in range(len(player_db)):
+        players_list.append(player_db[i][0])
+    random.shuffle(players_list)
+
+    # temp return
+    return players_list
+
+# Somebody did a bad
+# ctx | message | discord.Color.red() | my custom message
+async def send_to_verification_log(ctx, message, verify_color, verify_description):
+    channel = client.get_channel(secrets.verification_channel)
+    embed = discord.Embed(title='Verification', description=verify_description, color = verify_color)
+    embed.add_field(name='Name: ', value=ctx.author, inline=False)
+    embed.add_field(name='Message: ', value=message, inline=False)
+    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
+    await channel.send(content=None, embed=embed)
+
+async def send_to_debug_channel(ctx, error):
+    channel = client.get_channel(secrets.debug_channel)
+    embed = discord.Embed(title='Error', description='>.<', color = discord.Color.blurple())
+    embed.add_field(name='Name: ', value=ctx.author, inline=False)
+    embed.add_field(name='Error: ', value=str(error), inline=False)
+    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
+    await channel.send(content=None, embed=embed)
+
+async def send_to_sub_log(ctx, message):
+    channel = client.get_channel(secrets.sub_channel)
+    embed = discord.Embed(title='Sub', description=':3', color = discord.Color.blurple())
+    embed.add_field(name='Name: ', value=ctx.author, inline=False)
+    embed.add_field(name='Message: ', value=str(message), inline=False)
+    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
+    await channel.send(content=None, embed=embed)
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
