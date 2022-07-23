@@ -346,6 +346,10 @@ async def d(
     await ctx.defer(ephemeral=True)
     x = await check_if_uid_in_tier(ctx.author.id)
     if x:
+        y = await check_if_mogi_is_ongoing(ctx)
+        if y:
+            await ctx.respond('You cannot drop from an ongoing mogi.')
+            return
         # No try block - check is above...
         with DBA.DBAccess() as db:
             tier_temp = db.query('SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s;', (ctx.author.id,))
@@ -540,13 +544,14 @@ async def start_format_vote(ctx):
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (ctx.channel.id,))
+            db.execute('UPDATE lineups SET can_drop = 0 WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (ctx.channel.id,))
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
         return 0
     response = ''
     for i in range(len(temp)):
-        response = f'{response} <@{temp[i][0]}> '
+        response = f'{response} <@{temp[i][0]}>'
     response = f'''{response} mogi has 12 players
 `Poll Started!`
 
