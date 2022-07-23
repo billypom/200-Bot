@@ -539,7 +539,7 @@ async def start_format_vote(ctx):
     channel = client.get_channel(ctx.channel.id)
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC;', (ctx.channel.id,))
+            temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (ctx.channel.id,))
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
