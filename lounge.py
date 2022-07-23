@@ -74,6 +74,7 @@ from bs4 import BeautifulSoup as Soup
 from waiting import wait
 
 Lounge = [461383953937596416]
+lounge_id = 999835318104625252
 ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
 MOGILIST = {}
@@ -150,6 +151,8 @@ async def on_application_command_error(ctx, error):
 
 @client.event
 async def on_message(ctx):
+    if ctx.author.id == lounge_id:
+        return
     if TIER_A_VOTING or TIER_Z_VOTING:
         if str(ctx.content) in ['1', '2', '3', '4', '6']:
             try:
@@ -310,7 +313,7 @@ async def c(
         await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secrets.my_discord}. {e}')
         await send_to_debug_channel(ctx, e)
         return
-    if count == 2:
+    if count >= 2:
         mogi_format = await start_format_vote(ctx)
         await start_mogi(ctx)
 
