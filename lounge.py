@@ -560,9 +560,14 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
     await channel.send(response)
     with DBA.DBAccess() as db:
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
-    # returns the index of the voted on format from a list [ffa, 2v2, 3v3, 4v4, 6v6]
+    # returns the index of the voted on format, and the list [ffa, 2v2, 3v3, 4v4, 6v6]
     poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
-    teams_response = await create_teams(ctx, poll_results)
+    await channel.send(poll_results[1])
+    poll_results_response = '''
+
+
+'''
+    teams_response = await create_teams(ctx, poll_results[0])
     await channel.send(teams_response)
 
     
@@ -570,8 +575,13 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
 
 async def create_teams(ctx, poll_results):
     with DBA.DBAccess() as db:
-        players_dblist = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY create_date ASC LIMIT 12;', (ctx.channel.id,))
-    print(f'teams: {players_dblist}')
+        players_db = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
+    players_list = []
+    for i in range(len(player_db)):
+        players_list.append(player_db[i][0])
+    random.shuffle(players_list)
+
+
     
 # Poll Ended!
 
@@ -670,9 +680,31 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
     elif format_list[4] == 6:
         return 6
     else:
+        # Get the index of the voted on format
         max_val = max(format_list)
         ind = [i for i, v in enumerate(format_list) if v == max_val]
-        return random.choice(ind)
+
+        # Create a dictionary where key=format, value=list of players who voted
+        poll_dictionary = {}
+        with DBA.DBAccess() as db:
+            votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
+        for i in range(len(votes_temp)):
+            if temp[i][0] in poll_dictionary:
+                poll_dictionary[temp[i][0]].append(temp[i][1])
+            else:
+                if temp[i][0] == 1:
+                    poll_dictionary['FFA']=[temp[i][1]]
+                elif temp[i][0] == 2:
+                    poll_dictionary['2v2']=[temp[i][1]]
+                elif temp[i][0] == 3:
+                    poll_dictionary['3v3']=[temp[i][1]]
+                elif temp[i][0] == 4:
+                    poll_dictionary['4v4']=[temp[i][1]]
+                elif temp[i][0] == 6:
+                    poll_dictionary['6v6']=[temp[i][1]]
+                else:
+                    pass
+        return [random.choice(ind), poll_dictionary]
 
 async def check_if_mogi_is_ongoing(ctx):
     try:
