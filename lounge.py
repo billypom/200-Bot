@@ -626,7 +626,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
     dtobject_now = datetime.datetime.now()
     unix_now = time.mktime(dtobject_now.timetuple())
     format_list = [0,0,0,0,0]
-    while (unix_now - last_joiner_unix_timestamp) < 120:
+    while (unix_now - last_joiner_unix_timestamp) < 20:
         await asyncio.sleep(1)
         with DBA.DBAccess() as db:
             ffa_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,1))
@@ -645,6 +645,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
             format_list[4] = v6_temp[0][0]
         if 6 in format_list:
             break
+        unix_now = time.mktime(dtobject_now.timetuple())
     if format_list[0] == 6:
         return 1
     elif format_list[1] == 6:
