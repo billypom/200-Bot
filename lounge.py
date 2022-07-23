@@ -327,6 +327,7 @@ async def c(
         print('count >=2')
         mogi_started_successfully = await start_format_vote(ctx)
         if mogi_started_successfully:
+            pass
             # Chooses a host. Says the start time
             # await start_mogi(ctx)
         else:
