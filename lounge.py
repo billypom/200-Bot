@@ -587,11 +587,11 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
     }
     poll_results_response = f'''`Poll Ended!`
 
-`1.` FFA - {len(ffa_voters)} {ffa_voters.translate(remove_chars)}
-`2.` 2v2 - {len(v2_voters)} {v2_voters.translate(remove_chars)}
-`3.` 3v3 - {len(v3_voters)} {v3_voters.translate(remove_chars)}
-`4.` 4v4 - {len(v4_voters)} {v4_voters.translate(remove_chars)}
-`6.` 6v6 - {len(v6_voters)} {v6_voters.translate(remove_chars)}
+`1.` FFA - {len(ffa_voters)} {str(ffa_voters).translate(remove_chars)}
+`2.` 2v2 - {len(v2_voters)} {str(v2_voters).translate(remove_chars)}
+`3.` 3v3 - {len(v3_voters)} {str(v3_voters).translate(remove_chars)}
+`4.` 4v4 - {len(v4_voters)} {str(v4_voters).translate(remove_chars)}
+`6.` 6v6 - {len(v6_voters)} {str(v6_voters).translate(remove_chars)}
 
 {teams_results}
 
