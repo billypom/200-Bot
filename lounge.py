@@ -520,7 +520,7 @@ async def start_format_vote(ctx):
             tier = query_result[0][0]
     except Exception as e:
         await send_to_debug_channel(ctx, e)
-        channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
+        await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
         return 0
 
     # TIER VOTING BOOLEAN LOL ------------------------------------------------------------
