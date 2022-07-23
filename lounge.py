@@ -575,7 +575,7 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
 
 async def create_teams(ctx, poll_results):
     with DBA.DBAccess() as db:
-        players_db = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
+        player_db = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
     players_list = []
     for i in range(len(player_db)):
         players_list.append(player_db[i][0])
@@ -689,8 +689,20 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         with DBA.DBAccess() as db:
             votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
         for i in range(len(votes_temp)):
-            if votes_temp[i][0] in poll_dictionary:
-                poll_dictionary[votes_temp[i][0]].append(votes_temp[i][1])
+            if votes_temp[i][0] == 1:
+                player_format_choice = 'FFA'
+            elif votes_temp[i][0] == 2:
+                player_format_choice = '2v2'
+            elif votes_temp[i][0] == 3:
+                player_format_choice = '3v3'
+            elif votes_temp[i][0] == 4:
+                player_format_choice = '4v4'
+            elif votes_temp[i][0] == 6:
+                player_format_choice = '6v6'
+            else:
+                player_format_choice = 'none'
+            if player_format_choice in poll_dictionary:
+                poll_dictionary[player_format_choice].append(votes_temp[i][1])
             else:
                 if votes_temp[i][0] == 1:
                     poll_dictionary['FFA']=[votes_temp[i][1]]
