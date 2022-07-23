@@ -562,7 +562,7 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
     # returns the index of the voted on format, and a dictionary of format:voters
     poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
-    if poll_results[0] = 0:
+    if poll_results[0] == 0:
         # Cancel Mogi
         await channel.send('No votes. Mogi will be cancelled.')
         await cancel_mogi(ctx)
