@@ -300,37 +300,6 @@ async def c(
     return
 
 @client.slash_command(
-    name='sub',
-    description='Sub out a player',
-    guild_ids=Lounge
-)
-async def sub(
-    ctx,
-    leaving_player: discord.Option(discord.User, 'Leaving player', required=True),
-    subbing_player: discord.Option(discord.User, 'Subbing player', required=True)
-    ):
-    await ctx.defer()
-    print(leaving_player)
-    print(subbing_player)
-    user = await commands.UserConverter().convert(ctx, leaving_player)
-    print(user)
-    # check if match is ongoing (12 players in lineups table)
-    x = await check_if_mogi_is_ongoing(ctx)
-    if x:
-        pass
-    else:
-        await ctx.respond('Mogi has not started')
-        return
-    y = await check_if_ctx_in_mogi(ctx)
-    if y:
-        pass
-    else:
-        await ctx.respond('You are not in the mogi. You cannot sub out another player')
-        return
-    # replace src dst
-    # 
-
-@client.slash_command(
     name='d',
     description='Drop from the mogi',
     guild_ids=Lounge
@@ -365,6 +334,37 @@ async def d(
         await ctx.respond('You are not in a mogi')
         return
 
+
+@client.slash_command(
+    name='sub',
+    description='Sub out a player',
+    guild_ids=Lounge
+)
+async def sub(
+    ctx,
+    leaving_player: discord.Option(discord.User, 'Leaving player', required=True),
+    subbing_player: discord.Option(discord.User, 'Subbing player', required=True)
+    ):
+    await ctx.defer()
+    print(leaving_player.id)
+    print(subbing_player.id)
+    user = await commands.UserConverter().convert(ctx, leaving_player)
+    print(user)
+    # check if match is ongoing (12 players in lineups table)
+    x = await check_if_mogi_is_ongoing(ctx)
+    if x:
+        pass
+    else:
+        await ctx.respond('Mogi has not started')
+        return
+    y = await check_if_ctx_in_mogi(ctx)
+    if y:
+        pass
+    else:
+        await ctx.respond('You are not in the mogi. You cannot sub out another player')
+        return
+    # replace src dst
+    # 
 
 
 # /setfc
@@ -404,28 +404,7 @@ async def fc(
 
 
 
-
-async def check_if_mogi_is_ongoing(ctx):
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
-    except Exception:
-        return False
-    if temp[0][0] == 12:
-        return True
-    else:
-        return False
-
-async def check_if_in_tier(ctx):
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
-            if temp[0][0] == ctx.author.id:
-                return True
-            else:
-                return False
-    except Exception:
-        return False
+async def get_uid_from_username(ctx):
 
 
 async def create_player(ctx):
@@ -484,6 +463,38 @@ async def send_to_debug_channel(ctx, error):
 
 
 
+
+
+
+
+
+
+
+
+
+
+async def check_if_mogi_is_ongoing(ctx):
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
+    except Exception:
+        return False
+    if temp[0][0] == 12:
+        return True
+    else:
+        return False
+
+async def check_if_in_tier(ctx):
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
+            if temp[0][0] == ctx.author.id:
+                return True
+            else:
+                return False
+    except Exception:
+        return False
+
 async def check_if_mkc_player_id_used(mkc_player_id):
     try:
         with DBA.DBAccess() as db:
@@ -539,17 +550,6 @@ async def lounge_request_mkc_user_id(ctx):
         future = executor.submit(mt_lounge_request_mkc_user_id, ctx)
         return_value = future.result()
     return return_value
-
-
-
-
-
-
-
-
-
-
-
 
 
 
