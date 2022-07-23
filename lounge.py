@@ -589,7 +589,7 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
         91:None,
         93:None,
     }
-    poll_results_response = f'''`Poll Ended!`
+    poll_results_response = f'''Poll Ended!
 
 `1.` FFA - {len(ffa_voters)} ({str(ffa_voters).translate(remove_chars)})
 `2.` 2v2 - {len(v2_voters)} ({str(v2_voters).translate(remove_chars)})
