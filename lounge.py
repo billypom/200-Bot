@@ -373,6 +373,7 @@ async def d(
     description='Show the mogi lineup',
     guild_ids=Lounge
 )
+@commands.command(aliases=['list'])
 @commands.cooldown(1, 30, commands.BucketType.user)
 async def l(
     ctx
@@ -651,6 +652,8 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         unix_now = time.mktime(dtobject_now.timetuple())
     with DBA.DBAccess() as db:
         db.execute('UPDATE tier SET voting = 0 WHERE tier_id = %s;', (ctx.channel.id,))
+    with DBA.DBAccess() as db:
+        db.execute('UPDATE lineups SET vote = NULL WHERE tier_id = %s;', (ctx.channel.id,))
     if format_list[0] == 6:
         return 1
     elif format_list[1] == 6:
