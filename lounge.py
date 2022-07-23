@@ -565,6 +565,11 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
     teams_results = await create_teams(ctx, poll_results[0])
     await channel.send(poll_results[1]) # Temp send the dictionary of votes so i can see them...
 
+    ffa_voters = []
+    v2_voters = []
+    v3_voters = []
+    v4_voters = []
+    v6_voters = []
     # create formatted message
     for player in poll_results[1]['FFA']:
         ffa_voters.append(player)
