@@ -544,7 +544,6 @@ async def start_format_vote(ctx):
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (ctx.channel.id,))
-            db.execute('UPDATE lineups SET can_drop = 0 WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (ctx.channel.id,))
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
