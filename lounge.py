@@ -539,18 +539,18 @@ async def start_format_vote(ctx):
         return 0
     response = ''
     for i in range(len(temp)):
-        response = f'{response} <@{temp[i][0]}>'
-    response = f'''{response} mogi has 12 players\n
-`Poll Started!`\n
-\n
-`1.` FFA\n
-`2.` 2v2\n
-`3.` 3v3\n
-`4.` 4v4\n
-`6.` 6v6\n
-\n
-Type the number or format to vote!\n
-Poll ends in 1 minute or when a format reaches 6 votes.'''
+        response = f'{response} <@{temp[i][0]}> '
+    response = f'''{response} mogi has 12 players
+`Poll Started!`
+
+`1.` FFA
+`2.` 2v2
+`3.` 3v3
+`4.` 4v4
+`6.` 6v6
+
+Type the number or format to vote!
+Poll ends in 2 minutes or when a format reaches 6 votes.'''
     await channel.send(response)
     with DBA.DBAccess() as db:
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id))
