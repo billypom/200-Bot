@@ -555,7 +555,7 @@ async def start_format_vote(ctx):
 `4.` 4v4
 `6.` 6v6
 
-Type the number or format to vote!
+Type a number to vote!
 Poll ends in 2 minutes or when a format reaches 6 votes.'''
     await channel.send(response)
     with DBA.DBAccess() as db:
@@ -568,8 +568,11 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
     
 
 
-async def start_mogi(ctx):
-    pass
+async def create_teams(ctx, poll_results):
+    with DBA.DBAccess() as db:
+        players_dblist = db.query('SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY create_date ASC LIMIT 12;', (ctx.channel.id,))
+    print(f'teams: {players_dblist}')
+    
 # Poll Ended!
 
 # 1. FFA - 3 (Splinkle, Tatsuya, IhavePants)
@@ -670,14 +673,6 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         max_val = max(format_list)
         ind = [i for i, v in enumerate(format_list) if v == max_val]
         return random.choice(ind)
-
-    
-    
-    
-    
-    
-
-
 
 async def check_if_mogi_is_ongoing(ctx):
     try:
