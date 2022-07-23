@@ -523,18 +523,14 @@ async def update_friend_code(ctx, message):
 async def start_format_vote(ctx):
     try:
         with DBA.DBAccess() as db:
-            query_result = db.query('SELECT tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
-            tier = query_result[0][0]
+            db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
         return 0
 
     # TIER VOTING BOOLEAN LOL ------------------------------------------------------------
-    if tier == 'a':
-        TIER_A_VOTING = True
-    elif tier == 'z':
-        TIER_Z_VOTING = True
+
 
     channel = client.get_channel(ctx.channel.id)
     try:
@@ -558,14 +554,10 @@ async def start_format_vote(ctx):
 
 Type the number or format to vote!
 Poll ends in 2 minutes or when a format reaches 6 votes.'''
-    print(f'tier a voting: {TIER_A_VOTING}')
-    print(f'tier z voting: {TIER_Z_VOTING}')
     await channel.send(response)
     with DBA.DBAccess() as db:
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
     poll_results = await check_for_poll_results(ctx, unix_temp[0][0])
-    print(f'tier a voting: {TIER_A_VOTING}')
-    print(f'tier z voting: {TIER_Z_VOTING}')
 
     
 
