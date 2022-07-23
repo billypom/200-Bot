@@ -689,7 +689,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         with DBA.DBAccess() as db:
             votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT 12;', (ctx.channel.id,))
         for i in range(len(votes_temp)):
-            if temp[i][0] in poll_dictionary:
+            if votes_temp[i][0] in poll_dictionary:
                 poll_dictionary[votes_temp[i][0]].append(votes_temp[i][1])
             else:
                 if votes_temp[i][0] == 1:
