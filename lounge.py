@@ -314,6 +314,7 @@ async def c(
         await send_to_debug_channel(ctx, e)
         return
     if count >= 2:
+        print('count >=2')
         mogi_format = await start_format_vote(ctx)
         await start_mogi(ctx)
 
