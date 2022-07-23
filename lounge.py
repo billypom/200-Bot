@@ -158,7 +158,9 @@ async def on_message(ctx):
     if ctx.author.id == lounge_id:
         return
     if ctx.channel.id in TIER_ID_LIST:
-        if stuff:
+        with DBA.DBAccess() as db:
+            get_tier = db.query('SELECT voting FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+        if get_tier[0][0] == ctx.channel.id:
             if str(ctx.content) in ['1', '2', '3', '4', '6']:
                 try:
                     with DBA.DBAccess() as db:
