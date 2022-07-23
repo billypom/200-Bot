@@ -373,7 +373,7 @@ async def d(
     description='Show the mogi lineup',
     guild_ids=Lounge
 )
-@commands.command(aliases=['list'])
+# @commands.command(aliases=['list'])
 @commands.cooldown(1, 30, commands.BucketType.user)
 async def l(
     ctx
