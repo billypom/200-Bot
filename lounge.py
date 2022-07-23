@@ -569,19 +569,19 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
     for player in poll_results[1]['FFA']:
         ffa_voters.append(player)
     for player in poll_results[1]['2v2']:
-        2v2_voters.append(player)
+        v2_voters.append(player)
     for player in poll_results[1]['3v3']:
-        3v3_voters.append(player)
+        v3_voters.append(player)
     for player in poll_results[1]['4v4']:
-        4v4_voters.append(player)
+        v4_voters.append(player)
     for player in poll_results[1]['6v6']:
-        6v6_voters.append(player)
+        v6_voters.append(player)
     poll_results_response = f'''Poll Ended!
 `1.` FFA - {len(ffa_voters)} {ffa_voters}
-`2.` 2v2 - {len(2v2_voters)} {2v2_voters}
-`3.` 3v3 - {len(3v3_voters)} {3v3_voters}
-`4.` 4v4 - {len(4v4_voters)} {4v4_voters}
-`6.` 6v6 - {len(6v6_voters)} {6v6_voters}
+`2.` 2v2 - {len(v2_voters)} {v2_voters}
+`3.` 3v3 - {len(v3_voters)} {v3_voters}
+`4.` 4v4 - {len(v4_voters)} {v4_voters}
+`6.` 6v6 - {len(v6_voters)} {v6_voters}
 
 {teams_results}
 
