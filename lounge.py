@@ -618,7 +618,7 @@ async def send_to_sub_log(ctx, message):
 
 
 async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
-    dtobject_now = datetime.datetime.now('UTC')
+    dtobject_now = datetime.datetime.now()
     unix_now = time.mktime(dtobject_now.timetuple())
     format_list = [0,0,0,0,0]
     while (unix_now - last_joiner_unix_timestamp) < 120:
