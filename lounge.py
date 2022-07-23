@@ -622,7 +622,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
     unix_now = time.mktime(dtobject_now.timetuple())
     format_list = [0,0,0,0,0]
     while (unix_now - last_joiner_unix_timestamp) < 120:
-        await asyncio.sleeo(1)
+        await asyncio.sleep(1)
         with DBA.DBAccess() as db:
             ffa_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,1))
             format_list[0] = ffa_temp[0][0]
