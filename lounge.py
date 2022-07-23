@@ -327,7 +327,7 @@ async def c(
         print('count >=2')
         mogi_format = await start_format_vote(ctx)
         # Chooses a host. Says the start time
-        await start_mogi(ctx)
+        # await start_mogi(ctx)
 
 
 
@@ -593,6 +593,7 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
 /submit stuff
 
 '''
+    await channel.send(poll_results_response)
 
     
 # Poll Ended!
