@@ -340,7 +340,7 @@ async def d(
     guild_ids=Lounge
 )
 async def l(
-    ctx,
+    ctx
     ):
     await ctx.defer()
     try:
