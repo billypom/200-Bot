@@ -79,6 +79,7 @@ ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
 MOGILIST = {}
 TIER_ID_LIST = []
+MAX_PLAYERS_IN_MOGI = 12
 intents = discord.Intents(messages=True, guilds=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 
@@ -309,7 +310,7 @@ async def c(
         await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secrets.my_discord}. {e}')
         await send_to_debug_channel(ctx, e)
         return
-    if count == 12:
+    if count == MAX_PLAYERS_IN_MOGI:
         await ctx.respond('Mogi is full')
         return
     try:
@@ -721,7 +722,7 @@ async def check_if_mogi_is_ongoing(ctx):
             temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
     except Exception:
         return False
-    if temp[0][0] == 12:
+    if temp[0][0] == MAX_PLAYERS_IN_MOGI:
         return True
     else:
         return False
