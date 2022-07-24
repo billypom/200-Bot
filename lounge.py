@@ -80,7 +80,7 @@ ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
 MOGILIST = {}
 TIER_ID_LIST = list()
-MAX_PLAYERS_IN_MOGI = 12
+MAX_PLAYERS_IN_MOGI = 2
 intents = discord.Intents(messages=True, guilds=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 
