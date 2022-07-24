@@ -72,6 +72,7 @@ import random
 import concurrent.futures
 from bs4 import BeautifulSoup as Soup
 from waiting import wait
+import traceback
 
 Lounge = [461383953937596416]
 lounge_id = 999835318104625252
@@ -152,6 +153,7 @@ async def on_application_command_error(ctx, error):
         embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
         await channel.send(content=None, embed=embed)
         await ctx.respond(f'Sorry! An unknown error occurred. Contact {secrets.my_discord} if you think this is a mistake.')
+        print(traceback.format_exc())
         return
 
 @client.event
