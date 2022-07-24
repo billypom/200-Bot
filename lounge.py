@@ -852,7 +852,7 @@ async def create_teams(ctx, poll_results):
         team_mmr = temp_mmr/len(team)
         team.append(team_mmr)
     print('b')
-    sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list)-1]))
+    sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
     print(sorted_list)
 
 
