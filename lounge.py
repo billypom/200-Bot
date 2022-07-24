@@ -599,7 +599,7 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
         91:None,
         93:None,
     }
-    poll_results_response = f'''Poll Ended!
+    poll_results_response = f'''`Poll Ended!`
 
 `1.` FFA - {len(ffa_voters)} ({str(ffa_voters).translate(remove_chars)})
 `2.` 2v2 - {len(v2_voters)} ({str(v2_voters).translate(remove_chars)})
@@ -820,7 +820,7 @@ async def create_teams(ctx, poll_results):
     for i in range(len(player_db)):
         players_list.append([player_db[i][0], player_db[i][1], player_db[i][2]])
         room_mmr = room_mmr + player_db[i][2]
-    random.shuffle(players_list) # [[popuko, 7238917831],[2p,7u3891273812]]
+    random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
     response_string = f'`Room MMR:` {room_mmr}\n'
 
