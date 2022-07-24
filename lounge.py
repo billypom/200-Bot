@@ -537,6 +537,7 @@ async def update_friend_code(ctx, message):
 
 # Takes a ctx, returns 
 async def start_mogi(ctx):
+    print('123')
     try:
         with DBA.DBAccess() as db:
             db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
@@ -544,7 +545,7 @@ async def start_mogi(ctx):
         await send_to_debug_channel(ctx, e)
         await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
         return 0
-
+    print('1234')
     channel = client.get_channel(ctx.channel.id)
     try:
         with DBA.DBAccess() as db:
@@ -554,6 +555,7 @@ async def start_mogi(ctx):
         await send_to_debug_channel(ctx, e)
         await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
         return 0
+    print('12345')
     response = ''
     for i in range(len(temp)):
         response = f'{response} <@{temp[i][0]}>'
@@ -569,15 +571,18 @@ async def start_mogi(ctx):
     Type a number to vote!
     Poll ends in 2 minutes or when a format reaches 6 votes.'''
     await channel.send(response)
+    print('123456')
     with DBA.DBAccess() as db:
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     # returns the index of the voted on format, and a dictionary of format:voters
+    print('1234567')
     poll_results = await check_for_poll_results(ctx, unix_temp[MAX_PLAYERS_IN_MOGI-1][0])
     if poll_results[0] == 0:
         # Cancel Mogi
         await channel.send('No votes. Mogi will be cancelled.')
         await cancel_mogi(ctx)
         return
+    print('1234568')
     print('YES1')
     teams_results = await create_teams(ctx, poll_results)
 
