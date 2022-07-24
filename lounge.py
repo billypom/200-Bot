@@ -833,13 +833,14 @@ async def create_teams(ctx, poll_results):
     for i in range(0, len(players_list), number_of_teams):
         chunked_list.append(players_list[i:i+number_of_teams])
     # for each divided team, get mmr for all players, average them, add data to response string?
+    print('a')
     for team in chunked_list:
         temp_mmr = 0
         for player in team:
             temp_mmr = temp_mmr + player[2]
         team_mmr = temp_mmr/len(team)
         team.append(team_mmr)
-    
+    print('b')
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list)-1]))
     print(sorted_list)
 
