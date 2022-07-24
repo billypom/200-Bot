@@ -349,12 +349,12 @@ async def d(
     await ctx.defer(ephemeral=True)
     x = await check_if_uid_in_tier(ctx.author.id)
     if x:
-        y = await check_if_uid_can_drop(ctx.author.id)
-        if y:
-            pass
-        else:
-            await ctx.respond('You cannot drop from an ongoing mogi')
-            return
+        # y = await check_if_uid_can_drop(ctx.author.id)
+        # if y:
+        #     pass
+        # else:
+        #     await ctx.respond('You cannot drop from an ongoing mogi')
+        #     return
         # No try block - check is above...
         with DBA.DBAccess() as db:
             tier_temp = db.query('SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s;', (ctx.author.id,))
