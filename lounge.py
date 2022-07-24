@@ -814,7 +814,7 @@ async def create_teams(ctx, poll_results):
     else:
         return 0
     with DBA.DBAccess() as db:
-        player_db = db.query('SELECT p.player_name p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+        player_db = db.query('SELECT p.player_name, p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     players_list = list()
     room_mmr = 0
     for i in range(len(player_db)):
