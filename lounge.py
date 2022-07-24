@@ -558,16 +558,16 @@ async def start_mogi(ctx):
     for i in range(len(temp)):
         response = f'{response} <@{temp[i][0]}>'
     response = f'''{response} mogi has 12 players
-`Poll Started!`
+    `Poll Started!`
 
-`1.` FFA
-`2.` 2v2
-`3.` 3v3
-`4.` 4v4
-`6.` 6v6
+    `1.` FFA
+    `2.` 2v2
+    `3.` 3v3
+    `4.` 4v4
+    `6.` 6v6
 
-Type a number to vote!
-Poll ends in 2 minutes or when a format reaches 6 votes.'''
+    Type a number to vote!
+    Poll ends in 2 minutes or when a format reaches 6 votes.'''
     await channel.send(response)
     with DBA.DBAccess() as db:
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
@@ -578,6 +578,7 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
         await channel.send('No votes. Mogi will be cancelled.')
         await cancel_mogi(ctx)
         return
+    print('YES1')
     teams_results = await create_teams(ctx, poll_results)
 
     ffa_voters = list()
@@ -585,6 +586,7 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
     v3_voters = list()
     v4_voters = list()
     v6_voters = list()
+    print('YES2')
     # create formatted message
     for player in poll_results[1]['FFA']:
         ffa_voters.append(player)
@@ -601,20 +603,21 @@ Poll ends in 2 minutes or when a format reaches 6 votes.'''
         91:None,
         93:None,
     }
+    print('YES3')
     poll_results_response = f'''`Poll Ended!`
 
-`1.` FFA - {len(ffa_voters)} ({str(ffa_voters).translate(remove_chars)})
-`2.` 2v2 - {len(v2_voters)} ({str(v2_voters).translate(remove_chars)})
-`3.` 3v3 - {len(v3_voters)} ({str(v3_voters).translate(remove_chars)})
-`4.` 4v4 - {len(v4_voters)} ({str(v4_voters).translate(remove_chars)})
-`6.` 6v6 - {len(v6_voters)} ({str(v6_voters).translate(remove_chars)})
-`Winner:` {'hfdjski'}
+    `1.` FFA - {len(ffa_voters)} ({str(ffa_voters).translate(remove_chars)})
+    `2.` 2v2 - {len(v2_voters)} ({str(v2_voters).translate(remove_chars)})
+    `3.` 3v3 - {len(v3_voters)} ({str(v3_voters).translate(remove_chars)})
+    `4.` 4v4 - {len(v4_voters)} ({str(v4_voters).translate(remove_chars)})
+    `6.` 6v6 - {len(v6_voters)} ({str(v6_voters).translate(remove_chars)})
+    `Winner:` {'hfdjski'}
 
-{teams_results}
+    {teams_results}
 
-`Table: /submit stuff`
+    `Table: /submit stuff`
 
-'''
+    '''
     await channel.send(poll_results_response)
 
     
@@ -800,6 +803,7 @@ async def get_player_mmr(uid):
 
 # poll_results is [index of the voted on format, a dictionary of format:voters]
 async def create_teams(ctx, poll_results):
+    print('1')
     keys_list = list(poll_results[1])
     winning_format = keys_list[poll_results[0]]
     number_of_teams = 0
@@ -815,17 +819,19 @@ async def create_teams(ctx, poll_results):
         number_of_teams = 2
     else:
         return 0
+    print('2')
     with DBA.DBAccess() as db:
         player_db = db.query('SELECT p.player_name, p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     players_list = list()
     room_mmr = 0
+    print('3')
     for i in range(len(player_db)):
         players_list.append([player_db[i][0], player_db[i][1], player_db[i][2]])
         room_mmr = room_mmr + player_db[i][2]
     random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
     response_string = f'`Room MMR:` {room_mmr}\n'
-
+    print('4')
 
 
     # divide the list into (number_of_teams) parts
