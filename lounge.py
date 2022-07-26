@@ -164,8 +164,11 @@ async def on_message(ctx):
         with DBA.DBAccess() as db:
             get_tier = db.query('SELECT voting, tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
         if get_tier[0][0]:
+            print('get tier')
             if get_tier[0][1] == ctx.channel.id:
+                print('tier = channel id')
                 if str(ctx.content) in ['1', '2', '3', '4', '6']:
+                    print('vote in content')
                     print('its in there lol')
                     try:
                         with DBA.DBAccess() as db:
