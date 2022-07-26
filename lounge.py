@@ -678,15 +678,15 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
     with DBA.DBAccess() as db:
         db.execute('UPDATE tier SET voting = %s WHERE tier_id = %s;', (0, ctx.channel.id))
     if format_list[0] == 6:
-        ind = 1
+        ind = 0
     elif format_list[1] == 6:
-        ind = 2
+        ind = 1
     elif format_list[2] == 6:
-        ind = 3
+        ind = 2
     elif format_list[3] == 6:
-        ind = 4
+        ind = 3
     elif format_list[4] == 6:
-        ind = 6
+        ind = 4
     else:
         # Get the index of the voted on format
         max_val = max(format_list)
