@@ -575,7 +575,7 @@ async def start_mogi(ctx):
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     # returns the index of the voted on format, and a dictionary of format:voters
     poll_results = await check_for_poll_results(ctx, unix_temp[MAX_PLAYERS_IN_MOGI-1][0])
-    if poll_results[0] == 0:
+    if poll_results[0] == -1:
         # Cancel Mogi
         await channel.send('No votes. Mogi will be cancelled.')
         await cancel_mogi(ctx)
@@ -673,53 +673,54 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
     with DBA.DBAccess() as db:
         db.execute('UPDATE tier SET voting = %s WHERE tier_id = %s;', (0, ctx.channel.id))
     if format_list[0] == 6:
-        return 1
+        ind = 1
     elif format_list[1] == 6:
-        return 2
+        ind = 2
     elif format_list[2] == 6:
-        return 3
+        ind = 3
     elif format_list[3] == 6:
-        return 4
+        ind = 4
     elif format_list[4] == 6:
-        return 6
+        ind = 6
     else:
         # Get the index of the voted on format
         max_val = max(format_list)
         ind = [i for i, v in enumerate(format_list) if v == max_val]
         print('got index of last entered')
 
-        # Create a dictionary where key=format, value=list of players who voted
-        poll_dictionary = {
-            "FFA":[],
-            "2v2":[],
-            "3v3":[],
-            "4v4":[],
-            "6v6":[],
-        }
-        with DBA.DBAccess() as db:
-            votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-        for i in range(len(votes_temp)):
-            print(f'votes temp: {votes_temp}')
-            if votes_temp[i][0] == 1:
-                player_format_choice = 'FFA'
-            elif votes_temp[i][0] == 2:
-                player_format_choice = '2v2'
-            elif votes_temp[i][0] == 3:
-                player_format_choice = '3v3'
-            elif votes_temp[i][0] == 4:
-                player_format_choice = '4v4'
-            elif votes_temp[i][0] == 6:
-                player_format_choice = '6v6'
-            else:
-                continue
-            poll_dictionary[player_format_choice].append(votes_temp[i][1])
-        print('created poll dictionary')
-        print(f'{poll_dictionary}')
-        # Clear votes after we dont need them anymore...
-        print('clearing votes...')
-        with DBA.DBAccess() as db:
-            db.execute('UPDATE lineups SET vote = NULL WHERE tier_id = %s;', (ctx.channel.id,))
-        return [random.choice(ind), poll_dictionary]
+    # Create a dictionary where key=format, value=list of players who voted
+    poll_dictionary = {
+        "FFA":[],
+        "2v2":[],
+        "3v3":[],
+        "4v4":[],
+        "6v6":[],
+    }
+    with DBA.DBAccess() as db:
+        votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+    for i in range(len(votes_temp)):
+        print(f'votes temp: {votes_temp}')
+        if votes_temp[i][0] == 1:
+            player_format_choice = 'FFA'
+        elif votes_temp[i][0] == 2:
+            player_format_choice = '2v2'
+        elif votes_temp[i][0] == 3:
+            player_format_choice = '3v3'
+        elif votes_temp[i][0] == 4:
+            player_format_choice = '4v4'
+        elif votes_temp[i][0] == 6:
+            player_format_choice = '6v6'
+        else:
+            continue
+        poll_dictionary[player_format_choice].append(votes_temp[i][1])
+    print('created poll dictionary')
+    print(f'{poll_dictionary}')
+    # Clear votes after we dont need them anymore...
+    print('clearing votes...')
+    with DBA.DBAccess() as db:
+        db.execute('UPDATE lineups SET vote = NULL WHERE tier_id = %s;', (ctx.channel.id,))
+    # I use random.choice to account for ties
+    return [random.choice(ind), poll_dictionary]
 
 async def check_if_mogi_is_ongoing(ctx):
     try:
