@@ -725,7 +725,10 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
     with DBA.DBAccess() as db:
         db.execute('UPDATE lineups SET vote = NULL WHERE tier_id = %s;', (ctx.channel.id,))
     # I use random.choice to account for ties
-    return [random.choice(ind), poll_dictionary]
+    try:
+        return [random.choice(ind), poll_dictionary]
+    except TypeError:
+        return [ind, poll_dictionary]
 
 async def check_if_mogi_is_ongoing(ctx):
     try:
