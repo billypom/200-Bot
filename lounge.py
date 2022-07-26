@@ -821,17 +821,17 @@ async def create_teams(ctx, poll_results):
     keys_list = list(poll_results[1])
     winning_format = keys_list[poll_results[0]]
     print(f'winning format: {winning_format}')
-    number_of_teams = 0
+    players_per_team = 0
     if winning_format == 'FFA':
-        number_of_teams = 12
+        players_per_team = 1
     elif winning_format == '2v2':
-        number_of_teams = 6
+        players_per_team = 2
     elif winning_format == '3v3':
-        number_of_teams = 4
+        players_per_team = 3
     elif winning_format == '4v4':
-        number_of_teams = 3
+        players_per_team = 4
     elif winning_format == '6v6':
-        number_of_teams = 2
+        players_per_team = 6
     else:
         return 0
     with DBA.DBAccess() as db:
@@ -844,10 +844,10 @@ async def create_teams(ctx, poll_results):
     random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
     response_string = f'`Room MMR:` {room_mmr}\n'
-    # divide the list into (number_of_teams) parts
+    # divide the list into (players_per_team) parts
     chunked_list = list()
-    for i in range(0, len(players_list), number_of_teams):
-        chunked_list.append(players_list[i:i+number_of_teams])
+    for i in range(0, len(players_list), players_per_team):
+        chunked_list.append(players_list[i:i+players_per_team])
     # for each divided team, get mmr for all players, average them, add data to response string?
     for team in chunked_list:
         temp_mmr = 0
