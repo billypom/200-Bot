@@ -507,9 +507,10 @@ async def partner_average(
 )
 async def table(
     ctx,
-    scores: discord.Option(str, '', required=True)
+    scores: discord.Option(str, 'player scores (i.e. popuko 12 Brandon 100 Maxarx 180', required=True)
     ):
     await ctx.defer()
+    pass
 
 
 
