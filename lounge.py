@@ -896,14 +896,14 @@ async def get_partner_avg(ctx, mogi_format):
     if mogi_format is None: # get all partner avg from specific format
         try:
             with DBA.DBAccess() as db:
-                
+                pass
         except Exception as e:
             await send_to_debug_channel(ctx, e)
             return -1
     else: # get all partner avg
         try:
             with DBA.DBAccess() as db:
-                
+                pass
         except Exception as e:
             await send_to_debug_channel(ctx, e)
             return -1
