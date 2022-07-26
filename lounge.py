@@ -617,7 +617,6 @@ async def start_mogi(ctx):
     `3.` 3v3 - {len(v3_voters)} ({str(v3_voters).translate(remove_chars)})
     `4.` 4v4 - {len(v4_voters)} ({str(v4_voters).translate(remove_chars)})
     `6.` 6v6 - {len(v6_voters)} ({str(v6_voters).translate(remove_chars)})
-    `Winner:` {'hfdjski'}
 
     {teams_results}
 
@@ -835,6 +834,7 @@ async def create_teams(ctx, poll_results):
         players_per_team = 6
     else:
         return 0
+    response_string+=f'`Winner:` {winning_format}\n'
     with DBA.DBAccess() as db:
         player_db = db.query('SELECT p.player_name, p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     players_list = list()
@@ -844,7 +844,7 @@ async def create_teams(ctx, poll_results):
         room_mmr = room_mmr + player_db[i][2]
     random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
-    response_string = f'`Room MMR:` {math.ceil(room_mmr)}\n'
+    response_string += f'   `Room MMR:` {math.ceil(room_mmr)}\n'
     # divide the list based on players_per_team
     chunked_list = list()
     for i in range(0, len(players_list), players_per_team):
