@@ -512,7 +512,16 @@ async def table(
     await ctx.defer()
     print(scores)
     await ctx.respond(scores)
-    return
+    remove_chars = {
+        60:None, #<
+        62:None, #>
+        33:None, #!
+        64:None, #@
+    }
+    score_string = str(scores).translate(remove_chars)
+    print(f'score string: {score_string}')
+    score_list = score_string.split(' ')
+    print(f'score list: {score_list}')
 
 
 
