@@ -820,6 +820,7 @@ async def create_teams(ctx, poll_results):
     print('creating teams')
     keys_list = list(poll_results[1])
     winning_format = keys_list[poll_results[0]]
+    print(f'winning format: {winning_format}')
     number_of_teams = 0
     if winning_format == 'FFA':
         number_of_teams = 12
