@@ -857,10 +857,11 @@ async def create_teams(ctx, poll_results):
         team.append(team_mmr)
 
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
+    sorted_list.reverse()
     print(sorted_list)
     
     team_count = 0
-    for team in sorted_list.reverse():
+    for team in sorted_list:
         team_count+=1
         response_string += f'`Team {team_count}:` '
         for player in team:
