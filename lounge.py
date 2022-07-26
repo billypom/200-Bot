@@ -844,7 +844,7 @@ async def create_teams(ctx, poll_results):
     random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
     response_string = f'`Room MMR:` {room_mmr}\n'
-    # divide the list into (players_per_team) parts
+    # divide the list based on players_per_team
     chunked_list = list()
     for i in range(0, len(players_list), players_per_team):
         chunked_list.append(players_list[i:i+players_per_team])
@@ -855,8 +855,15 @@ async def create_teams(ctx, poll_results):
             temp_mmr = temp_mmr + player[2]
         team_mmr = temp_mmr/len(team)
         team.append(team_mmr)
-    sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
+
+    sorted_list = reverse(sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1])))
     print(sorted_list)
+    
+    for idx, team in enumerate(sorted_list):
+        response_string += f'`Team {idx+1}:` '
+        for player in team:
+            response_string += f'{player[0]} '
+        response_string += f'(MMR: {team[len(team)-1]}'
 
 
 
@@ -873,7 +880,7 @@ async def create_teams(ctx, poll_results):
     # create a return string
 
     # temp return
-    return players_list
+    return response_string
 
 async def cancel_mogi(ctx):
     # Delete player records for first 12 in lineups table
