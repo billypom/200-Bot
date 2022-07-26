@@ -501,7 +501,7 @@ async def partner_average(
 
 
 @client.slash_command(
-    name='Table',
+    name='table',
     description='Submit a table',
     guilds_ids=Lounge
 )
