@@ -510,7 +510,9 @@ async def table(
     scores: discord.Option(str, 'player scores (i.e. popuko 12 Brandon 100 Maxarx 180', required=True)
     ):
     await ctx.defer()
-    pass
+    print(scores)
+    await ctx.respond(scores)
+    return
 
 
 
