@@ -665,9 +665,11 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         dtobject_now = datetime.datetime.now()
         unix_now = time.mktime(dtobject_now.timetuple())
     print('checking for all zero votes')
+    print(f'format list: {format_list}')
     if all([v == 0 for v in format_list]):
         return [0, { '0': 0 }] # If all zeros, return 0. cancel mogi
     # Close the voting
+    print('closing the voting')
     with DBA.DBAccess() as db:
         db.execute('UPDATE tier SET voting = 0 WHERE tier_id = %s;', (ctx.channel.id,))
     if format_list[0] == 6:
@@ -684,6 +686,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         # Get the index of the voted on format
         max_val = max(format_list)
         ind = [i for i, v in enumerate(format_list) if v == max_val]
+        print('got index of last entered')
 
         # Create a dictionary where key=format, value=list of players who voted
         poll_dictionary = {
@@ -710,6 +713,8 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
             else:
                 continue
             poll_dictionary[player_format_choice].append(votes_temp[i][1])
+        print('created poll dictionary')
+        print(f'{poll_dictionary}')
         # Clear votes after we dont need them anymore...
         print('clearing votes...')
         with DBA.DBAccess() as db:
