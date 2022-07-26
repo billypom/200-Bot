@@ -580,6 +580,7 @@ async def start_mogi(ctx):
         await channel.send('No votes. Mogi will be cancelled.')
         await cancel_mogi(ctx)
         return
+        
     teams_results = await create_teams(ctx, poll_results)
 
     ffa_voters = list()
@@ -636,10 +637,12 @@ async def start_mogi(ctx):
 
 
 async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
+    print('checking for poll results')
     dtobject_now = datetime.datetime.now()
     unix_now = time.mktime(dtobject_now.timetuple())
     format_list = [0,0,0,0,0]
     while (unix_now - last_joiner_unix_timestamp) < 20:
+        # Votes are updated in the on_message event, if mogi is running and player is in tier
         await asyncio.sleep(1)
         with DBA.DBAccess() as db:
             ffa_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,1))
@@ -661,6 +664,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         print(f'{unix_now} - {last_joiner_unix_timestamp}')
         dtobject_now = datetime.datetime.now()
         unix_now = time.mktime(dtobject_now.timetuple())
+    print('checking for all zero votes')
     if all([v == 0 for v in format_list]):
         return [0, { '0': 0 }] # If all zeros, return 0. cancel mogi
     # Close the voting
@@ -707,6 +711,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
                 continue
             poll_dictionary[player_format_choice].append(votes_temp[i][1])
         # Clear votes after we dont need them anymore...
+        print('clearing votes...')
         with DBA.DBAccess() as db:
             db.execute('UPDATE lineups SET vote = NULL WHERE tier_id = %s;', (ctx.channel.id,))
         return [random.choice(ind), poll_dictionary]
@@ -798,6 +803,7 @@ async def get_player_mmr(uid):
 
 # poll_results is [index of the voted on format, a dictionary of format:voters]
 async def create_teams(ctx, poll_results):
+    print('creating teams')
     keys_list = list(poll_results[1])
     winning_format = keys_list[poll_results[0]]
     number_of_teams = 0
