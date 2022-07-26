@@ -69,6 +69,7 @@ import json
 import requests
 import asyncio
 import random
+import math
 import concurrent.futures
 from bs4 import BeautifulSoup as Soup
 from waiting import wait
@@ -843,7 +844,7 @@ async def create_teams(ctx, poll_results):
         room_mmr = room_mmr + player_db[i][2]
     random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
-    response_string = f'`Room MMR:` {room_mmr}\n'
+    response_string = f'`Room MMR:` {math.ceil(room_mmr)}\n'
     # divide the list based on players_per_team
     chunked_list = list()
     for i in range(0, len(players_list), players_per_team):
@@ -868,7 +869,7 @@ async def create_teams(ctx, poll_results):
             try:
                 response_string += f'{player[0]} '
             except TypeError:
-                response_string += f'(MMR: {player})\n'
+                response_string += f'(MMR: {math.ceil(player)})\n'
 
 
 
