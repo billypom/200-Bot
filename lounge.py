@@ -502,6 +502,7 @@ async def fc(
 
 
 
+
 # Takes a ctx, returns a response
 async def create_player(ctx):
     x = await check_if_player_exists(ctx)
@@ -537,7 +538,6 @@ async def update_friend_code(ctx, message):
 
 # Takes a ctx, returns 
 async def start_mogi(ctx):
-    print('123')
     try:
         with DBA.DBAccess() as db:
             db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
@@ -545,7 +545,6 @@ async def start_mogi(ctx):
         await send_to_debug_channel(ctx, e)
         await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
         return 0
-    print('1234')
     channel = client.get_channel(ctx.channel.id)
     try:
         with DBA.DBAccess() as db:
@@ -555,12 +554,10 @@ async def start_mogi(ctx):
         await send_to_debug_channel(ctx, e)
         await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
         return 0
-    print('12345')
     response = ''
     for i in range(len(temp)):
         response = f'{response} <@{temp[i][0]}>'
-    response = f'''{response} mogi has 12 players
-    `Poll Started!`
+    response = f'''{response} mogi has 12 players\n`Poll Started!`
 
     `1.` FFA
     `2.` 2v2
@@ -571,19 +568,15 @@ async def start_mogi(ctx):
     Type a number to vote!
     Poll ends in 2 minutes or when a format reaches 6 votes.'''
     await channel.send(response)
-    print('123456')
     with DBA.DBAccess() as db:
         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     # returns the index of the voted on format, and a dictionary of format:voters
-    print('1234567')
     poll_results = await check_for_poll_results(ctx, unix_temp[MAX_PLAYERS_IN_MOGI-1][0])
     if poll_results[0] == 0:
         # Cancel Mogi
         await channel.send('No votes. Mogi will be cancelled.')
         await cancel_mogi(ctx)
         return
-    print('1234568')
-    print('YES1')
     teams_results = await create_teams(ctx, poll_results)
 
     ffa_voters = list()
@@ -591,7 +584,6 @@ async def start_mogi(ctx):
     v3_voters = list()
     v4_voters = list()
     v6_voters = list()
-    print('YES2')
     # create formatted message
     for player in poll_results[1]['FFA']:
         ffa_voters.append(player)
@@ -608,7 +600,6 @@ async def start_mogi(ctx):
         91:None,
         93:None,
     }
-    print('YES3')
     poll_results_response = f'''`Poll Ended!`
 
     `1.` FFA - {len(ffa_voters)} ({str(ffa_voters).translate(remove_chars)})
@@ -624,6 +615,7 @@ async def start_mogi(ctx):
 
     '''
     await channel.send(poll_results_response)
+    return True
 
     
 # Poll Ended!
@@ -710,12 +702,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
                 player_format_choice = '6v6'
             else:
                 continue
-            if player_format_choice in poll_dictionary:
-                print('in dictionary')
-                poll_dictionary[player_format_choice].append(votes_temp[i][1])
-            else:
-                print('not in dictionary..,.yet')
-                poll_dictionary[player_format_choice]=[votes_temp[i][1]]
+            poll_dictionary[player_format_choice].append(votes_temp[i][1])
         # Clear votes after we dont need them anymore...
         with DBA.DBAccess() as db:
             db.execute('UPDATE lineups SET vote = NULL WHERE tier_id = %s;', (ctx.channel.id,))
@@ -824,34 +811,27 @@ async def create_teams(ctx, poll_results):
         number_of_teams = 2
     else:
         return 0
-    print('2')
     with DBA.DBAccess() as db:
         player_db = db.query('SELECT p.player_name, p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     players_list = list()
     room_mmr = 0
-    print('3')
     for i in range(len(player_db)):
         players_list.append([player_db[i][0], player_db[i][1], player_db[i][2]])
         room_mmr = room_mmr + player_db[i][2]
     random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
     response_string = f'`Room MMR:` {room_mmr}\n'
-    print('4')
-
-
     # divide the list into (number_of_teams) parts
     chunked_list = list()
     for i in range(0, len(players_list), number_of_teams):
         chunked_list.append(players_list[i:i+number_of_teams])
     # for each divided team, get mmr for all players, average them, add data to response string?
-    print('a')
     for team in chunked_list:
         temp_mmr = 0
         for player in team:
             temp_mmr = temp_mmr + player[2]
         team_mmr = temp_mmr/len(team)
         team.append(team_mmr)
-    print('b')
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
     print(sorted_list)
 
