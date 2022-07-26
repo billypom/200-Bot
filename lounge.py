@@ -144,6 +144,10 @@ async def on_application_command_error(ctx, error):
         embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
         await channel.send(content=None, embed=embed)
         await ctx.respond('Sorry! My commands do not work in DMs. Please use 200cc Lounge :)')
+        raise error
+        return
+    elif isinstance(error, commands.CommandOnCooldown):
+        await ctx.respond(error)
         return
     else:
         channel = client.get_channel(secrets.debug_channel)
@@ -154,6 +158,7 @@ async def on_application_command_error(ctx, error):
         await channel.send(content=None, embed=embed)
         await ctx.respond(f'Sorry! An unknown error occurred. Contact {secrets.my_discord} if you think this is a mistake.')
         print(traceback.format_exc())
+        raise error
         return
 
 @client.event
