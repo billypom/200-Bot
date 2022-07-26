@@ -671,7 +671,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
     # Close the voting
     print('closing the voting')
     with DBA.DBAccess() as db:
-        db.execute('UPDATE tier SET voting = 0 WHERE tier_id = %s;', (ctx.channel.id,))
+        db.execute('UPDATE tier SET voting = %s WHERE tier_id = %s;', (0, ctx.channel.id))
     if format_list[0] == 6:
         return 1
     elif format_list[1] == 6:
