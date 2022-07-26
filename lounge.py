@@ -865,8 +865,10 @@ async def create_teams(ctx, poll_results):
         team_count+=1
         response_string += f'`Team {team_count}:` '
         for player in team:
-            response_string += f'{player[0]} '
-        response_string += f'(MMR: {team[len(team)-1]}'
+            try:
+                response_string += f'{player[0]} '
+            except TypeError:
+                response_string += f'(MMR: {player})\n'
 
 
 
