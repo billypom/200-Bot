@@ -80,7 +80,7 @@ ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
 MOGILIST = {}
 TIER_ID_LIST = list()
-MAX_PLAYERS_IN_MOGI = 2
+MAX_PLAYERS_IN_MOGI = 12
 intents = discord.Intents(messages=True, guilds=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 
@@ -795,7 +795,6 @@ async def get_player_mmr(uid):
 
 # poll_results is [index of the voted on format, a dictionary of format:voters]
 async def create_teams(ctx, poll_results):
-    print('1')
     keys_list = list(poll_results[1])
     winning_format = keys_list[poll_results[0]]
     number_of_teams = 0
