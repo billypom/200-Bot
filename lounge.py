@@ -89,7 +89,7 @@ with DBA.DBAccess() as db:
     get_tier_list = db.query('SELECT tier_id FROM tier WHERE tier_id > %s;', (0,))
     for i in range(len(get_tier_list)):
         TIER_ID_LIST.append(get_tier_list[i][0])
-    print(TIER_ID_LIST)
+    # print(TIER_ID_LIST)
 
 
 def update_mogilist():
@@ -158,7 +158,7 @@ async def on_application_command_error(ctx, error):
         embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
         await channel.send(content=None, embed=embed)
         await ctx.respond(f'Sorry! An unknown error occurred. Contact {secrets.my_discord} if you think this is a mistake.')
-        print(traceback.format_exc())
+        # print(traceback.format_exc())
         raise error
         return
 
@@ -170,15 +170,12 @@ async def on_message(ctx):
         with DBA.DBAccess() as db:
             get_tier = db.query('SELECT voting, tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
         if get_tier[0][0]:
-            print('get tier')
             if get_tier[0][1] == ctx.channel.id:
-                print('tier = channel id')
                 if str(ctx.content) in ['1', '2', '3', '4', '6']:
-                    print('vote in content')
-                    print('its in there lol')
+                    # print('its in there lol')
                     try:
                         with DBA.DBAccess() as db:
-                            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
+                            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s ORDER BY create_date LIMIT %s;', (ctx.author.id, ctx.channel.id, MAX_PLAYERS_IN_MOGI)) # limit prevents 13th person from voting
                     except Exception as e:
                         await send_to_debug_channel(ctx, e)
                         return
@@ -313,17 +310,18 @@ async def c(
         return
     else:
         pass
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
-            count = temp[0][0]
-    except Exception as e:
-        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secrets.my_discord}. {e}')
-        await send_to_debug_channel(ctx, e)
-        return
-    if count == MAX_PLAYERS_IN_MOGI:
-        await ctx.respond('Mogi is full')
-        return
+    # ADDITIONAL SUBS SHOULD BE ABLE TO JOIN NEXT MOGI
+    # try:
+    #     with DBA.DBAccess() as db:
+    #         temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
+    #         count = temp[0][0]
+    # except Exception as e:
+    #     await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secrets.my_discord}. {e}')
+    #     await send_to_debug_channel(ctx, e)
+    #     return
+    # if count == MAX_PLAYERS_IN_MOGI:
+    #     await ctx.respond('Mogi is full')
+    #     return
     try:
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO lineups (player_id, tier_id) values (%s, %s);', (ctx.author.id, ctx.channel.id))
@@ -336,7 +334,7 @@ async def c(
         await send_to_debug_channel(ctx, e)
         return
     if count >= 2:
-        print('count >=2')
+        # print('count >=2')
         mogi_started_successfully = await start_mogi(ctx)
         if mogi_started_successfully:
             pass
@@ -458,11 +456,11 @@ async def sub(
 
 # /setfc
 @client.slash_command(
-    name='fc',
+    name='setfc',
     description='Display or set your friend code',
     guild_ids=Lounge
 )
-async def fc(
+async def setfc(
     ctx,
     fc: discord.Option(str, 'XXXX-XXXX-XXXX', required=False)):
     if fc == None:
@@ -489,8 +487,29 @@ async def fc(
         await ctx.respond(confirmation_msg)
 
 
+@client.slash_command(
+    name='partner_average',
+    description='Get the average score of your partners',
+    guild_ids=Lounge
+)
+async def partner_average(
+    ctx,
+    mogi_format: discord.Option(int, '1, 2, 3, 4, 6', required=False)
+    ):
+    await ctx.defer()
+    return
 
 
+@client.slash_command(
+    name='Table',
+    description='Submit a table',
+    guilds_ids=Lounge
+)
+async def table(
+    ctx,
+    scores: discord.Option(str, '', required=True)
+    ):
+    await ctx.defer()
 
 
 
@@ -641,7 +660,7 @@ async def start_mogi(ctx):
 
 
 async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
-    print('checking for poll results')
+    # print('checking for poll results')
     dtobject_now = datetime.datetime.now()
     unix_now = time.mktime(dtobject_now.timetuple())
     format_list = [0,0,0,0,0]
@@ -668,12 +687,12 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         print(f'{unix_now} - {last_joiner_unix_timestamp}')
         dtobject_now = datetime.datetime.now()
         unix_now = time.mktime(dtobject_now.timetuple())
-    print('checking for all zero votes')
-    print(f'format list: {format_list}')
+    # print('checking for all zero votes')
+    # print(f'format list: {format_list}')
     if all([v == 0 for v in format_list]):
         return [0, { '0': 0 }] # If all zeros, return 0. cancel mogi
     # Close the voting
-    print('closing the voting')
+    # print('closing the voting')
     with DBA.DBAccess() as db:
         db.execute('UPDATE tier SET voting = %s WHERE tier_id = %s;', (0, ctx.channel.id))
     if format_list[0] == 6:
@@ -690,7 +709,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         # Get the index of the voted on format
         max_val = max(format_list)
         ind = [i for i, v in enumerate(format_list) if v == max_val]
-        print('got index of last entered')
+        # print('got index of last entered')
 
     # Create a dictionary where key=format, value=list of players who voted
     poll_dictionary = {
@@ -717,10 +736,10 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         else:
             continue
         poll_dictionary[player_format_choice].append(votes_temp[i][1])
-    print('created poll dictionary')
-    print(f'{poll_dictionary}')
+    # print('created poll dictionary')
+    # print(f'{poll_dictionary}')
     # Clear votes after we dont need them anymore...
-    print('clearing votes...')
+    # print('clearing votes...')
     with DBA.DBAccess() as db:
         db.execute('UPDATE lineups SET vote = NULL WHERE tier_id = %s;', (ctx.channel.id,))
     # I use random.choice to account for ties
@@ -728,6 +747,73 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         return [random.choice(ind), poll_dictionary]
     except TypeError:
         return [ind, poll_dictionary]
+
+# poll_results is [index of the voted on format, a dictionary of format:voters]
+async def create_teams(ctx, poll_results):
+    # print('creating teams')
+    keys_list = list(poll_results[1])
+    winning_format = keys_list[poll_results[0]]
+    # print(f'winning format: {winning_format}')
+    players_per_team = 0
+    if winning_format == 'FFA':
+        players_per_team = 1
+    elif winning_format == '2v2':
+        players_per_team = 2
+    elif winning_format == '3v3':
+        players_per_team = 3
+    elif winning_format == '4v4':
+        players_per_team = 4
+    elif winning_format == '6v6':
+        players_per_team = 6
+    else:
+        return 0
+    response_string=f'`Winner:` {winning_format}\n\n'
+    with DBA.DBAccess() as db:
+        player_db = db.query('SELECT p.player_name, p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+    players_list = list()
+    room_mmr = 0
+    for i in range(len(player_db)):
+        players_list.append([player_db[i][0], player_db[i][1], player_db[i][2]])
+        room_mmr = room_mmr + player_db[i][2]
+    random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
+    room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
+    response_string += f'   `Room MMR:` {math.ceil(room_mmr)}\n'
+    # divide the list based on players_per_team
+    chunked_list = list()
+    for i in range(0, len(players_list), players_per_team):
+        chunked_list.append(players_list[i:i+players_per_team])
+    # for each divided team, get mmr for all players, average them, append to team
+    for team in chunked_list:
+        temp_mmr = 0
+        for player in team:
+            temp_mmr = temp_mmr + player[2]
+        team_mmr = temp_mmr/len(team)
+        team.append(team_mmr)
+
+    sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
+    sorted_list.reverse()
+    # print(sorted_list)
+    player_score_string = '/Table '
+    team_count = 0
+    for team in sorted_list:
+        team_count+=1
+        response_string += f'   `Team {team_count}:` '
+        for player in team:
+            player_score_string += f'{player[0]} 0 '
+            try:
+                response_string += f'{player[0]} '
+            except TypeError:
+                response_string += f'(MMR: {math.ceil(player)})\n'
+
+    response_string+=f'\n{player_score_string}'
+    # choose a host
+    # create a return string
+    return response_string
+
+
+
+
+
 
 async def check_if_mogi_is_ongoing(ctx):
     try:
@@ -794,9 +880,37 @@ async def check_if_banned_characters(message):
 
 
 
+# Takes in ctx, returns avg partner score
+async def get_partner_avg(ctx, mogi_format):
+    try:
+        with DBA.DBAccess() as db:
+            mogis = db.query("SELECT mogi_id, place FROM player_mogi WHERE player_id = %s;", (uid,))
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
+        return -1
 
-# takes in a uid, returns mmr
-async def get_player_mmr(uid):
+    list_of_mogis = list()
+    for mogi in mogis:
+        list_of_mogi_ids.append([mogi[0], mogi[1]])
+
+    if mogi_format is None: # get all partner avg from specific format
+        try:
+            with DBA.DBAccess() as db:
+                
+        except Exception as e:
+            await send_to_debug_channel(ctx, e)
+            return -1
+    else: # get all partner avg
+        try:
+            with DBA.DBAccess() as db:
+                
+        except Exception as e:
+            await send_to_debug_channel(ctx, e)
+            return -1
+    return temp[0][0]
+
+# Takes in ctx, returns mmr
+async def get_player_mmr(ctx):
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (uid,))
@@ -804,88 +918,6 @@ async def get_player_mmr(uid):
         await send_to_debug_channel(ctx, e)
         return -1
     return temp[0][0]
-
-
-
-
-
-
-
-
-
-
-# poll_results is [index of the voted on format, a dictionary of format:voters]
-async def create_teams(ctx, poll_results):
-    print('creating teams')
-    keys_list = list(poll_results[1])
-    winning_format = keys_list[poll_results[0]]
-    print(f'winning format: {winning_format}')
-    players_per_team = 0
-    if winning_format == 'FFA':
-        players_per_team = 1
-    elif winning_format == '2v2':
-        players_per_team = 2
-    elif winning_format == '3v3':
-        players_per_team = 3
-    elif winning_format == '4v4':
-        players_per_team = 4
-    elif winning_format == '6v6':
-        players_per_team = 6
-    else:
-        return 0
-    response_string=f'`Winner:` {winning_format}\n\n'
-    with DBA.DBAccess() as db:
-        player_db = db.query('SELECT p.player_name, p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-    players_list = list()
-    room_mmr = 0
-    for i in range(len(player_db)):
-        players_list.append([player_db[i][0], player_db[i][1], player_db[i][2]])
-        room_mmr = room_mmr + player_db[i][2]
-    random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
-    room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
-    response_string += f'   `Room MMR:` {math.ceil(room_mmr)}\n'
-    # divide the list based on players_per_team
-    chunked_list = list()
-    for i in range(0, len(players_list), players_per_team):
-        chunked_list.append(players_list[i:i+players_per_team])
-    # for each divided team, get mmr for all players, average them, append to team
-    for team in chunked_list:
-        temp_mmr = 0
-        for player in team:
-            temp_mmr = temp_mmr + player[2]
-        team_mmr = temp_mmr/len(team)
-        team.append(team_mmr)
-
-    sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
-    sorted_list.reverse()
-    print(sorted_list)
-    
-    team_count = 0
-    for team in sorted_list:
-        team_count+=1
-        response_string += f'   `Team {team_count}:` '
-        for player in team:
-            try:
-                response_string += f'{player[0]} '
-            except TypeError:
-                response_string += f'(MMR: {math.ceil(player)})\n'
-
-
-
-    # Room MMR: 7213
-    # Team 1: Deshawn Co. III, iiRxl (MMR: 9846)
-    # Team 2: naive, Ty (MMR: 7728)
-    # Team 3: Tatsuya, ObesoYoshiraMK (MMR: 7033)
-    # Team 4: Splinkle, Maxarx (MMR: 6378)
-    # Team 5: IhavePants, Ai Xiang (MMR: 6318)
-    # Team 6: Helfire Club, Nino (MMR: 4734)
-
-    # order teams based on MMR
-    # choose a host
-    # create a return string
-
-    # temp return
-    return response_string
 
 async def cancel_mogi(ctx):
     # Delete player records for first 12 in lineups table
@@ -946,11 +978,54 @@ async def mkc_request_mkc_player_id(mkc_user_id):
         return_value = future.result()
     return return_value
 
+def mt_mkc_request_mkc_player_id(mkc_user_id):
+    try:
+        login_url = 'https://www.mariokartcentral.com/forums/index.php?login/login'
+        data_url = 'https://www.mariokartcentral.com/mkc/api/registry/players/all'
+        with requests.Session() as s:
+            html = s.get(login_url).content
+            soup = Soup(html, 'html.parser')
+            token = soup.select_one('[name=_xfToken]').attrs['value']
+            payload = {
+            'login': str(secrets.mkc_name),
+            'password': str(secrets.mkc_password),
+            '_xfToken': str(token),
+            '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
+            }
+            response = s.post(login_url, data=payload)
+            response = s.get(data_url)
+        registry_data = response.json()
+        response = json.dumps(registry_data)
+        response = json.loads(response)
+        for player in response["data"]:
+            if player["user_id"] == int(mkc_user_id):
+                mkc_player_id = player["player_id"]
+                break
+            else:
+                continue
+        if mkc_player_id != None:
+            return mkc_player_id
+        else:
+            return -1
+    except Exception:
+        return -1
+
 async def mkc_request_registry_info(mkc_player_id, field_name):
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(mt_mkc_request_registry_info, mkc_player_id, field_name)
         return_value = future.result()
     return return_value
+
+def mt_mkc_request_registry_info(mkc_player_id, field_name):
+    try:
+        mkcresponse = requests.get("https://www.mariokartcentral.com/mkc/api/registry/players/" + str(mkc_player_id))
+        mkc_data = mkcresponse.json()
+        buh = json.dumps(mkc_data)
+        mkc_data_dict = json.loads(buh)
+        return_value = mkc_data_dict[field_name]
+        return return_value
+    except Exception:
+        return -1
 
 # Takes ctx and Discord ID, returns mkc_user_id
 async def lounge_request_mkc_user_id(ctx):
@@ -958,6 +1033,18 @@ async def lounge_request_mkc_user_id(ctx):
         future = executor.submit(mt_lounge_request_mkc_user_id, ctx)
         return_value = future.result()
     return return_value
+
+def mt_lounge_request_mkc_user_id(ctx):
+    try:
+        player_id = ctx.author.id
+        loungeresponse = requests.get("https://www.mk8dx-lounge.com/api/player?discordId=" + str(player_id))
+        lounge_data = loungeresponse.json()
+        guh = json.dumps(lounge_data) # dump to a string
+        lounge_data_dict = json.loads(guh) # loads to a dict
+        mkc_user_id = lounge_data_dict["mkcId"]
+    except Exception:
+        return -1
+    return mkc_user_id
 
 
 
