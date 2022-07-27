@@ -818,8 +818,8 @@ async def create_teams(ctx, poll_results):
     host_string = ''
     try:
         with DBA.DBAccess() as db:
-            host_temp = db.query('SELECT fc FROM (SELECT p.fc, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s AND fc IS NOT NULL ORDER BY l.create_date LIMIT %s) as fcs_in_mogi ORDER BY RAND() LIMIT 1;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-            host_string += f'`Host:` {host_temp[1][0]} | {host_temp[0][0]}'
+            host_temp = db.query('SELECT fc, player_id FROM (SELECT p.fc, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s AND fc IS NOT NULL ORDER BY l.create_date LIMIT %s) as fcs_in_mogi ORDER BY RAND() LIMIT 1;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+            host_string += f'`Host:` {host_temp[0][1]} | {host_temp[0][0]}'
     except Exception as e:
         await send_to_debug_channel(ctx, e)
     # create a return string
