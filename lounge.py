@@ -264,7 +264,6 @@ async def verify(
 
     # Check if user verifying and user in mkc database is the same user
     discord_tag = await mkc_request_registry_info(mkc_player_id, 'discord_tag')
-    country_code = await mkc_request_registry_info(mkc_player_id, 'country_code')
     if str(discord_tag) == str(ctx.author):
         pass
     else:
@@ -291,8 +290,9 @@ async def verify(
             await send_to_verification_log(ctx, message, verify_color, verify_description)
             return
         else:
-            x = await create_player(ctx, country_code)
+            x = await create_player(ctx)
             await ctx.respond(x)
+            return
 
 
 @client.slash_command(
@@ -600,11 +600,12 @@ async def create_player(ctx):
         return 'Player already registered'
     else:
         mkc_player_id = int(await mkc_request_mkc_player_id(int(await lounge_request_mkc_user_id(ctx))))
+        country_code = await mkc_request_registry_info(mkc_player_id, 'country_code')
         if mkc_player_id != -1:
             with DBA.DBAccess() as db:
                 # TODO: 
                 # REWRITE TO GATHER MORE DATA AND MATCH NEW DATABASE
-                db.execute('INSERT INTO player (player_id, player_name, mkc_id) VALUES (%s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_player_id))
+                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_player_id, country_code))
                 return 'Verified & registered successfully'
         else:
             return f'``Error 14:`` Contact {secrets.my_discord} if you think this is a mistake.'
