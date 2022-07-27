@@ -521,7 +521,7 @@ async def table(
 
     score_string = str(scores).translate(remove_chars)
     print(f'score string: {score_string}')
-    score_list = score_string.split(' ')
+    score_list = score_string.split()
     print(f'score list: {score_list}')
 
     player_score_chunked_list = list()
