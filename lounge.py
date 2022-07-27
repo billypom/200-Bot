@@ -455,7 +455,7 @@ async def sub(
 
 # /setfc
 @client.slash_command(
-    name='setfc',
+    name='fc',
     description='Display or set your friend code',
     guild_ids=Lounge
 )
@@ -506,7 +506,8 @@ async def partner_average(
 )
 async def table(
     ctx,
-    scores: discord.Option(str, 'player scores (i.e. @popuko 12 @Brandon 100 @Maxarx 180', required=True)
+    mogi_format: discord.Option(int, '1=FFA, 2=2v2, 3=3v3, 4=4v4, 6=6v6', required=True),
+    scores: discord.Option(str, '@player scores (i.e. @popuko 12 @Brandon 100 @Maxarx 180...)', required=True)
     ):
     await ctx.defer()
     print(scores)
@@ -517,10 +518,32 @@ async def table(
         33:None, #!
         64:None, #@
     }
+
     score_string = str(scores).translate(remove_chars)
     print(f'score string: {score_string}')
     score_list = score_string.split(' ')
     print(f'score list: {score_list}')
+
+    player_score_chunked_list = list()
+    for i in range(0, len(score_list), 2):
+        player_score_chunked_list.append(score_list[i:i+2])
+    print('player chunked')
+    print(player_score_chunked_list)
+
+    chunked_list = list()
+    for i in range(0, len(player_score_chunked_list), mogi_format):
+        chunked_list.append(player_score_chunked_list[i:i+mogi_format])
+    print('chunked')
+    print(chunked_list)
+    
+    for team in chunked_list:
+        temp_mmr = 0
+        for player in team:
+            pass
+            # temp_mmr = temp_mmr + player[2]
+        # team_mmr = temp_mmr/len(team)
+        # team.append(team_mmr)
+
 
 
 
@@ -801,7 +824,7 @@ async def create_teams(ctx, poll_results):
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
     sorted_list.reverse()
     # print(sorted_list)
-    player_score_string = '    `Table:` /Table '
+    player_score_string = f'    `Table:` /table {players_per_team} '
     team_count = 0
     for team in sorted_list:
         team_count+=1
