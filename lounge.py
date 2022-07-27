@@ -310,15 +310,15 @@ async def c(
         return
     else:
         pass
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
+            count = temp[0][0]
+    except Exception as e:
+        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secrets.my_discord}. {e}')
+        await send_to_debug_channel(ctx, e)
+        return
     # ADDITIONAL SUBS SHOULD BE ABLE TO JOIN NEXT MOGI
-    # try:
-    #     with DBA.DBAccess() as db:
-    #         temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
-    #         count = temp[0][0]
-    # except Exception as e:
-    #     await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secrets.my_discord}. {e}')
-    #     await send_to_debug_channel(ctx, e)
-    #     return
     # if count == MAX_PLAYERS_IN_MOGI:
     #     await ctx.respond('Mogi is full')
     #     return
@@ -333,8 +333,7 @@ async def c(
         await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secrets.my_discord}. {e}')
         await send_to_debug_channel(ctx, e)
         return
-    if count >= 2:
-        # print('count >=2')
+    if count >= MAX_PLAYERS_IN_MOGI:
         mogi_started_successfully = await start_mogi(ctx)
         if mogi_started_successfully:
             pass
@@ -507,7 +506,7 @@ async def partner_average(
 )
 async def table(
     ctx,
-    scores: discord.Option(str, 'player scores (i.e. popuko 12 Brandon 100 Maxarx 180', required=True)
+    scores: discord.Option(str, 'player scores (i.e. @popuko 12 @Brandon 100 @Maxarx 180', required=True)
     ):
     await ctx.defer()
     print(scores)
