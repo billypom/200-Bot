@@ -264,6 +264,7 @@ async def verify(
 
     # Check if user verifying and user in mkc database is the same user
     discord_tag = await mkc_request_registry_info(mkc_player_id, 'discord_tag')
+    country_code = await mkc_request_registry_info(mkc_player_id, 'country_code')
     if str(discord_tag) == str(ctx.author):
         pass
     else:
@@ -290,7 +291,7 @@ async def verify(
             await send_to_verification_log(ctx, message, verify_color, verify_description)
             return
         else:
-            x = await create_player(ctx)
+            x = await create_player(ctx, country_code)
             await ctx.respond(x)
 
 
@@ -481,7 +482,7 @@ async def setfc(
         if x:
             pass
         else:
-            await create_player(ctx)
+            return '``Error 25:`` Player does not exist. Use `/verify <mkc link>` to register with the Lounge.'
         confirmation_msg = await update_friend_code(ctx, fc)
         await ctx.respond(confirmation_msg)
 
@@ -558,10 +559,21 @@ async def table(
         team.append(team_mmr)
     print('-----NEW CHUNKED LIST------')
     print(chunked_list)
+    # -----NEW CHUNKED LIST------
+    # [[['166818526768791552', '1'], ['166818526768791552', '2'], 3, 4000.0], 
+    # [['166818526768791552', '3'], ['166818526768791552', '4'], 7, 4000.0], 
+    # [['166818526768791552', '5'], ['166818526768791552', '6'], 11, 4000.0], 
+    # [['166818526768791552', '7'], ['166818526768791552', '8'], 15, 4000.0], 
+    # [['166818526768791552', '9'], ['166818526768791552', '10'], 19, 4000.0], 
+    # [['166818526768791552', '11'], ['166818526768791552', '12'], 23, 4000.0]]
 
 
-
-
+    # pipe results into hlorenzi
+    # save image as temp
+    # show image to ctx initiator
+    # ask for table confirmation from ctx.author.id
+    # if correct, submit table. calculate mmr changes, update tables, post to tier results
+    # add results channel to tier table
 
 
 
