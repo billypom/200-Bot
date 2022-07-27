@@ -548,10 +548,10 @@ async def table(
                     temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
                     mmr = temp[0][0]
                     temp_mmr = temp_mmr + mmr
-                    temp_score = temp_score + player[1]
+                    temp_score = temp_score + int(player[1])
             except Exception as e:
                 await send_to_debug_channel(ctx, e)
-                await ctx.respond(f'`Error 24:` The following player could not be found... <@{player[0]}>')
+                await ctx.respond(f'`Error 24:` There was an error with the following player: <@{player[0]}>')
                 return
         team_mmr = temp_mmr/len(team)
         team_score = temp_score/len(team)
@@ -559,7 +559,7 @@ async def table(
         team.append(team_mmr)
     print('-----NEW CHUNKED LIST------')
     print(chunked_list)
-    
+
 
 
 
