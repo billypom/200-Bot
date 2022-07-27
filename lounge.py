@@ -519,16 +519,19 @@ async def table(
         64:None, #@
     }
 
-    score_string = str(scores).translate(remove_chars)
-    print(f'score string: {score_string}')
-    score_list = score_string.split()
-    print(f'score list: {score_list}')
+    # check for verified user
+    # check for role? (reporter? or how do i do that...)
+    # check for 12 players
+    # check for all 12 players exist
+    # check for score = 984
 
+    score_string = str(scores).translate(remove_chars)
+    score_list = score_string.split()
     player_score_chunked_list = list()
     for i in range(0, len(score_list), 2):
         player_score_chunked_list.append(score_list[i:i+2])
-    print('player chunked')
-    print(player_score_chunked_list)
+    # print('player chunked')
+    # print(player_score_chunked_list)
 
     chunked_list = list()
     for i in range(0, len(player_score_chunked_list), mogi_format):
@@ -539,7 +542,19 @@ async def table(
     for team in chunked_list:
         temp_mmr = 0
         for player in team:
-            pass
+            try:
+                with DBA.DBAccess() as db:
+                    temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
+                    mmr = temp[0][0]
+                    temp_mmr = temp_mmr + mmr
+            except Exception as e:
+                await send_to_debug_channel(ctx, e)
+                await ctx.respond(f'`Error 24:` The following player could not be found... <@{player[0]}>')
+                return
+        team_mmr = temp_mmr/len(team)
+        team.append(team_mmr)
+    print('-----NEW CHUNKED LIST------')
+    print(chunked_list)
             # temp_mmr = temp_mmr + player[2]
         # team_mmr = temp_mmr/len(team)
         # team.append(team_mmr)
