@@ -541,20 +541,19 @@ async def table(
     
     for team in chunked_list:
         temp_mmr = 0
-        temp_score = 0
+        team_score = 0
         for player in team:
             try:
                 with DBA.DBAccess() as db:
                     temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
                     mmr = temp[0][0]
                     temp_mmr = temp_mmr + mmr
-                    temp_score = temp_score + int(player[1])
+                    team_score = team_score + int(player[1])
             except Exception as e:
                 await send_to_debug_channel(ctx, e)
                 await ctx.respond(f'`Error 24:` There was an error with the following player: <@{player[0]}>')
                 return
         team_mmr = temp_mmr/len(team)
-        team_score = temp_score/len(team)
         team.append(team_score)
         team.append(team_mmr)
     print('-----NEW CHUNKED LIST------')
