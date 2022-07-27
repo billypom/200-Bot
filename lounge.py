@@ -804,14 +804,14 @@ async def create_teams(ctx, poll_results):
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
     sorted_list.reverse()
     # print(sorted_list)
-    player_score_string = '     `/Table '
+    player_score_string = '    `/Table '
     team_count = 0
     for team in sorted_list:
         team_count+=1
         response_string += f'   `Team {team_count}:` '
         for player in team:
             try:
-                player_score_string += f'{player[0]} 0 '
+                player_score_string += f'<@{player[1]}> 0 '
                 response_string += f'{player[0]} '
             except TypeError:
                 response_string += f'(MMR: {math.ceil(player)})\n'
