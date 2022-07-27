@@ -809,11 +809,9 @@ async def create_teams(ctx, poll_results):
     for team in sorted_list:
         team_count+=1
         response_string += f'   `Team {team_count}:` '
-        print('for player in team')
         for player in team:
-            print(player)
-            player_score_string += f'{player[0]} 0 '
             try:
+                player_score_string += f'{player[0]} 0 '
                 response_string += f'{player[0]} '
             except TypeError:
                 response_string += f'(MMR: {math.ceil(player)})\n'
