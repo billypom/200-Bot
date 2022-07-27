@@ -819,7 +819,8 @@ async def create_teams(ctx, poll_results):
         with DBA.DBAccess() as db:
             host_temp = db.query('SELECT fc FROM (SELECT fc FROM player p JOIN player_mogi pm ON p.player_id = pm.player_id WHERE pm.mogi_id = %s AND fc NOT NULL ORDER BY pm.create_date LIMIT %s) ORDER BY RAND() LIMIT 1;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
             print(host_temp)
-            
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
     # create a return string
     return response_string
 
