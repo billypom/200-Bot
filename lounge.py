@@ -804,7 +804,7 @@ async def create_teams(ctx, poll_results):
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
     sorted_list.reverse()
     # print(sorted_list)
-    player_score_string = '    `/Table '
+    player_score_string = '    `Table:` /Table '
     team_count = 0
     for team in sorted_list:
         team_count+=1
@@ -816,7 +816,7 @@ async def create_teams(ctx, poll_results):
             except TypeError:
                 response_string += f'(MMR: {math.ceil(player)})\n'
 
-    response_string+=f'\n{player_score_string}`'
+    response_string+=f'\n{player_score_string}'
     # choose a host
     # create a return string
     return response_string
