@@ -658,7 +658,7 @@ async def table(
             value_table.append(working_list)
 
         for idx, team in enumerate(sorted_list):
-            team_value = 0.0
+            temp_value = 0.0
             for pre_mmr_list in value_table:
                 for idx2, value in enumerate(pre_mmr_list):
                     if idx == idx2:
