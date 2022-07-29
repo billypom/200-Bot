@@ -532,7 +532,7 @@ async def table(
     lorenzi_query=''
     placement_count = 1
     for team in chunked_list:
-        lorenzi_query += f'{placement_count} #AAC8F4\n'
+        lorenzi_query += f'{placement_count} #AAC8F4 \n'
         for idx, player in enumerate(team):
             if idx > 1:
                 continue
@@ -545,7 +545,8 @@ async def table(
         placement_count+=1
     # get lorenzi table
     url = f'https://gb.hlorenzi.com/table.png?data={lorenzi_query}'
-    response = requests.get(url, stream=True)
+    send_url = urllib.parse.quote(url)
+    response = requests.get(send_url, stream=True)
     with open(f'{hex(ctx.author.id)}table.png', 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     del response
