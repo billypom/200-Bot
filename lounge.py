@@ -513,7 +513,11 @@ async def table(
                     temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
                     mmr = temp[0][0]
                     temp_mmr += mmr
-                    team_score += int(player[1])
+                    try:
+                        team_score += int(player[1])
+                    except TypeError:
+                        score_and_pen = str(player[1]).split('-')
+                        team_score = team_score + int(score_and_pen[0]) - int(score_and_pen[1])
             except Exception as e:
                 await send_to_debug_channel(ctx, e)
                 await ctx.respond(f'`Error 24:` There was an error with the following player: <@{player[0]}>')
