@@ -562,7 +562,7 @@ async def table(
         team.append(team_mmr)
     # print('-----NEW CHUNKED LIST------')
     # print(chunked_list)
-    
+
     # Create hlorenzi string
     lorenzi_query=''
     placement_count = 1
@@ -589,7 +589,7 @@ async def table(
     table_view = Confirm()
     channel = client.get_channel(ctx.channel.id)
     table_message = await channel.send(file=discord.File(f'{hex(ctx.author.id)}table.png'))
-    await channel.send('Is this table correct?' view=table_view)
+    await channel.send('Is this table correct?', view=table_view)
     await table_view.wait()
     if table_view.value is None:
         await ctx.respond('No response from reporter. Timed out')
