@@ -529,7 +529,9 @@ async def table(
     placement_count = 1
     for team in chunked_list:
         lorenzi_query += f'{placement_count}\n'
-        for player in team:
+        for idx, player in enumerate(team):
+            if idx > 1:
+                continue
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_name, country_code FROM player WHERE player_id = %s;', (player[0],))
                 player_name = temp[0][0]
