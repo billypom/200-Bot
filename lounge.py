@@ -514,10 +514,15 @@ async def table(
             count += 1
             try:
                 with DBA.DBAccess() as db:
+                    print('a')
                     temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
+                    print('b')
                     mmr = temp[0][0]
-                    temp_mmr = temp_mmr + mmr
-                    team_score = team_score + int(player[1])
+                    print('c')
+                    temp_mmr += mmr
+                    print('d')
+                    team_score += int(player[1])
+                    print('e')
             except Exception as e:
                 await send_to_debug_channel(ctx, e)
                 await ctx.respond(f'`Error 24:` There was an error with the following player: <@{player[0]}>')
