@@ -26,6 +26,7 @@
 import DBA
 import secrets
 import discord
+from discord.ui import Button, View
 from discord.ext import commands
 import vlog_msg
 import math
