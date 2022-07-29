@@ -59,6 +59,41 @@ with DBA.DBAccess() as db:
         TIER_ID_LIST.append(get_tier_list[i][0])
     # print(TIER_ID_LIST)
 
+class Confirm(View):
+    def __init__(self):
+        super().__init__()
+        self.value = None
+
+    # When the confirm button is pressed, set the inner value to `True` and
+    # stop the View from listening to more input.
+    # We also send the user an ephemeral message that we're confirming their choice.
+    @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
+    async def confirm(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
+        await interaction.response.send_message("Calculating MMR...", ephemeral=True)
+        self.value = True
+        self.stop()
+
+    # This one is similar to the confirmation button except sets the inner value to `False`
+    @discord.ui.button(label="No", style=discord.ButtonStyle.red)
+    async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
+        await interaction.response.send_message("Deleting...", ephemeral=True)
+        self.value = False
+        self.stop()
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def update_mogilist():
     with DBA.DBAccess() as db:
@@ -525,10 +560,10 @@ async def table(
         team_mmr = temp_mmr/len(team)
         team.append(team_score)
         team.append(team_mmr)
-    print('-----NEW CHUNKED LIST------')
-    print(chunked_list)
-
-    # create hlorenzi string
+    # print('-----NEW CHUNKED LIST------')
+    # print(chunked_list)
+    
+    # Create hlorenzi string
     lorenzi_query=''
     placement_count = 1
     for team in chunked_list:
@@ -543,41 +578,29 @@ async def table(
                 score = player[1]
             lorenzi_query += f'{player_name} [{country_code}] {score}\n'
         placement_count+=1
-    # get lorenzi table
+    # Get lorenzi table
     query_string = urllib.parse.quote(lorenzi_query)
     url = f'https://gb.hlorenzi.com/table.png?data={query_string}'
     response = requests.get(url, stream=True)
     with open(f'{hex(ctx.author.id)}table.png', 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     del response
-    await ctx.respond(file=discord.File(f'{hex(ctx.author.id)}table.png'))
-
-
-        # query = '''1
-        # popuko [us] 50
-        # brandon [us] 50
-
-        # 2
-        # popuko [] 60
-        # brandon [de] 60
-
-        # 3
-        # jpgiviner [nl] 70
-        # wanap [jp] 70
-        # '''
-
-    # -----NEW CHUNKED LIST------
-    # [[['166818526768791552', '1'], ['166818526768791552', '2'], 3, 4000.0], 
-    # [['166818526768791552', '3'], ['166818526768791552', '4'], 7, 4000.0], 
-    # [['166818526768791552', '5'], ['166818526768791552', '6'], 11, 4000.0], 
-    # [['166818526768791552', '7'], ['166818526768791552', '8'], 15, 4000.0], 
-    # [['166818526768791552', '9'], ['166818526768791552', '10'], 19, 4000.0], 
-    # [['166818526768791552', '11'], ['166818526768791552', '12'], 23, 4000.0]]
-
-    # show image to f'{ctx.author.id}table.png'
-    # ask for table confirmation from ctx.author.id
-    # if correct, submit table. calculate mmr changes, update tables, post to tier results
-    # add results channel to tier table
+    # Ask for table confirmation
+    table_view = Confirm()
+    channel = client.get_channel(ctx.channel.id)
+    table_message = await channel.send(file=discord.File(f'{hex(ctx.author.id)}table.png'))
+    await channel.send('Is this table correct?' view=table_view)
+    await table_view.wait()
+    if table_view.value is None:
+        await ctx.respond('No response from reporter. Timed out')
+    elif table_view.value: # yes
+        # create mmr table
+        # send image to results channel
+        # update mmr in db
+        # send mmr table to results channel
+        await ctx.respond('`Table Accepted.`')
+    else:
+        await ctx.respond('`Table Denied.`')
 
 
 
