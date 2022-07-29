@@ -612,7 +612,7 @@ async def table(
         # Assign previous values before leaving
         prev_team_placement = team_placement
         prev_team_score = team[len(team)-3]
-    # Get request a lorenzi table
+    # Request a lorenzi table
     query_string = urllib.parse.quote(lorenzi_query)
     url = f'https://gb.hlorenzi.com/table.png?data={query_string}'
     response = requests.get(url, stream=True)
@@ -623,7 +623,7 @@ async def table(
     table_view = Confirm()
     channel = client.get_channel(ctx.channel.id)
     table_message = await channel.send(file=discord.File(f'{hex(ctx.author.id)}table.png'), delete_after=300)
-    await channel.send('Is this table correct?', view=table_view, delete_after=300)
+    await channel.send('Is this table correct? :thinking:', view=table_view, delete_after=300)
     await table_view.wait()
     if table_view.value is None:
         await ctx.respond('No response from reporter. Timed out')
@@ -656,8 +656,20 @@ async def table(
                             pass
                 working_list.append(pre_mmr)
             value_table.append(working_list)
-        for thing in value_table:
-            print(thing)
+
+        for idx, team in enumerate(sorted_list):
+            team_value = 0.0
+            for pre_mmr_list in value_table:
+                for idx2, value in enumerate(pre_mmr_list):
+                    if idx == idx2:
+                        temp_value += value
+                    else:
+                        pass
+            team.append(math.ceil(temp_value))
+        for team in sorted_list:
+            print(team)
+        # for thing in value_table:
+            # print(thing)
 
 
                 
