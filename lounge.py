@@ -561,14 +561,27 @@ async def table(
         team_mmr = temp_mmr/len(team)
         team.append(team_score)
         team.append(team_mmr)
+
+    sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-2]))
+    sorted_list.reverse()
     # print('-----NEW CHUNKED LIST------')
     # print(chunked_list)
 
     # Create hlorenzi string
     lorenzi_query=''
-    placement_count = 1
-    for team in chunked_list:
-        lorenzi_query += f'{placement_count} #AAC8F4 \n'
+    prev_team_score = 0
+    prev_team_placement = 1
+    team_placement = 0
+    for team in sorted_list:
+        # If team score = prev team score, use prev team placement, else increase placement and use placement
+        print('if team score == prev team score')
+        print(f'if {team[len(team)-2]} == {prev_team_score}')
+        if team[len(team)-2] == prev_team_score:
+            team_placement = prev_team_placement
+        else:
+            team_placement+=1
+        team.append(team_placement)
+        lorenzi_query += f'{team_placement} #AAC8F4 \n'
         for idx, player in enumerate(team):
             if idx > 1:
                 continue
@@ -578,7 +591,9 @@ async def table(
                 country_code = temp[0][1]
                 score = player[1]
             lorenzi_query += f'{player_name} [{country_code}] {score}\n'
-        placement_count+=1
+        # Assign previous values before leaving
+        prev_team_placement = team_placement
+        prev_team_score = team[len(team)-3]
     # Get lorenzi table
     query_string = urllib.parse.quote(lorenzi_query)
     url = f'https://gb.hlorenzi.com/table.png?data={query_string}'
@@ -589,19 +604,27 @@ async def table(
     # Ask for table confirmation
     table_view = Confirm()
     channel = client.get_channel(ctx.channel.id)
-    table_message = await channel.send(file=discord.File(f'{hex(ctx.author.id)}table.png'))
-    await channel.send('Is this table correct?', view=table_view)
+    table_message = await channel.send(file=discord.File(f'{hex(ctx.author.id)}table.png'), delete_after=300)
+    await channel.send('Is this table correct?', view=table_view, delete_after=300)
     await table_view.wait()
     if table_view.value is None:
         await ctx.respond('No response from reporter. Timed out')
     elif table_view.value: # yes
-        # create mmr table
-        # send image to results channel
-        # update mmr in db
-        # send mmr table to results channel
-        await ctx.respond('`Table Accepted.`')
+        # Calculate MMR changes
+
+        # Send MMR updates to DB
+
+        # Create MMR Table
+        # ```css
+        # "Green Text" | use quotations
+        # .blue-text | .prefix-no-spaces-allowed
+        # [Orange Text] | brackets
+        # ```
+
+        # Send MMR to results channel
+        await ctx.respond('`Table Accepted.`', delete_after=300)
     else:
-        await ctx.respond('`Table Denied.`')
+        await ctx.respond('`Table Denied.`', delete_after=300)
 
 
 
