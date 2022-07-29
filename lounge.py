@@ -515,7 +515,7 @@ async def table(
                     temp_mmr += mmr
                     try:
                         team_score += int(player[1])
-                    except TypeError:
+                    except Exception:
                         score_and_pen = str(player[1]).split('-')
                         team_score = team_score + int(score_and_pen[0]) - int(score_and_pen[1])
             except Exception as e:
