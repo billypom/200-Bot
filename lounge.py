@@ -38,6 +38,8 @@ import requests
 import asyncio
 import random
 import math
+import urllib.parse
+import shutil
 import concurrent.futures
 from bs4 import BeautifulSoup as Soup
 
@@ -477,21 +479,17 @@ async def table(
     scores: discord.Option(str, '@player scores (i.e. @popuko 12 @Brandon 100 @Maxarx 180...)', required=True)
     ):
     await ctx.defer()
-    print(scores)
-    await ctx.respond(scores)
     remove_chars = {
         60:None, #<
         62:None, #>
         33:None, #!
         64:None, #@
     }
-
     # check for verified user
     # check for role? (reporter? or how do i do that...)
     # check for 12 players
     # check for all 12 players exist
     # check for score = 984
-
     score_string = str(scores).translate(remove_chars)
     score_list = score_string.split()
     player_score_chunked_list = list()
@@ -510,19 +508,12 @@ async def table(
         temp_mmr = 0
         team_score = 0
         for player in team:
-            print(count)
-            count += 1
             try:
                 with DBA.DBAccess() as db:
-                    print('a')
                     temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
-                    print('b')
                     mmr = temp[0][0]
-                    print('c')
                     temp_mmr += mmr
-                    print('d')
                     team_score += int(player[1])
-                    print('e')
             except Exception as e:
                 await send_to_debug_channel(ctx, e)
                 await ctx.respond(f'`Error 24:` There was an error with the following player: <@{player[0]}>')
@@ -532,6 +523,42 @@ async def table(
         team.append(team_mmr)
     print('-----NEW CHUNKED LIST------')
     print(chunked_list)
+
+    # create hlorenzi string
+    lorenzi_query=''
+    placement_count = 1
+    for team in chunked_list:
+        lorenzi_query += f'{placement_count}\n'
+        for player in team:
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT player_name, country_code FROM player WHERE player_id = %s;', (player[0],))
+                player_name = temp[0][0]
+                country_code = temp[0][1]
+                score = player[1]
+            lorenzi_query += f'{player_name} [{country_code}] {score}\n'
+        placement_count+=1
+    # get lorenzi table
+    url = f'https://gb.hlorenzi.com/table.png?data={lorenzi_query}'
+    response = requests.get(url, stream=True)
+    with open(f'{hex(ctx.author.id)}table.png', 'wb') as out_file:
+        shutil.copyfileobj(response.raw, out_file)
+    del response
+    await ctx.respond(file=discord.File(f'{hex(ctx.author.id)}table.png'))
+
+
+        # query = '''1
+        # popuko [us] 50
+        # brandon [us] 50
+
+        # 2
+        # popuko [] 60
+        # brandon [de] 60
+
+        # 3
+        # jpgiviner [nl] 70
+        # wanap [jp] 70
+        # '''
+
     # -----NEW CHUNKED LIST------
     # [[['166818526768791552', '1'], ['166818526768791552', '2'], 3, 4000.0], 
     # [['166818526768791552', '3'], ['166818526768791552', '4'], 7, 4000.0], 
@@ -540,9 +567,6 @@ async def table(
     # [['166818526768791552', '9'], ['166818526768791552', '10'], 19, 4000.0], 
     # [['166818526768791552', '11'], ['166818526768791552', '12'], 23, 4000.0]]
 
-
-    # pipe results into hlorenzi
-    # save image as temp
     # show image to f'{ctx.author.id}table.png'
     # ask for table confirmation from ctx.author.id
     # if correct, submit table. calculate mmr changes, update tables, post to tier results
