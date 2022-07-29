@@ -544,9 +544,9 @@ async def table(
             lorenzi_query += f'{player_name} [{country_code}] {score}\n'
         placement_count+=1
     # get lorenzi table
-    url = f'https://gb.hlorenzi.com/table.png?data={lorenzi_query}'
-    send_url = urllib.parse.quote(url)
-    response = requests.get(send_url, stream=True)
+    query_string = urllib.parse.quote(lorenzi_query)
+    url = f'https://gb.hlorenzi.com/table.png?data={query_string}'
+    response = requests.get(url, stream=True)
     with open(f'{hex(ctx.author.id)}table.png', 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     del response
