@@ -521,6 +521,20 @@ async def table(
         33:None, #!
         64:None, #@
     }
+    # Check the mogi_format
+    if mogi_format == 1:
+        SPECIAL_TEAMS_INTEGER = 63
+    elif mogi_format == 2:
+        SPECIAL_TEAMS_INTEGER = 142
+    elif mogi_format == 3:
+        SPECIAL_TEAMS_INTEGER = 288
+    elif mogi_format == 4:
+        SPECIAL_TEAMS_INTEGER = 402
+    elif mogi_format == 6:
+        SPECIAL_TEAMS_INTEGER = 525
+    else:
+        await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, 4, or 6.')
+        return
     # check for verified user
     # check for role? (reporter? or how do i do that...)
     # check for 12 players
@@ -528,17 +542,22 @@ async def table(
     # check for score = 984
     score_string = str(scores).translate(remove_chars)
     score_list = score_string.split()
+    if len(score_list) == 24:
+        pass
+    else:
+        await ctx.respond(f'``Error 26:`` Invalid input. There must be 12 players and 12 scores.')
+        return
+    # Initialize a list so we can group players and scores together
     player_score_chunked_list = list()
     for i in range(0, len(score_list), 2):
         player_score_chunked_list.append(score_list[i:i+2])
-    # print('player chunked')
-    # print(player_score_chunked_list)
 
+    # Chunk the list into groups of teams, based on mogi_format and order of scores entry
     chunked_list = list()
     for i in range(0, len(player_score_chunked_list), mogi_format):
         chunked_list.append(player_score_chunked_list[i:i+mogi_format])
-    print('chunked')
-    print(chunked_list)
+
+    # Get MMR data for each team, calculate team score, and determine team placement
     count = 0
     for team in chunked_list:
         temp_mmr = 0
@@ -561,14 +580,13 @@ async def table(
         team_mmr = temp_mmr/len(team)
         team.append(team_score)
         team.append(team_mmr)
-
+    # Sort the teams in order of score
+    # [[players players players], team_score, team_mmr, team_placement]
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-2]))
     sorted_list.reverse()
-    # print('-----NEW CHUNKED LIST------')
-    # print(chunked_list)
-
     # Create hlorenzi string
     lorenzi_query=''
+    # Initialize score and placement values
     prev_team_score = 0
     prev_team_placement = 1
     team_placement = 0
@@ -594,7 +612,7 @@ async def table(
         # Assign previous values before leaving
         prev_team_placement = team_placement
         prev_team_score = team[len(team)-3]
-    # Get lorenzi table
+    # Get request a lorenzi table
     query_string = urllib.parse.quote(lorenzi_query)
     url = f'https://gb.hlorenzi.com/table.png?data={query_string}'
     response = requests.get(url, stream=True)
@@ -610,7 +628,38 @@ async def table(
     if table_view.value is None:
         await ctx.respond('No response from reporter. Timed out')
     elif table_view.value: # yes
-        # Calculate MMR changes
+
+        # Calculate mmr......
+        value_table = list()
+        for idx, team_x in enumerate(sorted_list):
+            working_list = list()
+            for idy, team_y in enumerate(sorted_list):
+                if idx == idy: # skip value vs. self
+                    working_list.append(0.0)
+                else:
+                    team_x_mmr = team_x[len(team_x)-2]
+                    team_x_placement = team_x[len(team_x)-1]
+                    team_y_mmr = team_y[len(team_y)-2]
+                    team_y_placement = team_y[len(team_y)-2]
+                    if team_x_placement == team_y_placement:
+                        pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/9998)**2)**0.333)**2)
+                        if team_x_mmr >= team_y_mmr:
+                            pass
+                        else: #team_x_mmr < team_y_mmr:
+                            pre_mmr = pre_mmr * -1
+                    else:
+                        pre_mmr = (1 + 19*(1 + (team_y_mmr-team_x_mmr)/9998)**2.1)
+                        if team_x_placement > team_y_placement:
+                            pre_mmr = pre_mmr * -1
+                        else: #team_x_placement < team_y_placement
+                            pass
+                    working_list.append(pre_mmr)
+                value_table.append(working_list)
+        for thing in value_table:
+            print(thing)
+
+
+                
 
         # Send MMR updates to DB
 
