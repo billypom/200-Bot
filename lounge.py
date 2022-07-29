@@ -634,8 +634,9 @@ async def table(
         for idx, team_x in enumerate(sorted_list):
             working_list = list()
             for idy, team_y in enumerate(sorted_list):
+                pre_mmr = 0.0
                 if idx == idy: # skip value vs. self
-                    working_list.append(0.0)
+                    pass
                 else:
                     team_x_mmr = team_x[len(team_x)-2]
                     team_x_placement = team_x[len(team_x)-1]
