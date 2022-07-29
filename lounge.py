@@ -641,7 +641,7 @@ async def table(
                     team_x_mmr = team_x[len(team_x)-2]
                     team_x_placement = team_x[len(team_x)-1]
                     team_y_mmr = team_y[len(team_y)-2]
-                    team_y_placement = team_y[len(team_y)-2]
+                    team_y_placement = team_y[len(team_y)-1]
                     if team_x_placement == team_y_placement:
                         pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/9998)**2)**0.333)**2)
                         if team_x_mmr >= team_y_mmr:
