@@ -653,8 +653,8 @@ async def table(
                             pre_mmr = pre_mmr * -1
                         else: #team_x_placement < team_y_placement
                             pass
-                    working_list.append(pre_mmr)
-                value_table.append(working_list)
+                working_list.append(pre_mmr)
+            value_table.append(working_list)
         for thing in value_table:
             print(thing)
 
