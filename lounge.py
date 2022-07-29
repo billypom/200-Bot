@@ -645,15 +645,15 @@ async def table(
                     if team_x_placement == team_y_placement:
                         pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/9998)**2)**0.333)**2)
                         if team_x_mmr >= team_y_mmr:
-                            pass
-                        else: #team_x_mmr < team_y_mmr:
                             pre_mmr = pre_mmr * -1
+                        else: #team_x_mmr < team_y_mmr:
+                            pass
                     else:
                         pre_mmr = (1 + 19*(1 + (team_y_mmr-team_x_mmr)/9998)**2.1)
                         if team_x_placement > team_y_placement:
-                            pre_mmr = pre_mmr * -1
-                        else: #team_x_placement < team_y_placement
                             pass
+                        else: #team_x_placement < team_y_placement
+                            pre_mmr = pre_mmr * -1
                 working_list.append(pre_mmr)
             value_table.append(working_list)
 
