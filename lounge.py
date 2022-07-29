@@ -532,7 +532,7 @@ async def table(
     lorenzi_query=''
     placement_count = 1
     for team in chunked_list:
-        lorenzi_query += f'{placement_count} #AFAAF4\n'
+        lorenzi_query += f'{placement_count} #AAC8F4\n'
         for idx, player in enumerate(team):
             if idx > 1:
                 continue
