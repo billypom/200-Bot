@@ -40,7 +40,6 @@ import random
 import math
 import concurrent.futures
 from bs4 import BeautifulSoup as Soup
-import traceback
 
 Lounge = [461383953937596416]
 lounge_id = 999835318104625252
@@ -115,7 +114,7 @@ async def on_application_command_error(ctx, error):
         raise error
         return
     elif isinstance(error, commands.CommandOnCooldown):
-        await ctx.respond(error)
+        await ctx.respond(error, delete_after=10)
         return
     else:
         channel = client.get_channel(secrets.debug_channel)
@@ -506,11 +505,13 @@ async def table(
         chunked_list.append(player_score_chunked_list[i:i+mogi_format])
     print('chunked')
     print(chunked_list)
-    
+    count = 0
     for team in chunked_list:
         temp_mmr = 0
         team_score = 0
         for player in team:
+            print(count)
+            count += 1
             try:
                 with DBA.DBAccess() as db:
                     temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
@@ -537,7 +538,7 @@ async def table(
 
     # pipe results into hlorenzi
     # save image as temp
-    # show image to ctx initiator
+    # show image to f'{ctx.author.id}table.png'
     # ask for table confirmation from ctx.author.id
     # if correct, submit table. calculate mmr changes, update tables, post to tier results
     # add results channel to tier table
