@@ -549,13 +549,15 @@ async def table(
         return
     # Initialize a list so we can group players and scores together
     player_score_chunked_list = list()
-    for i in range(0, len(score_list), mogi_format):
-        player_score_chunked_list.append(score_list[i:i+mogi_format])
+    for i in range(0, len(score_list), 2):
+        player_score_chunked_list.append(score_list[i:i+2])
+    print(f'player score chunked list: {player_score_chunked_list}')
 
     # Chunk the list into groups of teams, based on mogi_format and order of scores entry
     chunked_list = list()
     for i in range(0, len(player_score_chunked_list), mogi_format):
         chunked_list.append(player_score_chunked_list[i:i+mogi_format])
+    print(f'chunked list {chunked_list}')
 
     # Get MMR data for each team, calculate team score, and determine team placement
     count = 0
