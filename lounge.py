@@ -1385,7 +1385,7 @@ async def neg_mmr_wrapper(input):
     return (f'[0;2m[0;31m{input}[0m[0m')
 
 async def peak_mmr_wrapper(input):
-    return (f'[0;2m[0;41m[0;37m{input}R[0m[0;41m[0m[0m')
+    return (f'[0;2m[0;41m[0;37m{input}[0m[0;41m[0m[0m')
 
 async def bold_wrapper(input):
     return (f'[0;2m[1;2m{input}[0m[0m')
