@@ -584,7 +584,7 @@ async def table(
         if mogi_score == 984:
             pass
         else:
-            await ctx.respond(f'``Error 28:`` Scores must add up to 984.')
+            await ctx.respond(f'``Error 28:`` `Scores = {mogi_score} `Scores must add up to 984.')
             return
         team_mmr = temp_mmr/len(team)
         team.append(team_score)
