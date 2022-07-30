@@ -704,9 +704,9 @@ async def table(
                 mmr_table_string += f'{str(my_player_place).center(3)}|'
                 mmr_table_string +=f'{my_player_name.center(18)}|'
                 mmr_table_string += f'{str(my_player_mmr).center(7)}|'
-                
+
                 # Check sign of mmr delta
-                formatted_my_player_mmr_change = my_player_mmr_change.center(6)
+                formatted_my_player_mmr_change = str(my_player_mmr_change).center(6)
                 if my_player_mmr_change >= 0:
                     formatted_my_player_mmr_change = await pos_mmr_wrapper(f'+{str(my_player_mmr_change)}')
                 else:
@@ -714,7 +714,7 @@ async def table(
                 mmr_table_string += f'{formatted_my_player_mmr_change}|'
 
                 # Check for new peak
-                formatted_my_player_new_mmr = my_player_new_mmr.center(7)
+                formatted_my_player_new_mmr = str(my_player_new_mmr).center(7)
                 if my_player_peak < (my_player_new_mmr):
                     formatted_my_player_new_mmr = await peak_mmr_wrapper(my_player_new_mmr)
                     with DBA.DBAccess() as db:
