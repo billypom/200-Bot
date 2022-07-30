@@ -280,7 +280,7 @@ async def verify(
     # Check for last seen date
     # If last seen in the last week? pass else: send message (please log in to your mkc account and retry)
     mkc_forum_data = await mkc_request_forum_info(mkc_user_id)
-    last_seen_unix_timestamp = mkc_forum_data[0]
+    last_seen_unix_timestamp = float(mkc_forum_data[0])
     # name.mkc_user_id
     user_matches_list = mkc_forum_data[1]
     
