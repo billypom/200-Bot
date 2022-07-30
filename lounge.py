@@ -707,7 +707,7 @@ async def table(
 
                 # Check sign of mmr delta
                 if my_player_mmr_change >= 0:
-                    string_my_player_mmr_change = f'{(f'+{my_player_mmr_change}').center(6)}'
+                    string_my_player_mmr_change = f'+{(my_player_mmr_change).center(6)}'
                     formatted_my_player_mmr_change = await pos_mmr_wrapper(string_my_player_mmr_change)
                 else:
                     string_my_player_mmr_change = f'{my_player_mmr_change.center(6)}'
