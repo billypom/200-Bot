@@ -557,7 +557,7 @@ async def table(
     chunked_list = list()
     for i in range(0, len(player_score_chunked_list), mogi_format):
         chunked_list.append(player_score_chunked_list[i:i+mogi_format])
-    print(f'chunked list {chunked_list}')
+    
 
     # Get MMR data for each team, calculate team score, and determine team placement
     count = 0
@@ -592,6 +592,7 @@ async def table(
     else:
         await ctx.respond(f'``Error 28:`` `Scores = {mogi_score} `Scores must add up to 984.')
         return
+    print(f'chunked list {chunked_list}')
     # Sort the teams in order of score
     # [[players players players], team_score, team_mmr, team_placement]
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-2]))
