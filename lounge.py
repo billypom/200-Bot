@@ -321,7 +321,7 @@ async def verify(
         await send_to_verification_log(ctx, message, verify_color, verify_description)
         return
     else:
-        x = await create_player(ctx)
+        x = await create_player(ctx, mkc_user_id, country_code)
         await ctx.respond(x)
         await send_to_verification_log(ctx, message, verify_color, verify_description)
         return
@@ -782,21 +782,20 @@ async def table(
 
 
 # Takes a ctx, returns a response
-async def create_player(ctx):
+async def create_player(ctx, mkc_user_id, country_code):
     x = await check_if_player_exists(ctx)
     if x:
         return 'Player already registered'
     else:
-        mkc_player_id = int(await mkc_request_mkc_player_id(int(await lounge_request_mkc_user_id(ctx))))
-        country_code = await mkc_request_registry_info(mkc_player_id, 'country_code')
-        if mkc_player_id != -1:
+        try:
             with DBA.DBAccess() as db:
                 # TODO: 
                 # REWRITE TO GATHER MORE DATA AND MATCH NEW DATABASE
-                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_player_id, country_code))
+                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code))
                 return 'Verified & registered successfully'
-        else:
-            return f'``Error 14:`` Contact {secrets.my_discord} if you think this is a mistake.'
+        except Exception as e:
+            await send_to_debug_channel(ctx, e)
+            return f'``Error 14:`` Oops! An unlikely error occured. Contact {secrets.my_discord} if you think this is a mistake.'
             # 1. a player trying to use someone elses link (could be banned player)
             # 2. a genuine player locked from usage by another player (banned player might have locked them out)
             # 3. someone is verifying multiple times
