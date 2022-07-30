@@ -695,6 +695,7 @@ async def table(
                     my_player_mmr = temp[0][1]
                     my_player_peak = temp[0][2]
                     if my_player_peak is None:
+                        print('its none...')
                         my_player_peak = 0
                 my_player_score = player[1]
                 my_player_place = team[len(team)-2]
@@ -723,7 +724,7 @@ async def table(
                         db.execute('UPDATE player SET peak_mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
                 else:
                     formatted_my_player_new_mmr = string_my_player_new_mmr
-                mmr_table_string += f'{str(formatted_my_player_new_mmr)}|'
+                mmr_table_string += f'{formatted_my_player_new_mmr}|'
                 # Check for rank changes
 
                     
