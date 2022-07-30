@@ -303,7 +303,7 @@ async def verify(
         await send_to_verification_log(ctx, message, verify_color, verify_description)
         return
     if user_matches_list:
-        pass:
+        pass
     else:
         await ctx.respond('``Error 8:`` Oops! Something went wrong. Check your link or try again later')
         verify_color = discord.Color.teal()
