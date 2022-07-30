@@ -1107,7 +1107,7 @@ async def check_if_uid_in_tier(uid):
 async def check_if_mkc_player_id_used(mkc_player_id):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mkc_player_id from player WHERE mkc_player_id = %s;', (mkc_player_id,))
+            temp = db.query('SELECT mkc_id from player WHERE mkc_id = %s;', (mkc_player_id,))
             if int(temp[0][0]) == int(mkc_player_id):
                 return True
             else:
@@ -1198,6 +1198,13 @@ async def send_to_debug_channel(ctx, error):
     embed.add_field(name='Name: ', value=ctx.author, inline=False)
     embed.add_field(name='Error: ', value=str(error), inline=False)
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
+    await channel.send(content=None, embed=embed)
+
+async def send_raw_to_debug_channel(anything, error):
+    channel = client.get_channel(secrets.debug_channel)
+    embed = discord.Embed(title='Error', description='>.<', color = discord.Color.yellow())
+    embed.add_field(name='anything: ', value=anything, inline=False)
+    embed.add_field(name='Error: ', value=str(error), inline=False)
     await channel.send(content=None, embed=embed)
 
 async def send_to_sub_log(ctx, message):
