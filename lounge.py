@@ -592,11 +592,11 @@ async def table(
     else:
         await ctx.respond(f'``Error 28:`` `Scores = {mogi_score} `Scores must add up to 984.')
         return
-    print(f'chunked list {chunked_list}')
     # Sort the teams in order of score
-    # [[players players players], team_score, team_mmr, team_placement]
+    # [[players players players], team_score, team_mmr]
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-2]))
-    sorted_list.reverse()
+    sorted_list.reverse() 
+    print(f'sorted list: {sorted_list}')
     # Create hlorenzi string
     lorenzi_query=''
     # Initialize score and placement values
