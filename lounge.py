@@ -579,6 +579,7 @@ async def table(
                 await send_to_debug_channel(ctx, e)
                 await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>')
                 return
+        print(team_score)
         mogi_score += team_score
         if mogi_score == 984:
             pass
