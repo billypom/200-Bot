@@ -643,7 +643,7 @@ async def table(
         await ctx.respond('No response from reporter. Timed out')
     elif table_view.value: # yes
 
-        # Calculate mmr......
+        # Pre MMR table calculate
         value_table = list()
         for idx, team_x in enumerate(sorted_list):
             working_list = list()
@@ -671,6 +671,7 @@ async def table(
                 working_list.append(pre_mmr)
             value_table.append(working_list)
 
+        # Actually calculate the MMR
         for idx, team in enumerate(sorted_list):
             temp_value = 0.0
             for pre_mmr_list in value_table:
@@ -680,17 +681,53 @@ async def table(
                     else:
                         pass
             team.append(math.ceil(temp_value))
+
+        # Create mmr table string
+        mmr_table_string = ''
         for team in sorted_list:
-            print(team)
-            # for idx, player in enumerate(team):
-                # if idx > (mogi_format-1)
-                    # continue
-                # with DBA.DBAccess() as db:
+            # print(team)
+            for idx, player in enumerate(team):
+                if idx > (mogi_format-1)
+                    break
+                with DBA.DBAccess() as db:
+                    temp = db.query('SELECT player_name, mmr, peak_mmr FROM player WHERE player_id = %s;', (player[0]))
+                    my_player_name = temp[0][0]
+                    my_player_mmr = temp[0][1]
+                    my_player_peak = temp[0][2]
+                my_player_score = player[1]
+                my_player_place = team[len(team)-2]
+                my_player_mmr_change = team[len(team)-1]
+                my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
 
-                
+                mmr_table_string += f'{str(my_player_place).center(3)}|'
+                mmr_table_string +=f'{my_player_name.center(18)}|'
+                mmr_table_string += f'{str(my_player_mmr).center(7)}|'
+                # Check sign of mmr delta
+                if my_player_mmr_change >= 0:
+                    my_player_mmr_change = pos_mmr_wrapper(f'+{str(my_player_mmr_change)}')
+                else:
+                    my_player_mmr_change = neg_mmr_wrapper(f'{str(my_player_mmr_change)}')
+                mmr_table_string += f'{my_player_mmr_change.center(6)}|'
+                # Check for new peak
+                if my_player_peak < (my_player_new_mmr):
+                    my_player_new_mmr = peak_mmr_wrapper(my_player_new_mmr)
+                    with DBA.DBAccess() as db:
+                        db.execute('UPDATE player SET peak_mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
+                mmr_table_string += f'{str(my_player_new_mmr).center(7)}|'
+                # Check for rank changes
 
-        # Send MMR updates to DB
-        # Create MMR table string as i go
+                    
+                mmr_table_string += '\n'
+
+
+        # Create embed
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT results_id, tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+            db_results_channel = temp[0][0]
+            tier_name = temp[0][1]
+        results_channel = client.get_channel(db_results_channel)
+        embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', description=f'```ansi\n{mmr_table_string}```', color = discord.Color.blurple())
+        await channel.send(content=None, embed=embed)
 
         # Create MMR Table
         #```ansi
@@ -997,10 +1034,6 @@ async def create_teams(ctx, poll_results):
     # create a return string
     response_string+=f'\n\n{host_string}'
     return response_string
-
-
-
-
 
 
 async def check_if_mogi_is_ongoing(ctx):
