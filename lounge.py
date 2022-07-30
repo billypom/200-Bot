@@ -1216,7 +1216,7 @@ async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
         embed.add_field(name='Message: ', value=message, inline=False)
         for user in user_matches_list:
             ip_match_forum_link = f'https://www.mariokartcentral.com/forums/index.php?members/{user}'
-            embed.add_field(name=f'{user}' value=ip_match_forum_link, inline=False)
+            embed.add_field(name=f'{user}', value=ip_match_forum_link, inline=False)
         embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
         await channel.send(content=None, embed=embed)
     except Exception as e:
