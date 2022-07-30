@@ -687,7 +687,7 @@ async def table(
         for team in sorted_list:
             # print(team)
             for idx, player in enumerate(team):
-                if idx > (mogi_format-1)
+                if idx > (mogi_format-1):
                     break
                 with DBA.DBAccess() as db:
                     temp = db.query('SELECT player_name, mmr, peak_mmr FROM player WHERE player_id = %s;', (player[0]))
