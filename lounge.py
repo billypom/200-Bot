@@ -712,10 +712,12 @@ async def table(
                 mmr_table_string += f'{my_player_mmr_change.center(6)}|'
                 # Check for new peak
                 if my_player_peak < (my_player_new_mmr):
-                    my_player_new_mmr = await peak_mmr_wrapper(my_player_new_mmr)
+                    formatted_my_player_new_mmr = await peak_mmr_wrapper(my_player_new_mmr)
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET peak_mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
-                mmr_table_string += f'{str(my_player_new_mmr).center(7)}|'
+                else:
+                    formatted_my_player_new_mmr = my_player_new_mmr
+                mmr_table_string += f'{str(formatted_my_player_new_mmr).center(7)}|'
                 # Check for rank changes
 
                     
