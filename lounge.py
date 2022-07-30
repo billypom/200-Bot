@@ -213,6 +213,8 @@ async def verify(
     ctx, 
     message: discord.Option(str, 'MKC Link', required=True
     )):
+    # mkc_player_id = registry id
+    # mkc_user_id = forum id
     await ctx.defer(ephemeral=True)
     x = await check_if_player_exists(ctx)
     if x:
@@ -226,10 +228,8 @@ async def verify(
         if re.search(regex_pattern, str(message)):
             regex_group = re.search(regex_pattern, message)
             x = regex_group.group()
-            #print('registry link: regex found: ' + str(x))
             reg_array = re.split('/', x)
             mkc_player_id = reg_array[1]
-            print(f'mkc player_id : {str(mkc_player_id)}')
         else:
             await ctx.respond('``Error 2:`` Oops! Something went wrong. Check your link or try again later')
             return
@@ -240,53 +240,56 @@ async def verify(
             regex_group = re.search(regex_pattern, message)
             x = regex_group.group()
             temp = re.split('\.|/', x)
-            mkc_user_id = temp[2]
-            print(f'mkc user id: {mkc_user_id}')
+            mkc_forum_name = temp[1]
+            mkc_player_id = await mkc_request_mkc_player_id(temp[2]):
         else:
             # player doesnt exist on forums
             await ctx.respond('``Error 3:`` Oops! Something went wrong. Check your link or try again later')
-            return
-
-        # MKC registry api
-        mkc_player_id = await mkc_request_mkc_player_id(mkc_user_id)
-        if mkc_player_id != -1:
-            pass
-        else:
-            await ctx.respond('``Error 4:`` Oops! Something went wrong. Check your link or try again later')
             return
     else:
         await ctx.respond('``Error 5:`` Oops! Something went wrong. Check your link or try again later')
         return
 
-    # MKC indiv api on 930 (player_id)
-    is_banned = await mkc_request_registry_info(mkc_player_id, 'is_banned')
-    if is_banned == -1:
-        await ctx.respond('``Error 6:`` Oops! Something went wrong. Check your link or try again later')
-        return
-    elif is_banned:
-        await ctx.respond('``Error 7:`` Oops! Something went wrong. Check your link or try again later')
-        return
-    else:
+    # Make sure player_id was received properly
+    if mkc_player_id != -1:
         pass
+    else:
+        await ctx.respond('``Error 4:`` Oops! Something went wrong. Check your link or try again later')
+        return
+    # Request registry data
+    mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
+    mkc_user_id = mkc_registry_data[0]
+    country_code = mkc_registry_data[1]
+    is_banned = mkc_registry_data[2]
 
-    # Check if user verifying and user in mkc database is the same user
-    discord_tag = await mkc_request_registry_info(mkc_player_id, 'discord_tag')
-    if str(discord_tag) == str(ctx.author):
-        pass
-    else:
-        await ctx.respond('``Error 8:`` Account is not associated. Check your privacy settings on mariokartcentral.com')
-        verify_description = vlog_msg.error2
-        verify_color = discord.Color.red()
-        await send_to_verification_log(ctx, message, verify_color, verify_description)
-        return
+    # Check if user verifying and user in mkc database is the same discord user (should i delete this? privacy settings or something)
+    # discord_tag = await mkc_request_registry_info(mkc_player_id, 'discord_tag')
+    # if str(discord_tag) == str(ctx.author):
+    #     pass
+    # else:
+    #     await ctx.respond('``Error 8:`` Account is not associated. Check your privacy settings on mariokartcentral.com')
+    #     verify_description = vlog_msg.error2
+    #     verify_color = discord.Color.red()
+    #     await send_to_verification_log(ctx, message, verify_color, verify_description)
+    #     return
 
     if is_banned:
+        # Is banned
         verify_description = vlog_msg.error3
         verify_color = discord.Color.red()
-        await ctx.respond('``Error 9:`` Oops! Something went wrong. Check your link or try again later')
+        await ctx.respond('``Error 7:`` Oops! Something went wrong. Check your link or try again later')
         await send_to_verification_log(ctx, message, verify_color, verify_description)
         return
+    elif is_banned == -1:
+        # Wrong link probably?
+        await ctx.respond('``Error 7:`` Oops! Something went wrong. Check your link or try again later')
+        return
+    # Check for shared ips
+    # Check for last seen date
+    # If last seen in the last week? pass else: send message (please log in to your mkc account and retry)
+    
     else:
+        # Is not banned
         verify_description = vlog_msg.success
         verify_color = discord.Color.green()
         x = await check_if_mkc_player_id_used(mkc_player_id)
@@ -299,6 +302,7 @@ async def verify(
         else:
             x = await create_player(ctx)
             await ctx.respond(x)
+            await send_to_verification_log(ctx, message, verify_color, verify_description)
             return
 
 
@@ -1198,12 +1202,77 @@ async def send_to_sub_log(ctx, message):
 
 
 
+async def mkc_request_forum_info(mkc_user_id):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(mt_mkc_request_forum_info, mkc_user_id)
+        return_value = future.result()
+    return return_value
 
+def mt_mkc_request_forum_info(mkc_user_id):
+    # Get shared ips
+    login_url = 'https://www.mariokartcentral.com/forums/index.php?login/login'
+    data_url = (f'https://www.mariokartcentral.com/forums/index.php?members/{mkc_user_id}/shared-ips')
+    with requests.Session() as s:
+        html = s.get(login_url).content
+        soup = Soup(html, 'html.parser')
+        token = soup.select_one('[name=_xfToken]').attrs['value']
+        payload = {
+        'login': str(secrets.mkc_name),
+        'password': str(secrets.mkc_password),
+        '_xfToken': str(token),
+        '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
+        }
+        response = s.post(login_url, data=payload)
+        response = s.get(data_url)
+        response_string = str(response.content)
+        response_lines = response_string.split('\\n')
+        for line in response_lines:
+            # this h3 div is only used to show shared ips. so it works as a unique identifier
+            if '<h3 class="contentRow-header"><a href="/forums/index.php?members/' in line:
+                regex_pattern = 'members/.*\.\d*'
+                # if the regex pattern is found in the line
+                if re.search(regex_pattern, line):
+                    # find the exact place (index-characters of string or w/e) where the pattern matches
+                    regex_group = re.search(regex_pattern, line)
+                    # get the string from that exact place
+                    x = regex_group.group()
+                    # split on a slash (its always slash)
+                    reg_array = re.split('/', x)
+                    print(reg_array)
+
+    data_url = (f'https://www.mariokartcentral.com/forums/index.php?members/{mkc_user_id}')
+    with requests.Session() as s:
+        html = s.get(login_url).content
+        soup = Soup(html, 'html.parser')
+        token = soup.select_one('[name=_xfToken]').attrs['value']
+        payload = {
+        'login': str(secrets.mkc_name),
+        'password': str(secrets.mkc_password),
+        '_xfToken': str(token),
+        '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
+        }
+        response = s.post(login_url, data=payload)
+        response = s.get(data_url)
+        response_string = str(response.content)
+        response_lines = response_string.split('\\n')
+        # \t\t\t\t\t\t\t\t\t\t\t<time  class="u-dt" dir="auto" datetime="2022-07-30T11:07:30-0400" data-time="1659193650" data-date-string="Jul 30, 2022" data-time-string="11:07 AM" title="Jul 30, 2022 at 11:07 AM">A moment ago</time> <span role="presentation" aria-hidden="true">&middot;</span> Viewing member profile <em><a href="/forums/index.php?members/popuko.154/" dir="auto">popuko</a></em>
+        for idx, line in enumerate(response_lines):
+            # print(line)
+            if 'Last seen' in line:
+                last_seen_string = response_lines[idx+2]
+                regex_pattern = 'data-time="\d*"'
+                if re.search(regex_pattern, last_seen_string):
+                    # find the exact place (index-characters of string or w/e) where the pattern matches
+                    regex_group = re.search(regex_pattern, last_seen_string)
+                    # get the string from that exact place
+                    x = regex_group.group()
+                    # split on a slash (its always slash)
+                    reg_array = re.split('"', x)
+                    print(reg_array)
+                    last_seen_unix_timestamp = reg_array[1]
+                    break
 
 async def mkc_request_mkc_player_id(mkc_user_id):
-    # MKC Registry API
-    #print('mkc user id: aaaaaaaa')
-    #print(mkc_user_id)
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(mt_mkc_request_mkc_player_id, mkc_user_id)
         return_value = future.result()
@@ -1241,22 +1310,23 @@ def mt_mkc_request_mkc_player_id(mkc_user_id):
     except Exception:
         return -1
 
-async def mkc_request_registry_info(mkc_player_id, field_name):
+async def mkc_request_registry_info(mkc_player_id):
     with concurrent.futures.ThreadPoolExecutor() as executor:
-        future = executor.submit(mt_mkc_request_registry_info, mkc_player_id, field_name)
+        future = executor.submit(mt_mkc_request_registry_info, mkc_player_id)
         return_value = future.result()
     return return_value
 
-def mt_mkc_request_registry_info(mkc_player_id, field_name):
+# returs user_id, country_code, is_banned, discord_tag
+def mt_mkc_request_registry_info(mkc_player_id):
     try:
         mkcresponse = requests.get("https://www.mariokartcentral.com/mkc/api/registry/players/" + str(mkc_player_id))
         mkc_data = mkcresponse.json()
         buh = json.dumps(mkc_data)
         mkc_data_dict = json.loads(buh)
-        return_value = mkc_data_dict[field_name]
+        return_value = [mkc_data_dict['user_id'], mkc_data_dict['country_code'], mkc_data_dict['is_banned']]
         return return_value
     except Exception:
-        return -1
+        return [-1, -1, -1]
 
 # Takes ctx and Discord ID, returns mkc_user_id
 async def lounge_request_mkc_user_id(ctx):
