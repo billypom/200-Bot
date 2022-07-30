@@ -694,6 +694,8 @@ async def table(
                     my_player_name = temp[0][0]
                     my_player_mmr = temp[0][1]
                     my_player_peak = temp[0][2]
+                    if my_player_peak is None:
+                        my_player_peak = 0
                 my_player_score = player[1]
                 my_player_place = team[len(team)-2]
                 my_player_mmr_change = team[len(team)-1]
