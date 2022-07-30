@@ -681,10 +681,12 @@ async def table(
                         pass
             team.append(math.ceil(temp_value))
         for team in sorted_list:
-            for idx, player in enumerate(team):
-                if idx > (mogi_format-1)
-                    continue
-                
+            print(team)
+            # for idx, player in enumerate(team):
+                # if idx > (mogi_format-1)
+                    # continue
+                # with DBA.DBAccess() as db:
+
                 
 
         # Send MMR updates to DB
