@@ -560,6 +560,7 @@ async def table(
     # Get MMR data for each team, calculate team score, and determine team placement
     count = 0
     mogi_score = 0
+    print(f'length of chunked list: {len(chunked_list)}')
     for team in chunked_list:
         temp_mmr = 0
         team_score = 0
