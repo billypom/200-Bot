@@ -1113,7 +1113,7 @@ async def check_if_mkc_player_id_used(mkc_player_id):
             else:
                 return False
     except Exception as e:
-        await send_to_debug_channel(mkc_player_id, e)
+        await send_raw_to_debug_channel(mkc_player_id, e)
         return False
 
 async def check_if_player_exists(ctx):
