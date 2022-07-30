@@ -48,6 +48,8 @@ Lounge = [461383953937596416]
 lounge_id = 999835318104625252
 ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
+symbol_up = '▴'
+symbol_down = '▾' 
 MOGILIST = {}
 TIER_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
@@ -227,7 +229,7 @@ async def verify(
             #print('registry link: regex found: ' + str(x))
             reg_array = re.split('/', x)
             mkc_player_id = reg_array[1]
-            #print('mkc player_id :' + str(mkc_player_id))
+            print(f'mkc player_id : {str(mkc_player_id)}')
         else:
             await ctx.respond('``Error 2:`` Oops! Something went wrong. Check your link or try again later')
             return
@@ -239,6 +241,7 @@ async def verify(
             x = regex_group.group()
             temp = re.split('\.|/', x)
             mkc_user_id = temp[2]
+            print(f'mkc user id: {mkc_user_id}')
         else:
             # player doesnt exist on forums
             await ctx.respond('``Error 3:`` Oops! Something went wrong. Check your link or try again later')
@@ -521,6 +524,8 @@ async def table(
         33:None, #!
         64:None, #@
     }
+    # Check for verified user
+    # Check for role? (reporter? or how do i do that...)
     # Check the mogi_format
     if mogi_format == 1:
         SPECIAL_TEAMS_INTEGER = 63
@@ -535,13 +540,10 @@ async def table(
     else:
         await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, 4, or 6.')
         return
-    # check for verified user
-    # check for role? (reporter? or how do i do that...)
-    # check for 12 players
-    # check for all 12 players exist
     # check for score = 984
     score_string = str(scores).translate(remove_chars)
     score_list = score_string.split()
+    # check for 12 players
     if len(score_list) == 24:
         pass
     else:
@@ -559,6 +561,7 @@ async def table(
 
     # Get MMR data for each team, calculate team score, and determine team placement
     count = 0
+    mogi_score = 0
     for team in chunked_list:
         temp_mmr = 0
         team_score = 0
@@ -570,13 +573,21 @@ async def table(
                     temp_mmr += mmr
                     try:
                         team_score += int(player[1])
+                        mogi_score += int(player[1])
                     except Exception:
                         score_and_pen = str(player[1]).split('-')
                         team_score = team_score + int(score_and_pen[0]) - int(score_and_pen[1])
+                        mogi_score = mogi_score + int(score_and_pen[0]) + int(score_and_pen[1])
             except Exception as e:
+                # check for all 12 players exist
                 await send_to_debug_channel(ctx, e)
-                await ctx.respond(f'`Error 24:` There was an error with the following player: <@{player[0]}>')
+                await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>')
                 return
+        if mogi_score == 984:
+            pass
+        else:
+            await ctx.respond(f'``Error 28:`` Scores must add up to 984.')
+            return
         team_mmr = temp_mmr/len(team)
         team.append(team_score)
         team.append(team_mmr)
@@ -668,22 +679,61 @@ async def table(
             team.append(math.ceil(temp_value))
         for team in sorted_list:
             print(team)
-        # for thing in value_table:
-            # print(thing)
-
-
-                
 
         # Send MMR updates to DB
 
         # Create MMR Table
-        # ```css
-        # "Green Text" | use quotations
-        # .blue-text | .prefix-no-spaces-allowed
-        # [Orange Text] | brackets
-        # ```
+        #```ansi
+
+        # Grandmaster
+        # [0;2m[0;40m[0;31mgrandmaster[0m[0;40m[0m[0m
+
+        # Master
+        # [2;40m[2;37mmaster[0m[2;40m[0m
+        
+        # Diamond
+        # [0;2m[0;34mdiamond[0m[0m
+        
+        # Platinum
+        # [2;40m[2;36mplatinum[0m[2;40m[0m
+
+        # Gold
+        # [2;40m[2;33mgold[0m[2;40m[0m
+
+        # Silver
+        # [0;2m[0;42m[0;37msilver[0m[0;42m[0m[0m
+        
+        # Bronze
+        # [0;2m[0;47m[0;33mbronze[0m[0;47m[0m[0m
+
+        # Iron
+        # [0;2m[0;30m[0;47miron[0m[0;30m[0m[0m
+
+        # + MMR
+        # [0;2m[0;32m+ MMR[0m[0m
+
+        # - MMR
+        # [0;2m[0;31m- MMR[0m[0m
+
+        # Peak MMR
+        # [0;2m[0;41m[0;37mPeak MMR[0m[0;41m[0m[0m
+
+        # Bold
+        # [0;2m[1;2mBold[0m[0m
+
+        # Line
+        # [0;2m[4;2mLine[0m[0m
+
+
+        # 
+        # https://gist.github.com/kkrypt0nn/a02506f3712ff2d1c8ca7c9e0aed7c06
+        # https://rebane2001.com/discord-colored-text-generator/ 
+
 
         # Send MMR to results channel
+        # tier | results
+        # placement, player_name, current MMR, mmr_change, new mmr, new rank(if in range)
+        # races = 12
         await ctx.respond('`Table Accepted.`', delete_after=300)
     else:
         await ctx.respond('`Table Denied.`', delete_after=300)
