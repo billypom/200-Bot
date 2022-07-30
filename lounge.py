@@ -582,14 +582,15 @@ async def table(
                 return
         print(team_score)
         mogi_score += team_score
-        if mogi_score == 984:
-            pass
-        else:
-            await ctx.respond(f'``Error 28:`` `Scores = {mogi_score} `Scores must add up to 984.')
-            return
         team_mmr = temp_mmr/len(team)
         team.append(team_score)
         team.append(team_mmr)
+        mogi_score += team_score
+    if mogi_score == 984:
+        pass
+    else:
+        await ctx.respond(f'``Error 28:`` `Scores = {mogi_score} `Scores must add up to 984.')
+        return
     # Sort the teams in order of score
     # [[players players players], team_score, team_mmr, team_placement]
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-2]))
