@@ -614,7 +614,7 @@ async def table(
         team.append(team_placement)
         lorenzi_query += f'{team_placement} #AAC8F4 \n'
         for idx, player in enumerate(team):
-            if idx > 1:
+            if idx > (mogi_format-1):
                 continue
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_name, country_code FROM player WHERE player_id = %s;', (player[0],))
