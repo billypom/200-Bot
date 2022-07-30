@@ -242,7 +242,7 @@ async def verify(
             x = regex_group.group()
             temp = re.split('\.|/', x)
             mkc_forum_name = temp[1]
-            mkc_player_id = await mkc_request_mkc_player_id(temp[2]):
+            mkc_player_id = await mkc_request_mkc_player_id(temp[2])
         else:
             # player doesnt exist on forums
             await ctx.respond('``Error 3:`` Oops! Something went wrong. Check your link or try again later')
