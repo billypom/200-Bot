@@ -214,10 +214,12 @@ async def verify(
     ctx, 
     message: discord.Option(str, 'MKC Link', required=True
     )):
+    await send_raw_to_debug_channel('a','b')
     # mkc_player_id = registry id
     # mkc_user_id = forum id
     await ctx.defer(ephemeral=True)
     x = await check_if_player_exists(ctx)
+    await send_raw_to_debug_channel('a','b')
     if x:
         await ctx.respond(f'``Error 1:`` {str(ctx.author.display_name)} is already verified.')
         return
