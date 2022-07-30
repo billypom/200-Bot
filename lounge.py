@@ -581,7 +581,6 @@ async def table(
                 await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>')
                 return
         print(team_score)
-        mogi_score += team_score
         team_mmr = temp_mmr/len(team)
         team.append(team_score)
         team.append(team_mmr)
