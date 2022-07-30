@@ -704,20 +704,24 @@ async def table(
                 mmr_table_string += f'{str(my_player_place).center(3)}|'
                 mmr_table_string +=f'{my_player_name.center(18)}|'
                 mmr_table_string += f'{str(my_player_mmr).center(7)}|'
+                
                 # Check sign of mmr delta
+                formatted_my_player_mmr_change = my_player_mmr_change.center(6)
                 if my_player_mmr_change >= 0:
-                    my_player_mmr_change = await pos_mmr_wrapper(f'+{str(my_player_mmr_change)}')
+                    formatted_my_player_mmr_change = await pos_mmr_wrapper(f'+{str(my_player_mmr_change)}')
                 else:
-                    my_player_mmr_change = await neg_mmr_wrapper(f'{str(my_player_mmr_change)}')
-                mmr_table_string += f'{my_player_mmr_change.center(6)}|'
+                    formatted_my_player_mmr_change = await neg_mmr_wrapper(f'{str(my_player_mmr_change)}')
+                mmr_table_string += f'{formatted_my_player_mmr_change}|'
+
                 # Check for new peak
+                formatted_my_player_new_mmr = my_player_new_mmr.center(7)
                 if my_player_peak < (my_player_new_mmr):
                     formatted_my_player_new_mmr = await peak_mmr_wrapper(my_player_new_mmr)
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET peak_mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
                 else:
                     formatted_my_player_new_mmr = my_player_new_mmr
-                mmr_table_string += f'{str(formatted_my_player_new_mmr).center(7)}|'
+                mmr_table_string += f'{str(formatted_my_player_new_mmr)}|'
                 # Check for rank changes
 
                     
@@ -731,7 +735,7 @@ async def table(
             tier_name = temp[0][1]
         results_channel = client.get_channel(db_results_channel)
         embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', description=f'```ansi\n{mmr_table_string}```', color = discord.Color.blurple())
-        await channel.send(content=None, embed=embed)
+        await results_channel.send(content=None, embed=embed)
 
         # Create MMR Table
         #```ansi
