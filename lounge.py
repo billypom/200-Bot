@@ -53,6 +53,7 @@ symbol_down = '▾'
 MOGILIST = {}
 TIER_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
+SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
 intents = discord.Intents(messages=True, guilds=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 
@@ -262,17 +263,6 @@ async def verify(
     country_code = mkc_registry_data[1]
     is_banned = mkc_registry_data[2]
 
-    # Check if user verifying and user in mkc database is the same discord user (should i delete this? privacy settings or something)
-    # discord_tag = await mkc_request_registry_info(mkc_player_id, 'discord_tag')
-    # if str(discord_tag) == str(ctx.author):
-    #     pass
-    # else:
-    #     await ctx.respond('``Error 8:`` Account is not associated. Check your privacy settings on mariokartcentral.com')
-    #     verify_description = vlog_msg.error2
-    #     verify_color = discord.Color.red()
-    #     await send_to_verification_log(ctx, message, verify_color, verify_description)
-    #     return
-
     if is_banned:
         # Is banned
         verify_description = vlog_msg.error3
@@ -284,26 +274,57 @@ async def verify(
         # Wrong link probably?
         await ctx.respond('``Error 7:`` Oops! Something went wrong. Check your link or try again later')
         return
+    else:
+        pass
     # Check for shared ips
     # Check for last seen date
     # If last seen in the last week? pass else: send message (please log in to your mkc account and retry)
+    mkc_forum_data = await mkc_request_forum_info(mkc_user_id)
+    last_seen_unix_timestamp = mkc_forum_data[0]
+    # name.mkc_user_id
+    user_matches_list = mkc_forum_data[1]
     
-    else:
-        # Is not banned
-        verify_description = vlog_msg.success
-        verify_color = discord.Color.green()
-        x = await check_if_mkc_player_id_used(mkc_player_id)
-        if x:
-            await ctx.respond(f'``Error 10: Duplicate player`` If you think this is a mistake, please contact {secrets.my_discord} immediately. ')
-            verify_description = vlog_msg.error4
+    if mkc_forum_data[0] != -1:
+        dtobject_now = datetime.datetime.now()
+        unix_now = time.mktime(dtobject_now.timetuple())
+        seconds_since_last_login = unix_now - last_seen_unix_timestamp
+        if seconds_since_last_login > SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT:
+            verify_description = vlog_msg.error5
             verify_color = discord.Color.red()
+            await ctx.respond('``Error 5:`` Please log in to your MKC account and retry')
             await send_to_verification_log(ctx, message, verify_color, verify_description)
             return
         else:
-            x = await create_player(ctx)
-            await ctx.respond(x)
-            await send_to_verification_log(ctx, message, verify_color, verify_description)
-            return
+            pass
+    else:
+        verify_description = vlog_msg.error6
+        verify_color = discord.Color.red()
+        await ctx.respond('``Error 6:`` Oops! Something went wrong. Check your link or try again later')
+        await send_to_verification_log(ctx, message, verify_color, verify_description)
+        return
+    if user_matches_list:
+        pass:
+    else:
+        await ctx.respond('``Error 8:`` Oops! Something went wrong. Check your link or try again later')
+        verify_color = discord.Color.teal()
+        await send_to_ip_match_log(ctx, message, verify_color, user_matches_list)
+        return
+    # All clear. Roll out.
+    verify_description = vlog_msg.success
+    verify_color = discord.Color.green()
+    # Check if someone has verified as this user before...
+    x = await check_if_mkc_player_id_used(mkc_player_id)
+    if x:
+        await ctx.respond(f'``Error 10: Duplicate player`` If you think this is a mistake, please contact {secrets.my_discord} immediately. ')
+        verify_description = vlog_msg.error4
+        verify_color = discord.Color.red()
+        await send_to_verification_log(ctx, message, verify_color, verify_description)
+        return
+    else:
+        x = await create_player(ctx)
+        await ctx.respond(x)
+        await send_to_verification_log(ctx, message, verify_color, verify_description)
+        return
 
 
 @client.slash_command(
@@ -1187,7 +1208,19 @@ async def send_to_sub_log(ctx, message):
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
     await channel.send(content=None, embed=embed)
 
-
+async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
+    channel = client.get_channel(secrets.ip_match_channel)
+    embed = discord.Embed(title="Verification", description=f'IP Matches for <@{ctx.author.id}>', color=verify_color)
+    try:
+        embed.add_field(name="Name: ", value=ctx.author, inline=False)
+        embed.add_field(name='Message: ', value=message, inline=False)
+        for user in user_matches_list:
+            ip_match_forum_link = f'https://www.mariokartcentral.com/forums/index.php?members/{user}'
+            embed.add_field(name=f'{user}' value=ip_match_forum_link, inline=False)
+        embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
+        await channel.send(content=None, embed=embed)
+    except Exception as e:
+        await channel.send(f'TOO MANY MATCHES: {e} {user_matches_list}')
 
 
 
@@ -1209,68 +1242,66 @@ async def mkc_request_forum_info(mkc_user_id):
     return return_value
 
 def mt_mkc_request_forum_info(mkc_user_id):
-    # Get shared ips
-    login_url = 'https://www.mariokartcentral.com/forums/index.php?login/login'
-    data_url = (f'https://www.mariokartcentral.com/forums/index.php?members/{mkc_user_id}/shared-ips')
-    with requests.Session() as s:
-        html = s.get(login_url).content
-        soup = Soup(html, 'html.parser')
-        token = soup.select_one('[name=_xfToken]').attrs['value']
-        payload = {
-        'login': str(secrets.mkc_name),
-        'password': str(secrets.mkc_password),
-        '_xfToken': str(token),
-        '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
-        }
-        response = s.post(login_url, data=payload)
-        response = s.get(data_url)
-        response_string = str(response.content)
-        response_lines = response_string.split('\\n')
-        for line in response_lines:
-            # this h3 div is only used to show shared ips. so it works as a unique identifier
-            if '<h3 class="contentRow-header"><a href="/forums/index.php?members/' in line:
-                regex_pattern = 'members/.*\.\d*'
-                # if the regex pattern is found in the line
-                if re.search(regex_pattern, line):
-                    # find the exact place (index-characters of string or w/e) where the pattern matches
-                    regex_group = re.search(regex_pattern, line)
-                    # get the string from that exact place
-                    x = regex_group.group()
-                    # split on a slash (its always slash)
-                    reg_array = re.split('/', x)
-                    print(reg_array)
+    try:
+        # Get shared ips
+        login_url = 'https://www.mariokartcentral.com/forums/index.php?login/login'
+        data_url = (f'https://www.mariokartcentral.com/forums/index.php?members/{mkc_user_id}/shared-ips')
+        with requests.Session() as s:
+            html = s.get(login_url).content
+            soup = Soup(html, 'html.parser')
+            token = soup.select_one('[name=_xfToken]').attrs['value']
+            payload = {
+            'login': str(secrets.mkc_name),
+            'password': str(secrets.mkc_password),
+            '_xfToken': str(token),
+            '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
+            }
+            response = s.post(login_url, data=payload)
+            response = s.get(data_url)
+            response_string = str(response.content)
+            response_lines = response_string.split('\\n')
+            list_of_user_matches = []
+            for line in response_lines:
+                # this h3 div is only used to show shared ips. so it works as a unique identifier
+                if '<h3 class="contentRow-header"><a href="/forums/index.php?members/' in line:
+                    regex_pattern = 'members/.*\.\d*'
+                    if re.search(regex_pattern, line):
+                        regex_group = re.search(regex_pattern, line)
+                        x = regex_group.group()
+                        reg_array = re.split('/', x)
+                        list_of_user_matches.append(reg_array[1])
 
-    data_url = (f'https://www.mariokartcentral.com/forums/index.php?members/{mkc_user_id}')
-    with requests.Session() as s:
-        html = s.get(login_url).content
-        soup = Soup(html, 'html.parser')
-        token = soup.select_one('[name=_xfToken]').attrs['value']
-        payload = {
-        'login': str(secrets.mkc_name),
-        'password': str(secrets.mkc_password),
-        '_xfToken': str(token),
-        '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
-        }
-        response = s.post(login_url, data=payload)
-        response = s.get(data_url)
-        response_string = str(response.content)
-        response_lines = response_string.split('\\n')
-        # \t\t\t\t\t\t\t\t\t\t\t<time  class="u-dt" dir="auto" datetime="2022-07-30T11:07:30-0400" data-time="1659193650" data-date-string="Jul 30, 2022" data-time-string="11:07 AM" title="Jul 30, 2022 at 11:07 AM">A moment ago</time> <span role="presentation" aria-hidden="true">&middot;</span> Viewing member profile <em><a href="/forums/index.php?members/popuko.154/" dir="auto">popuko</a></em>
-        for idx, line in enumerate(response_lines):
-            # print(line)
-            if 'Last seen' in line:
-                last_seen_string = response_lines[idx+2]
-                regex_pattern = 'data-time="\d*"'
-                if re.search(regex_pattern, last_seen_string):
-                    # find the exact place (index-characters of string or w/e) where the pattern matches
-                    regex_group = re.search(regex_pattern, last_seen_string)
-                    # get the string from that exact place
-                    x = regex_group.group()
-                    # split on a slash (its always slash)
-                    reg_array = re.split('"', x)
-                    print(reg_array)
-                    last_seen_unix_timestamp = reg_array[1]
-                    break
+        data_url = (f'https://www.mariokartcentral.com/forums/index.php?members/{mkc_user_id}')
+        with requests.Session() as s:
+            html = s.get(login_url).content
+            soup = Soup(html, 'html.parser')
+            token = soup.select_one('[name=_xfToken]').attrs['value']
+            payload = {
+            'login': str(secrets.mkc_name),
+            'password': str(secrets.mkc_password),
+            '_xfToken': str(token),
+            '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
+            }
+            response = s.post(login_url, data=payload)
+            response = s.get(data_url)
+            response_string = str(response.content)
+            response_lines = response_string.split('\\n')
+            # \t\t\t\t\t\t\t\t\t\t\t<time  class="u-dt" dir="auto" datetime="2022-07-30T11:07:30-0400" data-time="1659193650" data-date-string="Jul 30, 2022" data-time-string="11:07 AM" title="Jul 30, 2022 at 11:07 AM">A moment ago</time> <span role="presentation" aria-hidden="true">&middot;</span> Viewing member profile <em><a href="/forums/index.php?members/popuko.154/" dir="auto">popuko</a></em>
+            for idx, line in enumerate(response_lines):
+                # print(line)
+                if 'Last seen' in line:
+                    last_seen_string = response_lines[idx+2]
+                    regex_pattern = 'data-time="\d*"'
+                    if re.search(regex_pattern, last_seen_string):
+                        regex_group = re.search(regex_pattern, last_seen_string)
+                        x = regex_group.group()
+                        reg_array = re.split('"', x)
+                        print(reg_array)
+                        last_seen_unix_timestamp = reg_array[1]
+                        break
+        return [last_seen_unix_timestamp, list_of_user_matches]
+    except Exception as e:
+        return [-1, [-1, -1]]
 
 async def mkc_request_mkc_player_id(mkc_user_id):
     with concurrent.futures.ThreadPoolExecutor() as executor:
