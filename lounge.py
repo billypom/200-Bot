@@ -549,8 +549,8 @@ async def table(
         return
     # Initialize a list so we can group players and scores together
     player_score_chunked_list = list()
-    for i in range(0, len(score_list), 2):
-        player_score_chunked_list.append(score_list[i:i+2])
+    for i in range(0, len(score_list), mogi_format):
+        player_score_chunked_list.append(score_list[i:i+mogi_format])
 
     # Chunk the list into groups of teams, based on mogi_format and order of scores entry
     chunked_list = list()
