@@ -690,7 +690,7 @@ async def table(
                 if idx > (mogi_format-1):
                     break
                 with DBA.DBAccess() as db:
-                    temp = db.query('SELECT player_name, mmr, peak_mmr FROM player WHERE player_id = %s;', (player[0]))
+                    temp = db.query('SELECT player_name, mmr, peak_mmr FROM player WHERE player_id = %s;', (player[0],))
                     my_player_name = temp[0][0]
                     my_player_mmr = temp[0][1]
                     my_player_peak = temp[0][2]
