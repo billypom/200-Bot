@@ -223,6 +223,7 @@ async def verify(
         return
     else:
         pass
+    await send_raw_to_debug_channel('a','b')
     # Regex on https://www.mariokartcentral.com/mkc/registry/players/930
     if 'registry' in message:
         regex_pattern = 'players/\d*'
@@ -250,18 +251,20 @@ async def verify(
     else:
         await ctx.respond('``Error 5:`` Oops! Something went wrong. Check your link or try again later')
         return
-
+    await send_raw_to_debug_channel('a','b')
     # Make sure player_id was received properly
     if mkc_player_id != -1:
         pass
     else:
         await ctx.respond('``Error 4:`` Oops! Something went wrong. Check your link or try again later')
         return
+    await send_raw_to_debug_channel('a','b')
     # Request registry data
     mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
     mkc_user_id = mkc_registry_data[0]
     country_code = mkc_registry_data[1]
     is_banned = mkc_registry_data[2]
+    await send_raw_to_debug_channel('a','b')
 
     if is_banned:
         # Is banned
@@ -276,6 +279,7 @@ async def verify(
         return
     else:
         pass
+    await send_raw_to_debug_channel('a','b')
     # Check for shared ips
     # Check for last seen date
     # If last seen in the last week? pass else: send message (please log in to your mkc account and retry)
@@ -283,6 +287,7 @@ async def verify(
     last_seen_unix_timestamp = float(mkc_forum_data[0])
     # name.mkc_user_id
     user_matches_list = mkc_forum_data[1]
+    await send_raw_to_debug_channel('a','b')
     
     if mkc_forum_data[0] != -1:
         dtobject_now = datetime.datetime.now()
@@ -1352,7 +1357,7 @@ async def mkc_request_registry_info(mkc_player_id):
         return_value = future.result()
     return return_value
 
-# returs user_id, country_code, is_banned, discord_tag
+# returs user_id, country_code, is_banned
 def mt_mkc_request_registry_info(mkc_player_id):
     try:
         mkcresponse = requests.get("https://www.mariokartcentral.com/mkc/api/registry/players/" + str(mkc_player_id))
