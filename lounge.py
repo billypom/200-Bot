@@ -710,7 +710,7 @@ async def table(
                     string_my_player_mmr_change = f'+{str((my_player_mmr_change)).center(6)}'
                     formatted_my_player_mmr_change = await pos_mmr_wrapper(string_my_player_mmr_change)
                 else:
-                    string_my_player_mmr_change = f'{my_player_mmr_change.center(6)}'
+                    string_my_player_mmr_change = f'{str(my_player_mmr_change).center(6)}'
                     formatted_my_player_mmr_change = await neg_mmr_wrapper(string_my_player_mmr_change)
                 mmr_table_string += f'{formatted_my_player_mmr_change}|'
 
