@@ -719,6 +719,7 @@ async def table(
                 # Check for new peak
                 string_my_player_new_mmr = str(my_player_new_mmr).center(7)
                 if my_player_peak < (my_player_new_mmr):
+                    print('its less than')
                     formatted_my_player_new_mmr = await peak_mmr_wrapper(string_my_player_new_mmr)
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET peak_mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
