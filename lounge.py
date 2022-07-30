@@ -706,21 +706,22 @@ async def table(
                 mmr_table_string += f'{str(my_player_mmr).center(7)}|'
 
                 # Check sign of mmr delta
-                formatted_my_player_mmr_change = str(my_player_mmr_change).center(6)
                 if my_player_mmr_change >= 0:
-                    formatted_my_player_mmr_change = await pos_mmr_wrapper(f'+{str(my_player_mmr_change)}')
+                    string_my_player_mmr_change = f'{(f'+{my_player_mmr_change}').center(6)}'
+                    formatted_my_player_mmr_change = await pos_mmr_wrapper(string_my_player_mmr_change)
                 else:
-                    formatted_my_player_mmr_change = await neg_mmr_wrapper(f'{str(my_player_mmr_change)}')
+                    string_my_player_mmr_change = f'{my_player_mmr_change.center(6)}'
+                    formatted_my_player_mmr_change = await neg_mmr_wrapper(string_my_player_mmr_change)
                 mmr_table_string += f'{formatted_my_player_mmr_change}|'
 
                 # Check for new peak
-                formatted_my_player_new_mmr = str(my_player_new_mmr).center(7)
+                string_my_player_new_mmr = str(my_player_new_mmr).center(7)
                 if my_player_peak < (my_player_new_mmr):
-                    formatted_my_player_new_mmr = await peak_mmr_wrapper(my_player_new_mmr)
+                    formatted_my_player_new_mmr = await peak_mmr_wrapper(string_my_player_new_mmr)
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET peak_mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
                 else:
-                    formatted_my_player_new_mmr = my_player_new_mmr
+                    formatted_my_player_new_mmr = string_my_player_new_mmr
                 mmr_table_string += f'{str(formatted_my_player_new_mmr)}|'
                 # Check for rank changes
 
