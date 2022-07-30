@@ -677,7 +677,7 @@ async def table(
             team.append(math.ceil(temp_value))
         for team in sorted_list:
             print(team)
-        
+
         # Send MMR updates to DB
 
         # Create MMR Table
@@ -1311,7 +1311,7 @@ async def grandmaster_wrapper(input):
 async def master_wrapper(input):
     return (f'[2;40m[2;37m{input}}[0m[2;40m[0m')
 
-async def diamond_wrapper(input)
+async def diamond_wrapper(input):
     return (f'[0;2m[0;34m{input}[0m[0m')
 
 async def platinum_wrapper(input):
