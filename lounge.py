@@ -1,28 +1,3 @@
-
-
-
-
-
-
-
-
-# Submits table to specific tier or w/e. this bot sucks cynda
-# this is the order that u get from the previous command tutorial above
-# ---
-# !submit 3 d
-# miarun 58
-# usagi 89
-# Jeanne 107
-# ANIMALSASLEADERS 75
-# ta_go 65
-# FULLPOWER 72
-# kerokke 98
-# Takagisan 96
-# tracks 90
-# dasu_go 81
-# Slowbro 64
-# megane 89
-
 import DBA
 import secrets
 import discord
@@ -195,7 +170,7 @@ async def on_message(ctx):
     # get discord id and channel id
     # if user and channel id in lineups
     message = ctx.content
-    print(message)
+    # print(message)
 
 
 
@@ -702,50 +677,12 @@ async def table(
             team.append(math.ceil(temp_value))
         for team in sorted_list:
             print(team)
-
+        
         # Send MMR updates to DB
 
         # Create MMR Table
         #```ansi
 
-        # Grandmaster
-        # [0;2m[0;40m[0;31mgrandmaster[0m[0;40m[0m[0m
-
-        # Master
-        # [2;40m[2;37mmaster[0m[2;40m[0m
-        
-        # Diamond
-        # [0;2m[0;34mdiamond[0m[0m
-        
-        # Platinum
-        # [2;40m[2;36mplatinum[0m[2;40m[0m
-
-        # Gold
-        # [2;40m[2;33mgold[0m[2;40m[0m
-
-        # Silver
-        # [0;2m[0;42m[0;37msilver[0m[0;42m[0m[0m
-        
-        # Bronze
-        # [0;2m[0;47m[0;33mbronze[0m[0;47m[0m[0m
-
-        # Iron
-        # [0;2m[0;30m[0;47miron[0m[0;30m[0m[0m
-
-        # + MMR
-        # [0;2m[0;32m+ MMR[0m[0m
-
-        # - MMR
-        # [0;2m[0;31m- MMR[0m[0m
-
-        # Peak MMR
-        # [0;2m[0;41m[0;37mPeak MMR[0m[0;41m[0m[0m
-
-        # Bold
-        # [0;2m[1;2mBold[0m[0m
-
-        # Line
-        # [0;2m[4;2mLine[0m[0m
 
 
         # 
@@ -888,20 +825,6 @@ async def start_mogi(ctx):
     '''
     await channel.send(poll_results_response)
     return True
-
-    
-# Poll Ended!
-
-# 1. FFA - 3 (Splinkle, Tatsuya, IhavePants)
-# 2. 2v2 - 6 (Ai Xiang, Deshawn Co. III, ObesoYoshiraMK, Helfire Club, naive, iiRxl)
-# 3. 3v3 - 0
-# 4. 4v4 - 0
-# 6. 6v6 - 0
-# Winner: 2v2
-
-# Table: !scoreboard 6 Deshawn Co. III, iiRxl, naive, Ty, Tatsuya, ObesoYoshiraMK, Splinkle, Maxarx, IhavePants, Ai Xiang, Helfire Club, Nino
-
-
 
 
 async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
@@ -1114,7 +1037,6 @@ async def check_if_mkc_player_id_used(mkc_player_id):
         return False
 
 async def check_if_player_exists(ctx):
-    await send_raw_to_debug_channel('a','b')
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM player WHERE player_id = %s;', (ctx.author.id, ))
@@ -1300,7 +1222,7 @@ def mt_mkc_request_forum_info(mkc_user_id):
                         regex_group = re.search(regex_pattern, last_seen_string)
                         x = regex_group.group()
                         reg_array = re.split('"', x)
-                        print(reg_array)
+                        # print(reg_array)
                         last_seen_unix_timestamp = reg_array[1]
                         break
         return [last_seen_unix_timestamp, list_of_user_matches]
@@ -1383,6 +1305,43 @@ def mt_lounge_request_mkc_user_id(ctx):
     return mkc_user_id
 
 
+async def grandmaster_wrapper(input):
+    return (f'[0;2m[0;40m[0;31m{input}[0m[0;40m[0m[0m')
 
+async def master_wrapper(input):
+    return (f'[2;40m[2;37m{input}}[0m[2;40m[0m')
+
+async def diamond_wrapper(input)
+    return (f'[0;2m[0;34m{input}[0m[0m')
+
+async def platinum_wrapper(input):
+    return (f'[2;40m[2;36m{input}}[0m[2;40m[0m')
+
+async def gold_wrapper(input):
+    return (f'[2;40m[2;33m{input}}[0m[2;40m[0m')
+
+async def silver_wrapper(input):
+    return (f'[0;2m[0;42m[0;37m{input}}[0m[0;42m[0m[0m')
+
+async def bronze_wrapper(input):
+    return (f'[0;2m[0;47m[0;33m{input}}[0m[0;47m[0m[0m')
+
+async def iron_wrapper(input):
+    return (f'[0;2m[0;30m[0;47m{input}}[0m[0;30m[0m[0m')
+
+async def pos_mmr_wrapper(input):
+    return (f'[0;2m[0;32m{input}[0m[0m')
+
+async def neg_mmr_wrapper(input):
+    return (f'[0;2m[0;31m{input}[0m[0m')
+
+async def peak_mmr_wrapper(input):
+    return (f'[0;2m[0;41m[0;37m{input}}R[0m[0;41m[0m[0m')
+
+async def bold_wrapper(input):
+    return (f'[0;2m[1;2m{input}[0m[0m')
+
+async def underline_wrapper(input):
+    return (f'[0;2m[4;2m{input}[0m[0m')
 
 client.run(secrets.token)
