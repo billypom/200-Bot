@@ -612,7 +612,8 @@ async def table(
         else:
             team_placement+=1
         team.append(team_placement)
-        lorenzi_query += f'{team_placement} #AAC8F4 \n'
+        if mogi_format != 1:
+            lorenzi_query += f'{team_placement} #AAC8F4 \n'
         for idx, player in enumerate(team):
             if idx > (mogi_format-1):
                 continue
