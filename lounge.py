@@ -571,11 +571,10 @@ async def table(
                     temp_mmr += mmr
                     try:
                         team_score += int(player[1])
-                        mogi_score += int(player[1])
                     except Exception:
                         score_and_pen = str(player[1]).split('-')
                         team_score = team_score + int(score_and_pen[0]) - int(score_and_pen[1])
-                        mogi_score = mogi_score + int(score_and_pen[0]) + int(score_and_pen[1])
+        mogi_score += team_score
             except Exception as e:
                 # check for all 12 players exist
                 await send_to_debug_channel(ctx, e)
