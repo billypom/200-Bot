@@ -770,7 +770,7 @@ async def table(
                     max_mmr = db_ranks_table[i][2]
                     # Rank up - assign roles - update DB
                     try:
-                        if my_player_mmr < max_mmr and my_player_new_mmr > max_mmr:
+                        if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr:
                             guild = client.get_guild(Lounge[0])
                             print(f'guild: {guild}')
                             current_role = guild.get_role(my_player_rank_id)
