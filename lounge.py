@@ -31,6 +31,7 @@ MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
 intents = discord.Intents(messages=True, guilds=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
+guild = client.get_guild(Lounge[0])
 
 with DBA.DBAccess() as db:
     get_tier_list = db.query('SELECT tier_id FROM tier WHERE tier_id > %s;', (0,))
@@ -700,11 +701,12 @@ async def table(
                 if idx > (mogi_format-1):
                     break
                 with DBA.DBAccess() as db:
-                    temp = db.query('SELECT p.player_name, p.mmr, p.peak_mmr, l.is_sub FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE p.player_id = %s;', (player[0],))
+                    temp = db.query('SELECT p.player_name, p.mmr, p.peak_mmr, p.rank_id, l.is_sub FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE p.player_id = %s;', (player[0],))
                     my_player_name = temp[0][0]
                     my_player_mmr = temp[0][1]
                     my_player_peak = temp[0][2]
-                    is_sub = temp[0][3]
+                    my_player_rank_id = temp[0][3]
+                    is_sub = temp[0][4]
                     if my_player_peak is None:
                         print('its none...')
                         my_player_peak = 0
@@ -761,8 +763,36 @@ async def table(
                     pass
 
                 # Check for rank changes
+                with DBA.DBAccess() as db:
+                    db_ranks_table = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks WHERE rank_id > %s;', (1,))
+                for i in range(len(db_ranks_table)):
+                    rank_id = db_ranks_table[i][0]
+                    min_mmr = db_ranks_table[i][1]
+                    max_mmr = db_ranks_table[i][2]
+                    # Rank up - assign roles - update DB
+                    if my_player_mmr < max_mmr and my_player_new_mmr > max_mmr:
+                        current_role = guild.get_role(my_player_rank_id)
+                        new_role = guild.get_role(rank_id)
+                        member = guild.get_member(player[0])
+                        member.remove_roles(current_role)
+                        member.add_roles(new_role)
+                        with DBA.DBAccess() as db:
+                            db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
+                    # Rank down - assign roles - update DB
+                    if my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
+                        current_role = guild.get_role(my_player_rank_id)
+                        new_role = guild.get_role(rank_id)
+                        member = guild.get_member(player[0])
+                        member.remove_roles(current_role)
+                        member.add_roles(new_role)
+                        with DBA.DBAccess() as db:
+                            db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
 
-                    
+                    # my_player_rank_id = role_id
+                    # guild.get_role(role_id)
+                    # guild.get_member(discord_id)
+                    # member.add_roles(discord.Role)
+                    # member.remove_roles(discord.Role)
                 mmr_table_string += '\n'
 
         # Create imagemagick image
@@ -818,9 +848,9 @@ async def create_player(ctx, mkc_user_id, country_code):
     else:
         try:
             with DBA.DBAccess() as db:
-                # TODO: 
-                # REWRITE TO GATHER MORE DATA AND MATCH NEW DATABASE
-                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code))
+                temp = db.query('SELECT placement_mmr FROM ranks WHERE rank_name = %s;', ('Placement',))
+                placement_mmr = temp[0][0]
+                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, mmr) VALUES (%s, %s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code, placement_mmr))
                 return 'Verified & registered successfully'
         except Exception as e:
             await send_to_debug_channel(ctx, e)
