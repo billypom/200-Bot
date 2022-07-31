@@ -714,7 +714,7 @@ async def table(
                     if my_player_peak is None:
                         # print('its none...')
                         my_player_peak = 0
-                my_player_score = player[1]
+                my_player_score = int(player[1])
                 my_player_place = team[len(team)-2]
 
                 # Place the placement players
