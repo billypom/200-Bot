@@ -747,14 +747,18 @@ async def table(
                 mmr_table_string += f'{formatted_my_player_new_mmr}|'
 
                 # Send updates to DB
-                with DBA.DBAccess() as db:
-                    # Get ID of the last inserted table
-                    temp = db.query('SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
-                    db_mogi_id = temp[0][0]
-                    # Insert reference record
-                    db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))
-                    # Update player record
-                    db.execute('UPDATE player SET mmr = %s, peak_mmr = %s WHERE player_id = %s;', (int(my_player_new_mmr), int(string_my_player_new_mmr), player[0]))
+                try:
+                    with DBA.DBAccess() as db:
+                        # Get ID of the last inserted table
+                        temp = db.query('SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
+                        db_mogi_id = temp[0][0]
+                        # Insert reference record
+                        db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))
+                        # Update player record
+                        db.execute('UPDATE player SET mmr = %s, peak_mmr = %s WHERE player_id = %s;', (int(my_player_new_mmr), int(string_my_player_new_mmr), player[0]))
+                except Exception as e:
+                    print('duplicate player...skipping')
+                    pass
 
                 # Check for rank changes
 
