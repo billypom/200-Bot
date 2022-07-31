@@ -798,6 +798,7 @@ async def table(
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                     except Exception as e:
+                        print(e)
                         print(f'player <@{player[0]}>not found. no rank update')
                         pass
                         # my_player_rank_id = role_id
