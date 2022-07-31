@@ -769,31 +769,34 @@ async def table(
                     min_mmr = db_ranks_table[i][1]
                     max_mmr = db_ranks_table[i][2]
                     # Rank up - assign roles - update DB
-                    if my_player_mmr < max_mmr and my_player_new_mmr > max_mmr:
-                        guild = client.get_guild(Lounge[0])
-                        current_role = guild.get_role(my_player_rank_id)
-                        new_role = guild.get_role(rank_id)
-                        member = guild.get_member(player[0])
-                        member.remove_roles(current_role)
-                        member.add_roles(new_role)
-                        with DBA.DBAccess() as db:
-                            db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
-                    # Rank down - assign roles - update DB
-                    if my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
-                        guild = client.get_guild(Lounge[0])
-                        current_role = guild.get_role(my_player_rank_id)
-                        new_role = guild.get_role(rank_id)
-                        member = guild.get_member(player[0])
-                        member.remove_roles(current_role)
-                        member.add_roles(new_role)
-                        with DBA.DBAccess() as db:
-                            db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
-
-                    # my_player_rank_id = role_id
-                    # guild.get_role(role_id)
-                    # guild.get_member(discord_id)
-                    # member.add_roles(discord.Role)
-                    # member.remove_roles(discord.Role)
+                    try:
+                        if my_player_mmr < max_mmr and my_player_new_mmr > max_mmr:
+                            guild = client.get_guild(Lounge[0])
+                            current_role = guild.get_role(my_player_rank_id)
+                            new_role = guild.get_role(rank_id)
+                            member = guild.get_member(player[0])
+                            member.remove_roles(current_role)
+                            member.add_roles(new_role)
+                            with DBA.DBAccess() as db:
+                                db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
+                        # Rank down - assign roles - update DB
+                        if my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
+                            guild = client.get_guild(Lounge[0])
+                            current_role = guild.get_role(my_player_rank_id)
+                            new_role = guild.get_role(rank_id)
+                            member = guild.get_member(player[0])
+                            member.remove_roles(current_role)
+                            member.add_roles(new_role)
+                            with DBA.DBAccess() as db:
+                                db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
+                    except Exception as e:
+                        print(f'player <@{player[0]}>not found. no rank update')
+                        pass
+                        # my_player_rank_id = role_id
+                        # guild.get_role(role_id)
+                        # guild.get_member(discord_id)
+                        # member.add_roles(discord.Role)
+                        # member.remove_roles(discord.Role)
                 mmr_table_string += '\n'
 
         # Create imagemagick image
