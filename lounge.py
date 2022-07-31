@@ -29,7 +29,7 @@ MOGILIST = {}
 TIER_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
-intents = discord.Intents(messages=True, guilds=True, message_content=True)
+intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 
 with DBA.DBAccess() as db:
