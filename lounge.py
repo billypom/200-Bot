@@ -1095,7 +1095,10 @@ async def create_teams(ctx, poll_results):
     for team in chunked_list:
         temp_mmr = 0
         for player in team:
-            temp_mmr = temp_mmr + player[2]
+            if player[2] is None: # Account for placement ppls
+                pass
+            else:
+                temp_mmr = temp_mmr + player[2]
         team_mmr = temp_mmr/len(team)
         team.append(team_mmr)
 
