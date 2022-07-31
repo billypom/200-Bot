@@ -31,7 +31,6 @@ MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
 intents = discord.Intents(messages=True, guilds=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
-guild = client.get_guild(Lounge[0])
 
 with DBA.DBAccess() as db:
     get_tier_list = db.query('SELECT tier_id FROM tier WHERE tier_id > %s;', (0,))
@@ -771,6 +770,7 @@ async def table(
                     max_mmr = db_ranks_table[i][2]
                     # Rank up - assign roles - update DB
                     if my_player_mmr < max_mmr and my_player_new_mmr > max_mmr:
+                        guild = client.get_guild(Lounge[0])
                         current_role = guild.get_role(my_player_rank_id)
                         new_role = guild.get_role(rank_id)
                         member = guild.get_member(player[0])
@@ -780,6 +780,7 @@ async def table(
                             db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                     # Rank down - assign roles - update DB
                     if my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
+                        guild = client.get_guild(Lounge[0])
                         current_role = guild.get_role(my_player_rank_id)
                         new_role = guild.get_role(rank_id)
                         member = guild.get_member(player[0])
