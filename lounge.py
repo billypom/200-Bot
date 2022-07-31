@@ -779,8 +779,8 @@ async def table(
                             print(f'new role: {new_role}')
                             member = await guild.fetch_member(player[0])
                             print(f'member: {member}')
-                            member.remove_roles(current_role)
-                            member.add_roles(new_role)
+                            await member.remove_roles(current_role)
+                            await member.add_roles(new_role)
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                         # Rank down - assign roles - update DB
@@ -793,8 +793,8 @@ async def table(
                             print(f'new role: {new_role}')
                             member = await guild.fetch_member(player[0])
                             print(f'member: {member}')
-                            member.remove_roles(current_role)
-                            member.add_roles(new_role)
+                            await member.remove_roles(current_role)
+                            await member.add_roles(new_role)
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                     except Exception as e:
