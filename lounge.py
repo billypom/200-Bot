@@ -572,7 +572,10 @@ async def table(
             try:
                 with DBA.DBAccess() as db:
                     temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
-                    mmr = temp[0][0]
+                    if temp[0][0] is None:
+                        mmr = 0
+                    else:
+                        mmr = temp[0][0]
                     temp_mmr += mmr
                     try:
                         team_score += int(player[1])
@@ -1087,11 +1090,13 @@ async def create_teams(ctx, poll_results):
     random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
     response_string += f'   `Room MMR:` {math.ceil(room_mmr)}\n'
+
     # divide the list based on players_per_team
     chunked_list = list()
     for i in range(0, len(players_list), players_per_team):
         chunked_list.append(players_list[i:i+players_per_team])
-    # for each divided team, get mmr for all players, average them, append to team
+
+    # For each divided team, get mmr for all players, average them, append to team
     for team in chunked_list:
         temp_mmr = 0
         for player in team:
