@@ -643,6 +643,16 @@ async def table(
         await ctx.respond('No response from reporter. Timed out')
     elif table_view.value: # yes
 
+        # Create mogi
+        with DBA.DBAccess() as db:
+            db.execute('INSERT INTO mogi (mogi_format, tier_id) values (%s, %s);', (mogi_format, ctx.channel.id))
+
+        # Get the results channel and tier name for later use
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT results_id, tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+            db_results_channel = temp[0][0]
+            tier_name = temp[0][1]
+
         # Pre MMR table calculate
         value_table = list()
         for idx, team_x in enumerate(sorted_list):
@@ -690,18 +700,27 @@ async def table(
                 if idx > (mogi_format-1):
                     break
                 with DBA.DBAccess() as db:
-                    temp = db.query('SELECT player_name, mmr, peak_mmr FROM player WHERE player_id = %s;', (player[0],))
+                    temp = db.query('SELECT p.player_name, p.mmr, p.peak_mmr, l.is_sub FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE player_id = %s;', (player[0],))
                     my_player_name = temp[0][0]
                     my_player_mmr = temp[0][1]
                     my_player_peak = temp[0][2]
+                    is_sub = temp[0][3]
                     if my_player_peak is None:
                         print('its none...')
                         my_player_peak = 0
+
                 my_player_score = player[1]
                 my_player_place = team[len(team)-2]
-                my_player_mmr_change = team[len(team)-1]
+                if is_sub: # Subs only gain on winning team
+                    if team[len(team)-1] < 0:
+                        my_player_mmr_change = 0
+                    else:
+                        my_player_mmr_change = team[len(team)-1]
+                else:
+                    my_player_mmr_change = team[len(team)-1]
                 my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
 
+                # Start creating string for MMR table
                 mmr_table_string += f'{str(my_player_place).center(3)}|'
                 mmr_table_string +=f'{my_player_name.center(18)}|'
                 mmr_table_string += f'{str(my_player_mmr).center(7)}|'
@@ -726,17 +745,27 @@ async def table(
                 else:
                     formatted_my_player_new_mmr = string_my_player_new_mmr
                 mmr_table_string += f'{formatted_my_player_new_mmr}|'
+
+                # Send updates to DB
+                with DBA.DBAccess() as db:
+                    # Get ID of the last inserted table
+                    temp = db.query('SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
+                    db_mogi_id = temp[0][0]
+                    # Insert reference record
+                    db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))
+                    # Update player record
+                    db.execute('UPDATE player SET mmr = %s, peak_mmr = %s WHERE player_id = %s;', (int(my_player_new_mmr), int(string_my_player_new_mmr, player[0])))
+
                 # Check for rank changes
 
                     
                 mmr_table_string += '\n'
 
+        # Create imagemagick image
+
+
 
         # Create embed
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT results_id, tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
-            db_results_channel = temp[0][0]
-            tier_name = temp[0][1]
         results_channel = client.get_channel(db_results_channel)
         embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', description=f'```ansi\n{mmr_table_string}```', color = discord.Color.blurple())
         await results_channel.send(content=None, embed=embed)

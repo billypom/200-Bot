@@ -1,0 +1,32 @@
+# font options
+# Nimbus-Mono-L | /usr/share/fonts/type1/gsfonts/n022003l.pfb
+# Nimbus-Mono-L-Bold | /usr/share/fonts/type1/gsfonts/n022004l.pfb
+# NimbusMonoPS-Regular | /usr/share/fonts/opentype/urw-base35/NimbusMonoPS-Regular.otf
+# 
+# convert -font /usr/share/fonts/opentype/urw-base35/NimbusMonoPS-Regular.otf -fill white -pointsize 60 -gravity center -draw "text 0,0 'my text goes here'" background.png new.png
+# success
+#
+# convert -background lightblue pango:"Hello" hello.gif 
+#
+#
+#
+# python, run bash command
+# correct = subprocess.run(['dig', '+short', 'stackoverflow.com'],
+    # Probably don't forget these, too
+    check=True, text=True)
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
