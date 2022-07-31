@@ -700,7 +700,7 @@ async def table(
                 if idx > (mogi_format-1):
                     break
                 with DBA.DBAccess() as db:
-                    temp = db.query('SELECT p.player_name, p.mmr, p.peak_mmr, l.is_sub FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.player_id = %s;', (player[0],))
+                    temp = db.query('SELECT p.player_name, p.mmr, p.peak_mmr, l.is_sub FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE p.player_id = %s;', (player[0],))
                     my_player_name = temp[0][0]
                     my_player_mmr = temp[0][1]
                     my_player_peak = temp[0][2]
