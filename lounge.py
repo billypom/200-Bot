@@ -1079,10 +1079,11 @@ async def create_teams(ctx, poll_results):
     players_list = list()
     room_mmr = 0
     for i in range(len(player_db)):
-        if player_db[i][2] is None:
-            player_db[i][2] = 0
         players_list.append([player_db[i][0], player_db[i][1], player_db[i][2]])
-        room_mmr = room_mmr + player_db[i][2]
+        if player_db[i][2] is None: # Account for placement ppls
+            pass
+        else:
+            room_mmr = room_mmr + player_db[i][2]
     random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
     response_string += f'   `Room MMR:` {math.ceil(room_mmr)}\n'
