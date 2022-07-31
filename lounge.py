@@ -718,9 +718,9 @@ async def table(
                 if my_player_mmr is None:
                     if my_player_score >=111:
                         my_player_mmr = 5250
-                    elif my_player_score >= 81
+                    elif my_player_score >= 81:
                         my_player_mmr = 3750
-                    elif my_player_score >= 41
+                    elif my_player_score >= 41:
                         my_player_mmr = 2250
                     else:
                         my_player_mmr = 1000
