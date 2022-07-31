@@ -641,7 +641,7 @@ async def table(
     # Ask for table confirmation
     table_view = Confirm()
     channel = client.get_channel(ctx.channel.id)
-    table_message = await channel.send(file=discord.File(f'{hex(ctx.author.id)}table.png'), delete_after=300)
+    await channel.send(file=discord.File(f'{hex(ctx.author.id)}table.png'), delete_after=300)
     await channel.send('Is this table correct? :thinking:', view=table_view, delete_after=300)
     await table_view.wait()
     if table_view.value is None:
@@ -718,15 +718,21 @@ async def table(
                 my_player_place = team[len(team)-2]
 
                 # Place the placement players
+                placement_name = ''
                 if my_player_mmr is None:
                     if my_player_score >=111:
                         my_player_mmr = 5250
+                        placement_name = 'Gold'
                     elif my_player_score >= 81:
                         my_player_mmr = 3750
+                        placement_name = 'Silver'
                     elif my_player_score >= 41:
                         my_player_mmr = 2250
+                        placement_name = 'Bronze'
                     else:
                         my_player_mmr = 1000
+                        placement_name = 'Iron'
+                    await channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr})')
 
                 if is_sub: # Subs only gain on winning team
                     if team[len(team)-1] < 0:
