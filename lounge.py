@@ -551,7 +551,7 @@ async def table(
     player_score_chunked_list = list()
     for i in range(0, len(score_list), 2):
         player_score_chunked_list.append(score_list[i:i+2])
-    print(f'player score chunked list: {player_score_chunked_list}')
+    # print(f'player score chunked list: {player_score_chunked_list}')
 
     # Chunk the list into groups of teams, based on mogi_format and order of scores entry
     chunked_list = list()
@@ -562,7 +562,7 @@ async def table(
     # Get MMR data for each team, calculate team score, and determine team placement
     count = 0
     mogi_score = 0
-    print(f'length of chunked list: {len(chunked_list)}')
+    # print(f'length of chunked list: {len(chunked_list)}')
     for team in chunked_list:
         temp_mmr = 0
         team_score = 0
@@ -582,7 +582,7 @@ async def table(
                 await send_to_debug_channel(ctx, e)
                 await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>')
                 return
-        print(team_score)
+        # print(team_score)
         team_mmr = temp_mmr/len(team)
         team.append(team_score)
         team.append(team_mmr)
@@ -605,8 +605,8 @@ async def table(
     team_placement = 0
     for team in sorted_list:
         # If team score = prev team score, use prev team placement, else increase placement and use placement
-        print('if team score == prev team score')
-        print(f'if {team[len(team)-2]} == {prev_team_score}')
+        # print('if team score == prev team score')
+        # print(f'if {team[len(team)-2]} == {prev_team_score}')
         if team[len(team)-2] == prev_team_score:
             team_placement = prev_team_placement
         else:
@@ -707,7 +707,7 @@ async def table(
                     my_player_rank_id = temp[0][3]
                     is_sub = temp[0][4]
                     if my_player_peak is None:
-                        print('its none...')
+                        # print('its none...')
                         my_player_peak = 0
 
                 my_player_score = player[1]
@@ -739,7 +739,7 @@ async def table(
                 # Check for new peak
                 string_my_player_new_mmr = str(my_player_new_mmr).center(7)
                 if my_player_peak < (my_player_new_mmr):
-                    print('its less than')
+                    # print('its less than')
                     formatted_my_player_new_mmr = await peak_mmr_wrapper(string_my_player_new_mmr)
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET peak_mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
@@ -772,9 +772,13 @@ async def table(
                     try:
                         if my_player_mmr < max_mmr and my_player_new_mmr > max_mmr:
                             guild = client.get_guild(Lounge[0])
+                            print(f'guild: {guild}')
                             current_role = guild.get_role(my_player_rank_id)
+                            print(f'current role: {current_role}')
                             new_role = guild.get_role(rank_id)
+                            print(f'new role: {new_role}')
                             member = guild.get_member(player[0])
+                            print(f'member: {member}')
                             member.remove_roles(current_role)
                             member.add_roles(new_role)
                             with DBA.DBAccess() as db:
@@ -782,9 +786,13 @@ async def table(
                         # Rank down - assign roles - update DB
                         if my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
                             guild = client.get_guild(Lounge[0])
+                            print(f'guild: {guild}')
                             current_role = guild.get_role(my_player_rank_id)
+                            print(f'current role: {current_role}')
                             new_role = guild.get_role(rank_id)
+                            print(f'new role: {new_role}')
                             member = guild.get_member(player[0])
+                            print(f'member: {member}')
                             member.remove_roles(current_role)
                             member.add_roles(new_role)
                             with DBA.DBAccess() as db:
