@@ -31,6 +31,8 @@ MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
+# manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
+# send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
 
 with DBA.DBAccess() as db:
     get_tier_list = db.query('SELECT tier_id FROM tier WHERE tier_id > %s;', (0,))
@@ -596,7 +598,7 @@ async def table(
     # [[players players players], team_score, team_mmr]
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-2]))
     sorted_list.reverse() 
-    print(f'sorted list: {sorted_list}')
+    # print(f'sorted list: {sorted_list}')
     # Create hlorenzi string
     lorenzi_query=''
     # Initialize score and placement values
@@ -709,9 +711,20 @@ async def table(
                     if my_player_peak is None:
                         # print('its none...')
                         my_player_peak = 0
-
                 my_player_score = player[1]
                 my_player_place = team[len(team)-2]
+
+                # Place the placement players
+                if my_player_mmr is None:
+                    if my_player_score >=111:
+                        my_player_mmr = 5250
+                    elif my_player_score >= 81
+                        my_player_mmr = 3750
+                    elif my_player_score >= 41
+                        my_player_mmr = 2250
+                    else:
+                        my_player_mmr = 1000
+
                 if is_sub: # Subs only gain on winning team
                     if team[len(team)-1] < 0:
                         my_player_mmr_change = 0
@@ -758,7 +771,7 @@ async def table(
                         # Update player record
                         db.execute('UPDATE player SET mmr = %s, peak_mmr = %s WHERE player_id = %s;', (int(my_player_new_mmr), int(string_my_player_new_mmr), player[0]))
                 except Exception as e:
-                    print('duplicate player...skipping')
+                    # print('duplicate player...skipping')
                     pass
 
                 # Check for rank changes
@@ -772,38 +785,24 @@ async def table(
                     try:
                         if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr:
                             guild = client.get_guild(Lounge[0])
-                            print(f'guild: {guild}')
                             current_role = guild.get_role(my_player_rank_id)
-                            print(f'current role: {current_role}')
                             new_role = guild.get_role(rank_id)
-                            print(f'new role: {new_role}')
                             member = await guild.fetch_member(player[0])
-                            print(f'member: {member}')
                             await member.remove_roles(current_role)
-                            print('removed role. adding new role')
                             await member.add_roles(new_role)
-                            print('added new role')
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                         # Rank down - assign roles - update DB
                         if my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
                             guild = client.get_guild(Lounge[0])
-                            print(f'guild: {guild}')
                             current_role = guild.get_role(my_player_rank_id)
-                            print(f'current role: {current_role}')
                             new_role = guild.get_role(rank_id)
-                            print(f'new role: {new_role}')
                             member = await guild.fetch_member(player[0])
-                            print(f'member: {member}')
                             await member.remove_roles(current_role)
-                            print('removed role. adding new role')
                             await member.add_roles(new_role)
-                            print('added new role')
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                     except Exception as e:
-                        print(e)
-                        print(f'player <@{player[0]}>not found. no rank update')
                         pass
                         # my_player_rank_id = role_id
                         # guild.get_role(role_id)
@@ -865,9 +864,7 @@ async def create_player(ctx, mkc_user_id, country_code):
     else:
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT placement_mmr FROM ranks WHERE rank_name = %s;', ('Placement',))
-                placement_mmr = temp[0][0]
-                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, mmr) VALUES (%s, %s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code, placement_mmr))
+                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code))
                 return 'Verified & registered successfully'
         except Exception as e:
             await send_to_debug_channel(ctx, e)
@@ -1031,7 +1028,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
     with DBA.DBAccess() as db:
         votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     for i in range(len(votes_temp)):
-        print(f'votes temp: {votes_temp}')
+        # print(f'votes temp: {votes_temp}')
         if votes_temp[i][0] == 1:
             player_format_choice = 'FFA'
         elif votes_temp[i][0] == 2:
