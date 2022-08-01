@@ -90,7 +90,7 @@ def update_mogilist():
     ml = client.get_channel(secrets.mogilist_channel)
     # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
     ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id), client.loop)
-    asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'new temp: {str(len(temp))}'), client.loop)
+    asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'new temp: {str(len(temp))}\n{MOGILIST}'), client.loop)
 
 
     mllu = client.get_channel(secrets.mogilist_lu_channel)
