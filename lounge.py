@@ -875,16 +875,15 @@ async def table(
         await ctx.respond('`Table Denied.`', delete_after=300)
 
 
-
+# https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
 @client.slash_command(
     name='stats',
     description='Graph of your match history',
     guilds_ids=Lounge
 )
 async def stats(
-    ctx: discord.ApplicationContext,
-    tier: discord.Option(input_type=discord.TextChannel, description='Choose a channel', required=False)
-    # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
+    ctx,
+    tier: discord.TextChannel
     ):
     await ctx.defer()
     if tier.mention in TIER_ID_LIST:
