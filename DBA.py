@@ -1,13 +1,13 @@
-import secrets
+import secretly
 import mysql.connector
 
 class DBAccess:
     def __init__(self):
         self._conn = mysql.connector.connect(
-            host = secrets.HOST,
-            user = secrets.USER,
-            passwd = secrets.PASS,
-            database = secrets.DTB
+            host = secretly.HOST,
+            user = secretly.USER,
+            passwd = secretly.PASS,
+            database = secretly.DTB
         )
         self._cursor = self._conn.cursor()
 

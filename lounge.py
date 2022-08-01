@@ -1,5 +1,5 @@
 import DBA
-import secrets
+import secretly
 import plotting
 import discord
 from discord.ui import Button, View
@@ -109,12 +109,12 @@ def update_mogilist():
     ml_string = f'{title}{pre_ml_string}'
     mllu_string = f'{title}{pre_mllu_string}'
 
-    ml = client.get_channel(secrets.mogilist_channel)
+    ml = client.get_channel(secretly.mogilist_channel)
     # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
     ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id), client.loop)
     asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'{ml_string}'), client.loop)
 
-    mllu = client.get_channel(secrets.mogilist_lu_channel)
+    mllu = client.get_channel(secretly.mogilist_lu_channel)
     mllu_message = asyncio.run_coroutine_threadsafe(mllu.fetch_message(ml_lu_channel_message_id), client.loop)
     asyncio.run_coroutine_threadsafe(mllu_message.result().edit(content=f'{mllu_string}'), client.loop)
 
@@ -139,7 +139,7 @@ poll_thread.start()
 @client.event
 async def on_application_command_error(ctx, error):
     if ctx.guild == None:
-        channel = client.get_channel(secrets.debug_channel)
+        channel = client.get_channel(secretly.debug_channel)
         embed = discord.Embed(title='Error', description='ctx.guild = None. This message was sent in a DM...?', color = discord.Color.blurple())
         embed.add_field(name='Name: ', value=ctx.author, inline=False)
         embed.add_field(name='Error: ', value=str(error), inline=False)
@@ -152,13 +152,13 @@ async def on_application_command_error(ctx, error):
         await ctx.respond(error, delete_after=10)
         return
     else:
-        channel = client.get_channel(secrets.debug_channel)
+        channel = client.get_channel(secretly.debug_channel)
         embed = discord.Embed(title='Error', description=':eyes:', color = discord.Color.blurple())
         embed.add_field(name='Name: ', value=ctx.author, inline=False)
         embed.add_field(name='Error: ', value=str(error), inline=False)
         embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
         await channel.send(content=None, embed=embed)
-        await ctx.respond(f'Sorry! An unknown error occurred. Contact {secrets.my_discord} if you think this is a mistake.')
+        await ctx.respond(f'Sorry! An unknown error occurred. Contact {secretly.my_discord} if you think this is a mistake.')
         # print(traceback.format_exc())
         raise error
         return
@@ -308,7 +308,7 @@ async def verify(
         # Check if someone has verified as this user before...
         x = await check_if_mkc_player_id_used(mkc_player_id)
         if x:
-            await ctx.respond(f'``Error 10: Duplicate player`` If you think this is a mistake, please contact {secrets.my_discord} immediately. ')
+            await ctx.respond(f'``Error 10: Duplicate player`` If you think this is a mistake, please contact {secretly.my_discord} immediately. ')
             verify_description = vlog_msg.error4
             verify_color = discord.Color.red()
             await send_to_verification_log(ctx, message, verify_color, verify_description)
@@ -341,7 +341,7 @@ async def c(
             temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
             count = temp[0][0]
     except Exception as e:
-        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secrets.my_discord}. {e}')
+        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}. {e}')
         await send_to_debug_channel(ctx, e)
         return
     # ADDITIONAL SUBS SHOULD BE ABLE TO JOIN NEXT MOGI
@@ -356,7 +356,7 @@ async def c(
             await channel.send(f'<@{ctx.author.id}> has joined the mogi!')
             count+=1
     except Exception as e:
-        await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secrets.my_discord}. {e}')
+        await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secretly.my_discord}. {e}')
         await send_to_debug_channel(ctx, e)
         return
     if count >= MAX_PLAYERS_IN_MOGI:
@@ -396,7 +396,7 @@ async def d(
                 await ctx.respond(f'You have dropped from tier {tier_temp[0][1]}')
         except Exception as e:
             await send_to_debug_channel(ctx, e)
-            await ctx.respond(f'``Error 17:`` Oops! Something went wrong. Contact {secrets.my_discord}')
+            await ctx.respond(f'``Error 17:`` Oops! Something went wrong. Contact {secretly.my_discord}')
             return
         try:
             with DBA.DBAccess() as db:
@@ -426,7 +426,7 @@ async def l(
         with DBA.DBAccess() as db:
             temp = db.query("SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC;", (ctx.channel.id,))
     except Exception as e:
-        await ctx.respond(f'``Error 20:`` Oops! Something went wrong. Please contact {secrets.my_discord}')
+        await ctx.respond(f'``Error 20:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
         return
     response = '`Mogi List`:'
     for i in range(len(temp)):
@@ -470,7 +470,7 @@ async def sub(
         with DBA.DBAccess() as db:
             db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
     except Exception as e:
-        await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secrets.my_discord}')
+        await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
         await send_to_debug_channel(ctx, e)
         return
     await ctx.respond(f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}>')
@@ -938,7 +938,7 @@ async def set_player_roles(ctx):
         return f'Welcome back to 200cc Lounge. You have been given the role: `{rank_name}`'
     except Exception as e:
         await send_to_debug_channel(ctx, e)
-        return f'``Error 29:`` Could not re-enter the lounge. Please contact {secrets.my_discord}.'
+        return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'
 
     
 
@@ -955,7 +955,7 @@ async def create_player(ctx, mkc_user_id, country_code):
                 return 'Verified & registered successfully'
         except Exception as e:
             await send_to_debug_channel(ctx, e)
-            return f'``Error 14:`` Oops! An unlikely error occured. Contact {secrets.my_discord} if you think this is a mistake.'
+            return f'``Error 14:`` Oops! An unlikely error occured. Contact {secretly.my_discord} if you think this is a mistake.'
             # 1. a player trying to use someone elses link (could be banned player)
             # 2. a genuine player locked from usage by another player (banned player might have locked them out)
             # 3. someone is verifying multiple times
@@ -981,7 +981,7 @@ async def start_mogi(ctx):
             db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
     except Exception as e:
         await send_to_debug_channel(ctx, e)
-        await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
+        await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
         return 0
     channel = client.get_channel(ctx.channel.id)
     try:
@@ -990,7 +990,7 @@ async def start_mogi(ctx):
             db.execute('UPDATE lineups SET can_drop = 0 WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     except Exception as e:
         await send_to_debug_channel(ctx, e)
-        await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secrets.my_discord} immediately')
+        await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
         return 0
     response = ''
     for i in range(len(temp)):
@@ -1277,7 +1277,7 @@ async def check_if_player_exists(ctx):
         return False
 
 async def check_if_banned_characters(message):
-    for value in secrets.BANNED_CHARACTERS:
+    for value in secretly.BANNED_CHARACTERS:
         if value in message:
             return True
     return False
@@ -1333,7 +1333,7 @@ async def cancel_mogi(ctx):
 # Somebody did a bad
 # ctx | message | discord.Color.red() | my custom message
 async def send_to_verification_log(ctx, message, verify_color, verify_description):
-    channel = client.get_channel(secrets.verification_channel)
+    channel = client.get_channel(secretly.verification_channel)
     embed = discord.Embed(title='Verification', description=verify_description, color = verify_color)
     embed.add_field(name='Name: ', value=ctx.author, inline=False)
     embed.add_field(name='Message: ', value=message, inline=False)
@@ -1341,7 +1341,7 @@ async def send_to_verification_log(ctx, message, verify_color, verify_descriptio
     await channel.send(content=None, embed=embed)
 
 async def send_to_debug_channel(ctx, error):
-    channel = client.get_channel(secrets.debug_channel)
+    channel = client.get_channel(secretly.debug_channel)
     embed = discord.Embed(title='Error', description='>.<', color = discord.Color.blurple())
     embed.add_field(name='Name: ', value=ctx.author, inline=False)
     embed.add_field(name='Error: ', value=str(error), inline=False)
@@ -1349,14 +1349,14 @@ async def send_to_debug_channel(ctx, error):
     await channel.send(content=None, embed=embed)
 
 async def send_raw_to_debug_channel(anything, error):
-    channel = client.get_channel(secrets.debug_channel)
+    channel = client.get_channel(secretly.debug_channel)
     embed = discord.Embed(title='Error', description='>.<', color = discord.Color.yellow())
     embed.add_field(name='anything: ', value=anything, inline=False)
     embed.add_field(name='Error: ', value=str(error), inline=False)
     await channel.send(content=None, embed=embed)
 
 async def send_to_sub_log(ctx, message):
-    channel = client.get_channel(secrets.sub_channel)
+    channel = client.get_channel(secretly.sub_channel)
     embed = discord.Embed(title='Sub', description=':3', color = discord.Color.blurple())
     embed.add_field(name='Name: ', value=ctx.author, inline=False)
     embed.add_field(name='Message: ', value=str(message), inline=False)
@@ -1364,7 +1364,7 @@ async def send_to_sub_log(ctx, message):
     await channel.send(content=None, embed=embed)
 
 async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
-    channel = client.get_channel(secrets.ip_match_channel)
+    channel = client.get_channel(secretly.ip_match_channel)
     embed = discord.Embed(title="Verification", description=f'IP Matches for <@{ctx.author.id}>', color=verify_color)
     try:
         embed.add_field(name="Name: ", value=ctx.author, inline=False)
@@ -1406,8 +1406,8 @@ def mt_mkc_request_forum_info(mkc_user_id):
             soup = Soup(html, 'html.parser')
             token = soup.select_one('[name=_xfToken]').attrs['value']
             payload = {
-            'login': str(secrets.mkc_name),
-            'password': str(secrets.mkc_password),
+            'login': str(secretly.mkc_name),
+            'password': str(secretly.mkc_password),
             '_xfToken': str(token),
             '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
             }
@@ -1432,8 +1432,8 @@ def mt_mkc_request_forum_info(mkc_user_id):
             soup = Soup(html, 'html.parser')
             token = soup.select_one('[name=_xfToken]').attrs['value']
             payload = {
-            'login': str(secrets.mkc_name),
-            'password': str(secrets.mkc_password),
+            'login': str(secretly.mkc_name),
+            'password': str(secretly.mkc_password),
             '_xfToken': str(token),
             '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
             }
@@ -1473,8 +1473,8 @@ def mt_mkc_request_mkc_player_id(mkc_user_id):
             soup = Soup(html, 'html.parser')
             token = soup.select_one('[name=_xfToken]').attrs['value']
             payload = {
-            'login': str(secrets.mkc_name),
-            'password': str(secrets.mkc_password),
+            'login': str(secretly.mkc_name),
+            'password': str(secretly.mkc_password),
             '_xfToken': str(token),
             '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
             }
@@ -1573,4 +1573,4 @@ async def bold_wrapper(input):
 async def underline_wrapper(input):
     return (f'[0;2m[4;2m{input}[0m[0m')
 
-client.run(secrets.token)
+client.run(secretly.token)
