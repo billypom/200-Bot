@@ -883,12 +883,11 @@ async def table(
 )
 async def stats(
     ctx,
-    channel: discord.TextChannel()
+    channel: discord.Option(discord.TextChannel(),'Choose a channel', required=False)
     # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
     ):
-    if tier in ['a','b','c','all','sq']:
-        await ctx.respond('yay lol')
-        return
+    if channel.id in TIER_ID_LIST:
+
     else:
         await ctx.defer()
 
