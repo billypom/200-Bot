@@ -879,7 +879,6 @@ async def table(
 @client.slash_command(
     name='stats',
     description='Graph of your match history',
-    channelTypes:['GUILD_TEXT']
     guilds_ids=Lounge
 )
 async def stats(
