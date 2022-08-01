@@ -887,7 +887,7 @@ async def stats(
     # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
     ):
     await ctx.defer()
-    if tier.id in TIER_ID_LIST:
+    if tier.mention in TIER_ID_LIST:
         print('yay')
         await ctx.respond('yay!')
     else:
