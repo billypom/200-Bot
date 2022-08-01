@@ -886,9 +886,9 @@ async def stats(
     tier: discord.Option(discord.TextChannel, description='Choose a channel', required=False)
     ):
     await ctx.defer()
-    print(tier.mention)
+    print(tier.id)
     return
-    if tier.mention in TIER_ID_LIST:
+    if tier.id in TIER_ID_LIST:
         print('yay')
         await ctx.respond('yay!')
     else:
