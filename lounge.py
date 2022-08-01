@@ -891,7 +891,7 @@ async def stats(
     ctx,
     tier: discord.Option(str, 'a, b, c, all, sq', required=False),
     ):
-    if tier in ['a','b','c','all','sq']
+    if tier in ['a','b','c','all','sq']:
         await ctx.respond('yay lol')
         return
     else:
