@@ -83,17 +83,25 @@ class Confirm(View):
 def update_mogilist():
     MOGILIST = {}
     with DBA.DBAccess() as db:
-        temp = db.query('SELECT t.tier_name, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
+        temp = db.query('SELECT t.tier_id, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
     for i in range(len(temp)):
         if temp[i][0] in MOGILIST:
             MOGILIST[temp[i][0]].append(temp[i][1])
         else:
             MOGILIST[temp[i][0]]=[temp[i][1]]
-    
-    ml_string = ''
+    num_active_mogis = len(MOGILIST.keys())
+    num_full_mogis = 0
+
+    pre_ml_string = ''
     mllu_string = ''
     for k,v in MOGILIST.items():
-        ml_string += f'Tier-{k.upper()} ({len(v)}/12)\n'
+        pre_ml_string += f'<#{k}> - ({len(v)}/12)\n'
+        # pre_mllu_string += f''
+        if len(v) >= 12:
+            num_full_mogis +=1
+    title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n'
+    ml_string = f'{title}{pre_ml_string}'
+    # mllu_string = f'{title}{pre_mllu_string}'
 
     # TODO: actually get the right data, format it, and put it in the ml and mllu channels. good enough for now tho
 
