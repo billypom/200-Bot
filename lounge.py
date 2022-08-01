@@ -805,7 +805,7 @@ async def table(
                         # Update player record
                         db.execute('UPDATE player SET mmr = %s, peak_mmr = %s WHERE player_id = %s;', (int(my_player_new_mmr), int(string_my_player_new_mmr), player[0]))
                         # Remove player from lineups
-                        # db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
+                        db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
                 except Exception as e:
                     # print('duplicate player...skipping')
                     pass
@@ -890,19 +890,56 @@ async def stats(
         return
     else:
         await ctx.defer()
+
+        # Create matplotlib MMR history graph
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT base_mmr FROM player WHERE player_id = %s;', (ctx.author.id,))
+            temp = db.query('SELECT base_mmr, peak_mmr, penalty_mmr, mmr FROM player WHERE player_id = %s;', (ctx.author.id,))
             if temp[0][0] is None:
                 base = 0
             else:
                 base = temp[0][0]
-        history = []
+            peak = temp[0][1]
+            penalty = temp[0][2]
+            mmr = temp[0][3]
+
+        mmr_history = [] #
+        score_history = [] #
+        last_10_wins = 0 #
+        last_10_losses = 0 #
+        last_10_change = 0 #
+        average_score = 0
+        partner_average = 0
+        top_score = 0 #
+        events_played = 0 #
+        largest_gain = 0 #
+        largest_loss = 0 #
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mmr_change FROM player_mogi WHERE player_id = %s;', (ctx.author.id,))
+            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_is WHERE player_id = %s ORDER BY m.create_date ASC;', (ctx.author.id,))
             for i in range(len(temp)):
-                history.append(temp[i][0])
-        file = plotting.create_plot(base, history)
+                mmr_history.append(temp[i][0])
+                score_history.append(temp[i][1])
+                if i <= 9:
+                    last_10_change += score_history[i]
+                    if score_history[i] > 0:
+                        last_10_wins += 1
+                    else:
+                        last_10_losses += 1
+        file = plotting.create_plot(base, mmr_history)
         f=discord.File(fp=file, filename='stats.png')
+        events_played = len(history)
+        top_score = max(score_history)
+        largest_gain = max(mmr_history)
+        largest_loss = min(mmr_history)
+        average_score = mean(score_history)
+        partner_average = await get_partner_avg(ctx.author.id)
+
+
+
+
+
+
+
+
         await ctx.respond(file=f)
         return
 
@@ -1276,33 +1313,41 @@ async def check_if_banned_characters(message):
 
 
 # Takes in ctx, returns avg partner score
-async def get_partner_avg(ctx, mogi_format):
+async def get_partner_avg(uid):
     try:
         with DBA.DBAccess() as db:
-            mogis = db.query("SELECT mogi_id, place FROM player_mogi WHERE player_id = %s;", (uid,))
-    except Exception as e:
-        await send_to_debug_channel(ctx, e)
-        return -1
+            temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id NOT %s AND (mogi_id, place) IN (SELECT player_id, mogi_id, place FROM player_mogi WHERE player_id = %s;););', (uid, uid))
+            print(temp)
 
-    list_of_mogis = list()
-    for mogi in mogis:
-        list_of_mogi_ids.append([mogi[0], mogi[1]])
 
-    if mogi_format is None: # get all partner avg from specific format
-        try:
-            with DBA.DBAccess() as db:
-                pass
-        except Exception as e:
-            await send_to_debug_channel(ctx, e)
-            return -1
-    else: # get all partner avg
-        try:
-            with DBA.DBAccess() as db:
-                pass
-        except Exception as e:
-            await send_to_debug_channel(ctx, e)
-            return -1
-    return temp[0][0]
+
+
+
+    # list_of_mogis = list()
+    # try:
+    #     with DBA.DBAccess() as db:
+    #         mogis = db.query("SELECT mogi_id, place FROM player_mogi WHERE player_id = %s;", (uid,))
+    #         for mogi in mogis:
+    #             list_of_mogis.append([mogi[0], mogi[1]])
+    # except Exception as e:
+    #     await send_to_debug_channel(ctx, e)
+    #     return -1
+
+    # if mogi_format is None: # get all partner avg
+    #     try:
+    #         with DBA.DBAccess() as db:
+    #             temp = db.query('SELECT ')
+    #     except Exception as e:
+    #         await send_to_debug_channel(ctx, e)
+    #         return -1
+    # else: # get all partner avg from specific format
+    #     try:
+    #         with DBA.DBAccess() as db:
+    #             pass
+    #     except Exception as e:
+    #         await send_to_debug_channel(ctx, e)
+    #         return -1
+    # return temp[0][0]
 
 # Takes in ctx, returns mmr
 async def get_player_mmr(ctx):
