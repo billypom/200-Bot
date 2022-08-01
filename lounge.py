@@ -1318,7 +1318,9 @@ async def get_partner_avg(uid):
         with DBA.DBAccess() as db:
             temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id NOT %s AND (mogi_id, place) IN (SELECT player_id, mogi_id, place FROM player_mogi WHERE player_id = %s;););', (uid, uid))
             print(temp)
-
+    except Exception as e:
+        print(e)
+    return 0
 
 
 
