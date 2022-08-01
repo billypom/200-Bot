@@ -883,7 +883,7 @@ async def table(
 )
 async def stats(
     ctx,
-    tier: discord.Option(str, 'a, b, c, all, sq', required=False),
+    channel: discord.TextChannel(required=False),
     ):
     if tier in ['a','b','c','all','sq']:
         await ctx.respond('yay lol')
@@ -1313,10 +1313,10 @@ async def check_if_banned_characters(message):
 
 
 # Takes in ctx, returns avg partner score
-async def get_partner_avg(uid):
+async def get_partner_avg(uid, mogi_format):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> 1 AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid,))
+            temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid, uid))
             print(temp)
     except Exception as e:
         print(e)
