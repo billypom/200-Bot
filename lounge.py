@@ -882,7 +882,35 @@ async def table(
 
 
 
-
+@client.slash_command(
+    name='stats',
+    description='Graph of your match history',
+    guilds_ids=Lounge
+)
+async def stats(
+    ctx,
+    tier: discord.Option(str, 'a, b, c, all, sq', required=False),
+    ):
+    if tier in ['a','b','c','all','sq']
+        await ctx.respond('yay lol')
+        return
+    else:
+        await ctx.defer()
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT base_mmr FROM player WHERE player_id = %s;', (ctx.author.id,))
+            if temp[0][0] is None:
+                base = 0
+            else:
+                base = temp[0][0]
+        history = []
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT mmr_change FROM player_mogi WHERE player_id = %s;', (ctx.author.id,))
+            for i in range(len(temp)):
+                history.append(temp[i][0])
+        file = plotting.create_plot(base, history)
+        f=discord.File(fp=file, filename='stats.png')
+        await ctx.respond(file=f)
+        return
 
 
 
