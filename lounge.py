@@ -883,7 +883,8 @@ async def table(
 )
 async def stats(
     ctx,
-    channel: discord.TextChannel(discord.TextChannel(), 'Which tier?', required=False),
+    channel: discord.TextChannel()
+    # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
     ):
     if tier in ['a','b','c','all','sq']:
         await ctx.respond('yay lol')
