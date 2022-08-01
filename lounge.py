@@ -930,7 +930,7 @@ async def stats(
         top_score = max(score_history)
         largest_gain = max(mmr_history)
         largest_loss = min(mmr_history)
-        average_score = mean(score_history)
+        average_score = sum(score_history)/len(score_history)
         partner_average = await get_partner_avg(ctx.author.id)
 
 
