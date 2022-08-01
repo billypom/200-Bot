@@ -887,7 +887,8 @@ async def stats(
     # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
     ):
     if channel.id in TIER_ID_LIST:
-
+        print('yay')
+        ctx.respond(yay!)
     else:
         await ctx.defer()
 
