@@ -526,6 +526,7 @@ async def table(
     }
     # Check for verified user
     # Check for role? (reporter? or how do i do that...)
+
     # Check the mogi_format
     if mogi_format == 1:
         SPECIAL_TEAMS_INTEGER = 63
@@ -540,15 +541,18 @@ async def table(
     else:
         await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, 4, or 6.')
         return
-    # check for score = 984
+
+    # Check for score = 984
     score_string = str(scores).translate(remove_chars)
     score_list = score_string.split()
-    # check for 12 players
+
+    # Check for 12 players
     if len(score_list) == 24:
         pass
     else:
         await ctx.respond(f'``Error 26:`` Invalid input. There must be 12 players and 12 scores.')
         return
+
     # Initialize a list so we can group players and scores together
     player_score_chunked_list = list()
     for i in range(0, len(score_list), 2):
@@ -560,7 +564,6 @@ async def table(
     for i in range(0, len(player_score_chunked_list), mogi_format):
         chunked_list.append(player_score_chunked_list[i:i+mogi_format])
     
-
     # Get MMR data for each team, calculate team score, and determine team placement
     count = 0
     mogi_score = 0
@@ -597,13 +600,16 @@ async def table(
     else:
         await ctx.respond(f'``Error 28:`` `Scores = {mogi_score} `Scores must add up to 984.')
         return
+
     # Sort the teams in order of score
     # [[players players players], team_score, team_mmr]
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-2]))
     sorted_list.reverse() 
     # print(f'sorted list: {sorted_list}')
+
     # Create hlorenzi string
     lorenzi_query=''
+
     # Initialize score and placement values
     prev_team_score = 0
     prev_team_placement = 1
@@ -628,9 +634,11 @@ async def table(
                 country_code = temp[0][1]
                 score = player[1]
             lorenzi_query += f'{player_name} [{country_code}] {score}\n'
+
         # Assign previous values before leaving
         prev_team_placement = team_placement
         prev_team_score = team[len(team)-3]
+
     # Request a lorenzi table
     query_string = urllib.parse.quote(lorenzi_query)
     url = f'https://gb.hlorenzi.com/table.png?data={query_string}'
@@ -638,6 +646,7 @@ async def table(
     with open(f'{hex(ctx.author.id)}table.png', 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     del response
+
     # Ask for table confirmation
     table_view = Confirm()
     channel = client.get_channel(ctx.channel.id)
@@ -732,7 +741,11 @@ async def table(
                     else:
                         my_player_mmr = 1000
                         placement_name = 'Iron'
-                    await channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr})')
+                    with DBA.DBAccess() as db:
+                        temp = db.query('SELECT rank_id FROM ranks WHERE placement_mmr = %s;', (my_player_mmr,))
+                        init_rank = temp[0][0]
+                        db.execute('UPDATE player SET base_mmr = %s, rank_id = %s WHERE player_id = %s;', (my_player_mmr, init_rank, player[0]))
+                    await channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
 
                 if is_sub: # Subs only gain on winning team
                     if team[len(team)-1] < 0:
