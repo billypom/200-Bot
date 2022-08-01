@@ -914,7 +914,7 @@ async def stats(
         largest_gain = 0 #
         largest_loss = 0 #
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_is WHERE player_id = %s ORDER BY m.create_date ASC;', (ctx.author.id,))
+            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date ASC;', (ctx.author.id,))
             for i in range(len(temp)):
                 mmr_history.append(temp[i][0])
                 score_history.append(temp[i][1])
