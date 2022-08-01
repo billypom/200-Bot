@@ -25,7 +25,6 @@ ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
 symbol_up = '▴'
 symbol_down = '▾' 
-MOGILIST = {}
 TIER_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
@@ -77,6 +76,7 @@ class Confirm(View):
 
 
 def update_mogilist():
+    MOGILIST = {}
     with DBA.DBAccess() as db:
         temp = db.query('SELECT t.tier_name, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
     for i in range(len(temp)):
