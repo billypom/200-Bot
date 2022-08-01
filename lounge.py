@@ -901,7 +901,6 @@ async def stats(
             temp = db.query('SELECT mmr_change FROM player_mogi WHERE player_id = %s;', (ctx.author.id,))
             for i in range(len(temp)):
                 history.append(temp[i][0])
-        print(history)
         file = plotting.create_plot(base, history)
         f=discord.File(fp=file, filename='stats.png')
         await ctx.respond(file=f)

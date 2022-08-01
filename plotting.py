@@ -17,6 +17,7 @@ def create_plot(base, history):
     lines = plt.plot(mmrhistory)
     plt.setp(lines, 'color', 'snow', 'linewidth', 1.0)
     xmin, xmax, ymin, ymax = plt.axis()
+    print(f'{xmin} {xmax} {ymin} {ymax}')
     plt.xlabel("Matches played")
     plt.ylabel("MMR")
     plt.grid(True, 'both', 'both', color='snow', linestyle=':')
@@ -35,7 +36,7 @@ def create_plot(base, history):
         else:
             minfill = ranks[i]
         plt.fill_between(xs, minfill, maxfill, color=colors[i])
-    # plt.fill_between(xs, ymin, mmrhistory, color='#212121')
+    plt.fill_between(xs, ymin, mmrhistory, color='#212121')
     b = BytesIO()
     plt.savefig(b, format='png', bbox_inches='tight')
     b.seek(0)
