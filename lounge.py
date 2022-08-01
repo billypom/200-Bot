@@ -91,7 +91,7 @@ def update_mogilist():
     }
     with DBA.DBAccess() as db:
         temp = db.query('SELECT t.tier_id, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
-    for i in range(len(temp)):
+    for i in range(len(temp)): # create dictionary {tier_id:[list of players in tier]}
         if temp[i][0] in MOGILIST:
             MOGILIST[temp[i][0]].append(temp[i][1])
         else:
@@ -103,28 +103,19 @@ def update_mogilist():
         if len(v) >= 12:
             num_full_mogis +=1
         mllu_players = str(v).translate(remove_chars)
-        print(mllu_players)
         pre_mllu_string += f'<#{k}> - {mllu_players}'
-
-    title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n'
+    title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n\n'
     ml_string = f'{title}{pre_ml_string}'
     mllu_string = f'{title}{pre_mllu_string}'
-
-    # TODO: actually get the right data, format it, and put it in the ml and mllu channels. good enough for now tho
 
     ml = client.get_channel(secrets.mogilist_channel)
     # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
     ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id), client.loop)
     asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'{ml_string}'), client.loop)
 
-
     mllu = client.get_channel(secrets.mogilist_lu_channel)
     mllu_message = asyncio.run_coroutine_threadsafe(mllu.fetch_message(ml_lu_channel_message_id), client.loop)
     asyncio.run_coroutine_threadsafe(mllu_message.result().edit(content=f'{mllu_string}'), client.loop)
-
-    
-    # Create a dictionary
-    # tier_name : [player_names]
 
 
 def lounge_threads():
@@ -817,6 +808,8 @@ async def table(
                         db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))
                         # Update player record
                         db.execute('UPDATE player SET mmr = %s, peak_mmr = %s WHERE player_id = %s;', (int(my_player_new_mmr), int(string_my_player_new_mmr), player[0]))
+                        # Remove player from lineups
+                        db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
                 except Exception as e:
                     # print('duplicate player...skipping')
                     pass
