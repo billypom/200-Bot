@@ -883,7 +883,7 @@ async def table(
 )
 async def stats(
     ctx,
-    channel: discord.TextChannel(required=False),
+    channel: discord.TextChannel(discord.TextChannel(), 'Which tier?', required=False),
     ):
     if tier in ['a','b','c','all','sq']:
         await ctx.respond('yay lol')
