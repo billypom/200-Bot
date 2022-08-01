@@ -883,7 +883,7 @@ async def table(
 )
 async def stats(
     ctx,
-    channel: discord.Option(discord.TextChannel(),'Choose a channel', required=False)
+    channel: discord.TextChannel()
     # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
     ):
     await ctx.defer()
