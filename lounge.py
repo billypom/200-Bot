@@ -92,7 +92,7 @@ def update_mogilist():
     
     ml_string = ''
     mllu_string = ''
-    for k,v in MOGILIST.keys():
+    for k,v in enumerate(MOGILIST.keys()):
         ml_string += f'Tier-{k.upper()} ({len(v)}/12)\n'
 
     # TODO: actually get the right data, format it, and put it in the ml and mllu channels. good enough for now tho
