@@ -889,7 +889,7 @@ async def stats(
     await ctx.defer()
     if channel.id in TIER_ID_LIST:
         print('yay')
-        await ctx.respond(yay!)
+        await ctx.respond('yay!')
     else:
 
         # Create matplotlib MMR history graph
