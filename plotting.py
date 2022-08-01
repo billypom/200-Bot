@@ -5,7 +5,7 @@ import DBA
 
 def create_plot(base, history):
     ranks = [0, 1500, 3000, 4500, 6000, 7500, 9000, 11000]
-    colors = ['#817876', '#E67E22', '#7D8396', '#F1C40F', '#3FABB8', '#286CD3', '#9CCBD6', '#0E0B0B']
+    colors = ['#817876', '#E67E22', '#7D8396', '#F1C40F', '#3FABB8', '#9CCBD6', '#0E0B0B', '#A3022C']
 
     mmrhistory = [base]
     mmr = base
