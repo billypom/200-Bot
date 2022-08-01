@@ -886,11 +886,11 @@ async def stats(
     channel: discord.Option(discord.TextChannel(),'Choose a channel', required=False)
     # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
     ):
+    await ctx.defer()
     if channel.id in TIER_ID_LIST:
         print('yay')
-        ctx.respond(yay!)
+        await ctx.respond(yay!)
     else:
-        await ctx.defer()
 
         # Create matplotlib MMR history graph
         with DBA.DBAccess() as db:
