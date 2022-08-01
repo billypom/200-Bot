@@ -133,9 +133,6 @@ poll_thread.start()
 
 
 
-
-
-
 @client.event
 async def on_application_command_error(ctx, error):
     if ctx.guild == None:
@@ -190,9 +187,6 @@ async def on_message(ctx):
     # if user and channel id in lineups
     message = ctx.content
     # print(message)
-
-
-
 
 
 
@@ -907,6 +901,7 @@ async def stats(
             temp = db.query('SELECT mmr_change FROM player_mogi WHERE player_id = %s;', (ctx.author.id,))
             for i in range(len(temp)):
                 history.append(temp[i][0])
+        print(history)
         file = plotting.create_plot(base, history)
         f=discord.File(fp=file, filename='stats.png')
         await ctx.respond(file=f)
@@ -924,7 +919,7 @@ async def stats(
 
 
 
-# Takes a ctx, returns the role name
+# Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
     try:
         with DBA.DBAccess() as db:
@@ -939,9 +934,6 @@ async def set_player_roles(ctx):
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'
-
-    
-
 
 # Takes a ctx, returns a response
 async def create_player(ctx, mkc_user_id, country_code):
@@ -974,7 +966,7 @@ async def update_friend_code(ctx, message):
     else:
         return 'Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
 
-# Takes a ctx, returns 
+# Takes a ctx, returns 0 if error, returns 1 if good, returns nothing if mogi cancelled
 async def start_mogi(ctx):
     try:
         with DBA.DBAccess() as db:
@@ -1051,7 +1043,7 @@ async def start_mogi(ctx):
     await channel.send(poll_results_response)
     return True
 
-
+# When the voting starts - constantly check for player input
 async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
     # print('checking for poll results')
     dtobject_now = datetime.datetime.now()
@@ -1059,7 +1051,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
     format_list = [0,0,0,0,0]
     while (unix_now - last_joiner_unix_timestamp) < 20:
         # Votes are updated in the on_message event, if mogi is running and player is in tier
-        await asyncio.sleep(1)
+        await asyncio.sleep(0.5)
         with DBA.DBAccess() as db:
             ffa_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,1))
             format_list[0] = ffa_temp[0][0]
