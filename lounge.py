@@ -40,17 +40,19 @@ with DBA.DBAccess() as db:
     # print(TIER_ID_LIST)
 
 class Confirm(View):
-    def __init__(self):
+    def __init__(self, uid):
         super().__init__()
         self.value = None
+        self.uid = uid
 
     # When the confirm button is pressed, set the inner value to `True` and
     # stop the View from listening to more input.
     # We also send the user an ephemeral message that we're confirming their choice.
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
-    async def confirm(
-        self, button: discord.ui.Button, interaction: discord.Interaction
-    ):
+    async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction):
+        # Only accept input from user who initiated the interaction
+        if self.uid != interaction.user.id:
+            return
         await interaction.response.send_message("Calculating MMR...", ephemeral=True)
         self.value = True
         self.stop()
@@ -58,6 +60,9 @@ class Confirm(View):
     # This one is similar to the confirmation button except sets the inner value to `False`
     @discord.ui.button(label="No", style=discord.ButtonStyle.red)
     async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
+        # Only accept input from user who initiated the interaction
+        if self.uid != interaction.user.id:
+            return
         await interaction.response.send_message("Deleting...", ephemeral=True)
         self.value = False
         self.stop()
