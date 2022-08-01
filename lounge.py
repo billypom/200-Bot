@@ -883,7 +883,7 @@ async def table(
 )
 async def stats(
     ctx,
-    tier: discord.TextChannel
+    tier: discord.Option(discord.TextChannel, description='Choose a channel', required=False)
     ):
     await ctx.defer()
     if tier.mention in TIER_ID_LIST:
