@@ -1,5 +1,6 @@
 import DBA
 import secrets
+import plotting
 import discord
 from discord.ui import Button, View
 from discord.ext import commands
@@ -212,7 +213,8 @@ async def verify(
     await ctx.defer(ephemeral=True)
     x = await check_if_player_exists(ctx)
     if x:
-        await ctx.respond(f'``Error 1:`` {str(ctx.author.display_name)} is already verified.')
+        response = await set_player_roles(ctx)
+        await ctx.respond(response)
         return
     else:
         pass
@@ -894,6 +896,23 @@ async def table(
 
 
 
+# Takes a ctx, returns the role name
+async def set_player_roles(ctx):
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT p.rank_id, r.rank_name FROM player p JOIN ranks r ON p.rank_id = r.rank_id WHERE p.player_id = %s;', (ctx.author.id,))
+            rank_id = temp[0][0]
+            rank_name = temp[0][1]
+        guild = client.get_guild(Lounge[0])
+        role = guild.get_role(rank_id)
+        member = await guild.fetch_member(ctx.author.id)
+        await member.add_roles(role)
+        return f'Welcome back to 200cc Lounge. You have been given the role: `{rank_name}`'
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
+        return f'``Error 29:`` Could not re-enter the lounge. Please contact {secrets.my_discord}.'
+
+    
 
 
 # Takes a ctx, returns a response
