@@ -879,11 +879,12 @@ async def table(
 @client.slash_command(
     name='stats',
     description='Graph of your match history',
+    channelTypes:['GUILD_TEXT']
     guilds_ids=Lounge
 )
 async def stats(
-    ctx,
-    tier: discord.Option(input_type=discord.TextChannel, description='choose a channel', required=False)
+    ctx: discord.ApplicationContext,
+    tier: discord.Option(input_type=discord.TextChannel, description='Choose a channel', required=False)
     # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
     ):
     await ctx.defer()
