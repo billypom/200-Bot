@@ -653,7 +653,7 @@ async def table(
     del response
 
     # Ask for table confirmation
-    table_view = Confirm()
+    table_view = Confirm(ctx.author.id)
     channel = client.get_channel(ctx.channel.id)
     await channel.send(file=discord.File(f'{hex(ctx.author.id)}table.png'), delete_after=300)
     await channel.send('Is this table correct? :thinking:', view=table_view, delete_after=300)
