@@ -893,9 +893,9 @@ async def table(
 
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
-        pango_string = f'pango:"<tt>{mmr_table_string}</tt>"'
+        pango_string = f'pango:<tt>{mmr_table_string}</tt>'
         mmr_filename = f'{hex(ctx.author.id)}mmr.png'
-        correct = subprocess.run(['convert', '-background', 'gray38', pango_string, mmr_filename], check=True, text=True)
+        correct = subprocess.run(['convert', '-background', 'gray21', '-fill', 'white', pango_string, mmr_filename], check=True, text=True)
         f=discord.File(mmr_filename, filename='mmr.png')
 
         # Create embed
