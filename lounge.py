@@ -767,7 +767,9 @@ async def table(
             string_mogi_format = 'FFA'
         else:
             string_mogi_format = f'{str(mogi_format)}v{str(mogi_format)}'
-        mmr_table_string = f'<big>{ctx.channel.name} {string_mogi_format}</big>'
+
+        mmr_table_string = f'<big><big>{ctx.channel.name} {string_mogi_format}</big></big>'
+
         for team in sorted_list:
             # print(team)
             my_player_place = team[len(team)-2]
@@ -914,21 +916,9 @@ async def table(
         embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', description=f'mmr', color = discord.Color.blurple())
         embed.set_image(url='attachment://mmr.jpg')
         await results_channel.send(content=None, embed=embed, file=f)
-
-        # Create MMR Table
-        #```ansi
-
-
-
         # 
         # https://gist.github.com/kkrypt0nn/a02506f3712ff2d1c8ca7c9e0aed7c06
         # https://rebane2001.com/discord-colored-text-generator/ 
-
-
-        # Send MMR to results channel
-        # tier | results
-        # placement, player_name, current MMR, mmr_change, new mmr, new rank(if in range)
-        # races = 12
         await ctx.respond('`Table Accepted.`', delete_after=300)
     else:
         await ctx.respond('`Table Denied.`', delete_after=300)
@@ -1778,7 +1768,7 @@ async def neg_mmr_wrapper(input):
 
 async def peak_mmr_wrapper(input):
     # return (f'[0;2m[0;41m[0;37m{input}[0m[0;41m[0m[0m')
-    return (f'<span foreground="Yellow1">{input}</span>')
+    return (f'<span foreground="Yellow1"><i>{input}</i></span>')
 
 async def bold_wrapper(input):
     return (f'[0;2m[1;2m{input}[0m[0m')
