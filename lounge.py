@@ -1709,24 +1709,27 @@ def mt_lounge_request_mkc_user_id(ctx):
     return mkc_user_id
 
 async def new_rank_wrapper(input, mmr):
-    if mmr < 1500:
-        return await iron_wrapper(input)
-    elif mmr >= 1500 and mmr < 3000:
-        return await bronze_wrapper(input)
-    elif mmr >= 3000 and mmr < 4500:
-        return await silver_wrapper(input)
-    elif mmr >= 4500 and mmr < 6000:
-        return await gold_wrapper(input)
-    elif mmr >= 6000 and mmr < 7500:
-        return await platinum_wrapper(input)
-    elif mmr >= 7500 and mmr < 9000:
-        return await diamond_wrapper(input)
-    elif mmr >= 9000 and mmr < 11000:
-        return await master_wrapper(input)
-    elif mmr >= 11000:
-        return await grandmaster_wrapper(input)
+    if input != "":
+        if mmr < 1500:
+            return await iron_wrapper(input)
+        elif mmr >= 1500 and mmr < 3000:
+            return await bronze_wrapper(input)
+        elif mmr >= 3000 and mmr < 4500:
+            return await silver_wrapper(input)
+        elif mmr >= 4500 and mmr < 6000:
+            return await gold_wrapper(input)
+        elif mmr >= 6000 and mmr < 7500:
+            return await platinum_wrapper(input)
+        elif mmr >= 7500 and mmr < 9000:
+            return await diamond_wrapper(input)
+        elif mmr >= 9000 and mmr < 11000:
+            return await master_wrapper(input)
+        elif mmr >= 11000:
+            return await grandmaster_wrapper(input)
+        else:
+            return 'placement'
     else:
-        return 'placement'
+        return ''
 
 async def grandmaster_wrapper(input):
     # return (f'[0;2m[0;40m[0;31m{input}[0m[0;40m[0m[0m')
