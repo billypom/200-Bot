@@ -972,21 +972,21 @@ async def stats(
     channel = client.get_channel(ctx.channel.id)
     embed = discord.Embed(title='Stats', description=f'{player_name}', color = discord.Color.blurple()) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=False)
-    embed.add_field(name='MMR', value=f'{mmr}', inline=True)
-    embed.add_field(name='Peak MMR', value=f'{peak}', inline=True)
+    embed.add_field(name='MMR', value=f'{mmr}', inline=False)
+    embed.add_field(name='Peak MMR', value=f'{peak}', inline=False)
     embed.add_field(name='Win Rate', value=f'{win_rate}', inline=False)
-    embed.add_field(name='W-L (Last 10)', value=f'{last_10_wins} - {last_10_losses}', inline=True)
-    embed.add_field(name='+/- (Last 10)', value=f'{last_10_change}', inline=True)
+    embed.add_field(name='W-L (Last 10)', value=f'{last_10_wins} - {last_10_losses}', inline=False)
+    embed.add_field(name='+/- (Last 10)', value=f'{last_10_change}', inline=False)
     embed.add_field(name='Avg. Score', value=f'{round(average_score, 2)}', inline=False)
-    embed.add_field(name='Top Score', value=f'{top_score}', inline=True) # website link
-    embed.add_field(name='Partner Avg.', value=f'{partner_average}', inline=True)
+    embed.add_field(name='Top Score', value=f'{top_score}', inline=False) # website link
+    embed.add_field(name='Partner Avg.', value=f'{partner_average}', inline=False)
     embed.add_field(name='Events Played', value=f'{events_played}', inline=False)
-    embed.add_field(name='Largest Gain', value=f'{largest_gain}', inline=True)
-    embed.add_field(name='Largest Loss', value=f'{largest_loss}', inline=True)
+    embed.add_field(name='Largest Gain', value=f'{largest_gain}', inline=False)
+    embed.add_field(name='Largest Loss', value=f'{largest_loss}', inline=False)
     embed.add_field(name='Average MMR', value=f'{round(average_mmr,-1)}', inline=False)
-    embed.add_field(name='Base MMR', value=f'{base}', inline=True)
+    embed.add_field(name='Base MMR', value=f'{base}', inline=False)
     embed.set_image(url='attachment://stats.png')
-    await channel.send(embed=embed)
+    await channel.send(file=f embed=embed)
     await ctx.respond(':coin:')
     return
 
