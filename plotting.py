@@ -37,7 +37,7 @@ def create_plot(base, history):
             minfill = ranks[i]
         plt.fill_between(xs, minfill, maxfill, color=colors[i])
     plt.fill_between(xs, ymin, mmrhistory, color='#212121', alpha=0.3)
-    # b = BytesIO()
+    b = BytesIO()
     plt.savefig(b, format='png', bbox_inches='tight')
     b.seek(0)
     plt.close()

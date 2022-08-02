@@ -967,26 +967,8 @@ async def stats(
     win_rate = count_of_wins/len(mmr_history)
 
     file = plotting.create_plot(base, mmr_history)
-    f=discord.File(fp=file, filename='stats.png')
-
-
-
-
-    # mmr_history = [] #
-    # score_history = [] #
-    # last_10_wins = 0 #
-    # last_10_losses = 0 #
-    # last_10_change = 0 #
-    # average_score = 0
-    # partner_average = 0
-    # top_score = 0 #
-    # events_played = 0 #
-    # largest_gain = 0 #
-    # largest_loss = 0 #
-    # peak = temp[0][1]
-    # penalty = temp[0][2]
-    # mmr = temp[0][3]
-    # player_name = temp[0][4]
+    f=discord.File(file, filename='stats.png')
+    
     channel = client.get_channel(ctx.author.id)
     embed = discord.Embed(title='Stats', description=f'{player_name}', color = discord.Color.blurple()) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=False)
@@ -1003,7 +985,7 @@ async def stats(
     embed.add_field(name='Largest Loss', value=f'{largest_loss}', inline=True)
     embed.add_field(name='Average MMR', value=f'{round(average_mmr,0)}', inline=False)
     embed.add_field(name='Base MMR', value=f'{base}', inline=True)
-    embed.set_image(url=f.fp)
+    embed.set_image(url='attachment://stats.png')
     await ctx.respond(embed=embed)
     return
 
