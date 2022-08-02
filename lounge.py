@@ -935,7 +935,7 @@ async def stats(
     elif tier.id in TIER_ID_LIST:
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT pm.mmr_change, pm.score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND pm.mogi_id = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
+                temp = db.query('SELECT pm.mmr_change, pm.score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
                 for i in range(len(temp)):
                     mmr_history.append(temp[i][0])
                     score_history.append(temp[i][1])
