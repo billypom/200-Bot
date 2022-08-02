@@ -900,14 +900,14 @@ async def table(
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
-        mmr_filename = f'{hex(ctx.author.id)}mmr.png'
+        mmr_filename = f'{hex(ctx.author.id)}mmr.jpg'
         correct = subprocess.run(['convert', '-background', 'gray21', '-fill', 'white', pango_string, mmr_filename], check=True, text=True)
-        f=discord.File(mmr_filename, filename='mmr.png')
+        f=discord.File(mmr_filename, filename='mmr.jpg')
 
         # Create embed
         results_channel = client.get_channel(db_results_channel)
         embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', description=f'mmr', color = discord.Color.blurple())
-        embed.set_image(url='attachment://mmr.png')
+        embed.set_image(url='attachment://mmr.jpg')
         await results_channel.send(content=None, embed=embed, file=f)
 
         # Create MMR Table
