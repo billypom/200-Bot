@@ -1022,7 +1022,7 @@ async def stats(
     embed.add_field(name='Average MMR', value=f'{average_mmr}', inline=False)
     embed.add_field(name='Base MMR', value=f'{base}', inline=True)
     embed.add_field(name=' : ', value=ctx.author.id, inline=False)
-    await ctx.respond(file=f, embed=embed)
+    await ctx.respond(embed=embed, file=f)
     return
 
 
