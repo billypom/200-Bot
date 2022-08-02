@@ -193,6 +193,18 @@ async def on_message(ctx):
     if ctx.author.id == lounge_id:
         return
     if ctx.channel.id in TIER_ID_LIST:
+        # Set player activity time, if in lineup
+        try:
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
+                if temp[0][0] is None:
+                    return
+                else:
+                    if ctx.author.id == temp[0][0]: # Correct player (idk would a select ever mess up?)
+                        with DBA.DBAccess() as db:
+                            db.execute('UPDATE lineups SET last_active = %s WHERE player_id = %s;', (datetime.datetime.now(), ctx.author.id))
+        except Exception:
+            pass
         # Set votes, if tier is currently voting
         with DBA.DBAccess() as db:
             get_tier = db.query('SELECT voting, tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
@@ -211,15 +223,6 @@ async def on_message(ctx):
                     except Exception as e:
                         await send_to_debug_channel(ctx, e)
                         return
-        # Set player activity time, if in lineup
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
-            if temp[0][0] is None:
-                return
-            else:
-                if ctx.author.id == temp[0][0]: # Correct player (idk would a select ever mess up?)
-                    with DBA.DBAccess() as db:
-                        db.execute('UPDATE lineups SET last_active = %s WHERE player_id = %s;', (datetime.datetime.now(), ctx.author.id))
 
 
 
