@@ -979,7 +979,7 @@ async def stats(
         else:
             count_of_losses += 1
     average_mmr = running_sum/len(mmr_history)
-    win_rate = count_of_wins/len(mmr_history)
+    win_rate = count_of_wins/len(mmr_history)*100
 
     file = plotting.create_plot(base, mmr_history)
     f=discord.File(file, filename='stats.png')
@@ -994,7 +994,7 @@ async def stats(
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
     embed.add_field(name='Peak MMR', value=f'{peak}', inline=True)
-    embed.add_field(name='Win Rate', value=f'{win_rate}', inline=True)
+    embed.add_field(name='Win Rate', value=f'{round(win_rate,0)}%', inline=True)
     embed.add_field(name='W-L (Last 10)', value=f'{last_10_wins} - {last_10_losses}', inline=True)
     embed.add_field(name='+/- (Last 10)', value=f'{last_10_change}', inline=True)
     embed.add_field(name='Avg. Score', value=f'{round(average_score, 2)}', inline=True)
@@ -1172,7 +1172,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
             format_list[4] = v6_temp[0][0]
         if 6 in format_list:
             break
-        print(f'{unix_now} - {last_joiner_unix_timestamp}')
+        # print(f'{unix_now} - {last_joiner_unix_timestamp}')
         dtobject_now = datetime.datetime.now()
         unix_now = time.mktime(dtobject_now.timetuple())
     # print('checking for all zero votes')
@@ -1384,9 +1384,9 @@ async def get_partner_avg(uid, *mogi_format):
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid, uid))
-            print(temp)
+            # print(temp)
     except Exception as e:
-        print(e)
+        await send_raw_to_debug_channel(e)
     return 0
 
 
