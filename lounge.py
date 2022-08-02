@@ -891,7 +891,8 @@ async def table(
                 mmr_table_string += '\n'
 
         # Create imagemagick image
-
+        # https://imagemagick.org/script/color.php
+        correct = subprocess.run(['convert', '-background', 'gray21', 'pango:', '<tt><span foreground="white">{mmr_table_string}</span></tt>', f'{hex(ctx.author.id)}mmr.png'], check=True, text=True)
 
 
         # Create embed
