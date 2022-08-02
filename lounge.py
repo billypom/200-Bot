@@ -518,18 +518,6 @@ async def setfc(
         await ctx.respond(confirmation_msg)
 
 
-@client.slash_command(
-    name='partner_average',
-    description='Get the average score of your partners',
-    guild_ids=Lounge
-)
-async def partner_average(
-    ctx,
-    mogi_format: discord.Option(int, '1, 2, 3, 4, 6', required=False)
-    ):
-    await ctx.defer()
-    return
-
 
 @client.slash_command(
     name='table',
@@ -542,6 +530,10 @@ async def table(
     scores: discord.Option(str, '@player scores (i.e. @popuko 12 @Brandon 100 @Maxarx 180...)', required=True)
     ):
     await ctx.defer()
+    naughty = await check_if_banned_characters(scores)
+    if naughty:
+        await send_to_verification_log(ctx, scores, discord.Color.blurple(), vlog_msg.error1)
+        return f'``Error 32:`` Invalid input. There must be 12 players and 12 scores.'
     remove_chars = {
         60:None, #<
         62:None, #>
