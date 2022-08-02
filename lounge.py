@@ -781,6 +781,7 @@ async def table(
                         my_player_peak = 0
                 my_player_score = int(player[1])
                 my_player_place = team[len(team)-2]
+                my_player_new_rank = ''
 
                 # Place the placement players
                 placement_name = ''
@@ -872,8 +873,9 @@ async def table(
                             await member.add_roles(new_role)
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
+                            my_player_new_rank += f'- {new_role}'
                         # Rank down - assign roles - update DB
-                        if my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
+                        elif my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
                             guild = client.get_guild(Lounge[0])
                             current_role = guild.get_role(my_player_rank_id)
                             new_role = guild.get_role(rank_id)
@@ -882,6 +884,10 @@ async def table(
                             await member.add_roles(new_role)
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
+                            my_player_new_rank += f'+ {new_role}'
+                        string_my_player_new_rank = f'{str(my_player_new_rank).center(15)}'
+                        formatted_my_player_new_rank = await new_rank_wrapper(string_my_player_new_rank, my_player_new_mmr)
+                        mmr_table_string += f'{formatted_my_player_new_rank}'
                     except Exception as e:
                         pass
                         # my_player_rank_id = role_id
@@ -889,7 +895,7 @@ async def table(
                         # guild.get_member(discord_id)
                         # member.add_roles(discord.Role)
                         # member.remove_roles(discord.Role)
-                mmr_table_string += '\n'
+                # mmr_table_string += '\n'
 
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
@@ -901,6 +907,7 @@ async def table(
         # Create embed
         results_channel = client.get_channel(db_results_channel)
         embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', description=f'mmr', color = discord.Color.blurple())
+        embed.set_image(url='attachment://mmr.png')
         await results_channel.send(content=None, embed=embed, file=f)
 
         # Create MMR Table
@@ -1701,6 +1708,25 @@ def mt_lounge_request_mkc_user_id(ctx):
         return -1
     return mkc_user_id
 
+async def new_rank_wrapper(input, mmr):
+    if mmr < 1500:
+        return await iron_wrapper(input)
+    elif mmr >= 1500 and mmr < 3000:
+        return await bronze_wrapper(input)
+    elif mmr >= 3000 and mmr < 4500:
+        return await silver_wrapper(input)
+    elif mmr >= 4500 and mmr < 6000:
+        return await gold_wrapper(input)
+    elif mmr >= 6000 and mmr < 7500:
+        return await platinum_wrapper(input)
+    elif mmr >= 7500 and mmr < 9000:
+        return await diamond_wrapper(input)
+    elif mmr >= 9000 and mmr < 11000:
+        return await master_wrapper(input)
+    elif mmr >= 11000:
+        return await grandmaster_wrapper(input)
+    else:
+        return 'placement'
 
 async def grandmaster_wrapper(input):
     # return (f'[0;2m[0;40m[0;31m{input}[0m[0;40m[0m[0m')
