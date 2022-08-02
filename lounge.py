@@ -1007,7 +1007,7 @@ async def stats(
     embed.add_field(name='Base MMR', value=f'{base}', inline=True)
     embed.set_image(url='attachment://stats.png')
     await channel.send(file=f, embed=embed)
-    await ctx.respond(':coin:')
+    await ctx.respond(':coin:', delete_after=1)
     return
 
 
