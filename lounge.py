@@ -934,6 +934,8 @@ async def stats(
                         last_10_losses += 1
         file = plotting.create_plot(base, mmr_history)
         f=discord.File(fp=file, filename='stats.png')
+        print(f'file: {file}')
+        print('f: {f}')
         events_played = len(mmr_history)
         top_score = max(score_history)
         largest_gain = max(mmr_history)
