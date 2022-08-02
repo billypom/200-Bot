@@ -932,24 +932,7 @@ async def stats(
                         last_10_wins += 1
                     else:
                         last_10_losses += 1
-        file = plotting.create_plot(base, mmr_history)
-        f=discord.File(fp=file, filename='stats.png')
-        events_played = len(mmr_history)
-        top_score = max(score_history)
-        largest_gain = max(mmr_history)
-        largest_loss = min(mmr_history)
-        average_score = sum(score_history)/len(score_history)
         partner_average = await get_partner_avg(ctx.author.id)
-        temp_for_average_mmr = base
-        running_sum = 0
-        for match in mmr_history:
-            temp_for_average_mmr += match
-            running_sum +=temp_for_average_mmr
-            if match > 0:
-                count_of_wins += 1
-            else:
-                count_of_losses += 1
-        average_mmr = running_sum/len(mmr_history)
     else:
         if tier.id in TIER_ID_LIST:
             with DBA.DBAccess() as db:
@@ -963,29 +946,28 @@ async def stats(
                             last_10_wins += 1
                         else:
                             last_10_losses += 1
-            file = plotting.create_plot(base, mmr_history)
-            f=discord.File(fp=file, filename='stats.png')
-            events_played = len(mmr_history)
-            top_score = max(score_history)
-            largest_gain = max(mmr_history)
-            largest_loss = min(mmr_history)
-            average_score = sum(score_history)/len(score_history)
             partner_average = await get_partner_avg(ctx.author.id, tier.id)
-            temp_for_average_mmr = base
-            running_sum = 0
-            for match in mmr_history:
-                temp_for_average_mmr += match
-                running_sum +=temp_for_average_mmr
-                if match > 0:
-                    count_of_wins += 1
-                else:
-                    count_of_losses += 1
-            average_mmr = running_sum/len(mmr_history)
         else:
             await ctx.respond('``Error 30:`` What the crap')
+    events_played = len(mmr_history)
+    top_score = max(score_history)
+    largest_gain = max(mmr_history)
+    largest_loss = min(mmr_history)
+    average_score = sum(score_history)/len(score_history)
+    temp_for_average_mmr = base
+    running_sum = 0
+    for match in mmr_history:
+        temp_for_average_mmr += match
+        running_sum +=temp_for_average_mmr
+        if match > 0:
+            count_of_wins += 1
+        else:
+            count_of_losses += 1
+    average_mmr = running_sum/len(mmr_history)
     win_rate = count_of_wins/len(mmr_history)
 
-
+    file = plotting.create_plot(base, mmr_history)
+    f=discord.File('/stats.png', filename='stats.png')
 
 
 
