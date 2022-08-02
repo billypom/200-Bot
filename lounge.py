@@ -580,7 +580,19 @@ async def table(
         33:None, #!
         64:None, #@
     }
-    # Check for verified user
+    # Check for if mogi has started
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
+            count = temp[0][0]
+    except Exception as e:
+        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}. {e}')
+        await send_to_debug_channel(ctx, e)
+        return
+    if count < 12:
+        await ctx.respond('Mogi has not started. Cannot create a table now')
+        return
+        
     # Check for role? (reporter? or how do i do that...)
 
     # Check the mogi_format
