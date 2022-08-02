@@ -999,7 +999,7 @@ async def stats(
             return
         partner_average = await get_partner_avg(ctx.author.id, tier.id)
     else:
-        await ctx.respond('``Error 30:`` What the crap')
+        await ctx.respond(f'``Error 30:`` {tier.mention} is not a valid tier')
         return
 
     events_played = len(mmr_history)
