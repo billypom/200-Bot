@@ -885,9 +885,6 @@ async def table(
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                             my_player_new_rank += f'+ {new_role}'
-                        string_my_player_new_rank = f'{str(my_player_new_rank).center(15)}'
-                        formatted_my_player_new_rank = await new_rank_wrapper(string_my_player_new_rank, my_player_new_mmr)
-                        mmr_table_string += f'{formatted_my_player_new_rank}'
                     except Exception as e:
                         pass
                         # my_player_rank_id = role_id
@@ -895,7 +892,9 @@ async def table(
                         # guild.get_member(discord_id)
                         # member.add_roles(discord.Role)
                         # member.remove_roles(discord.Role)
-                mmr_table_string += '\n'
+                string_my_player_new_rank = f'{str(my_player_new_rank).center(15)}'
+                formatted_my_player_new_rank = await new_rank_wrapper(string_my_player_new_rank, my_player_new_mmr)
+                mmr_table_string += f'{formatted_my_player_new_rank}\n'
 
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
