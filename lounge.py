@@ -968,7 +968,7 @@ async def stats(
 
     file = plotting.create_plot(base, mmr_history)
     f=discord.File(file, filename='stats.png')
-    
+
     channel = client.get_channel(ctx.author.id)
     embed = discord.Embed(title='Stats', description=f'{player_name}', color = discord.Color.blurple()) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=False)
@@ -986,7 +986,8 @@ async def stats(
     embed.add_field(name='Average MMR', value=f'{round(average_mmr,0)}', inline=False)
     embed.add_field(name='Base MMR', value=f'{base}', inline=True)
     embed.set_image(url='attachment://stats.png')
-    await ctx.respond(embed=embed)
+    await channel.send(embed=embed)
+    await ctx.respond(':coin:')
     return
 
 
