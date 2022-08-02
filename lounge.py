@@ -104,7 +104,7 @@ def update_mogilist():
         if len(v) >= 12:
             num_full_mogis +=1
         mllu_players = str(v).translate(remove_chars)
-        pre_mllu_string += f'<#{k}> - {mllu_players}'
+        pre_mllu_string += f'<#{k}> - {mllu_players}\n'
     title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n\n'
     ml_string = f'{title}{pre_ml_string}'
     mllu_string = f'{title}{pre_mllu_string}'
