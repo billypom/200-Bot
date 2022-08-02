@@ -932,27 +932,27 @@ async def stats(
                     else:
                         last_10_losses += 1
         partner_average = await get_partner_avg(ctx.author.id)
+    elif tier.id in TIER_ID_LIST:
+        try:
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT pm.mmr_change, pm.score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND pm.mogi_id = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
+                for i in range(len(temp)):
+                    mmr_history.append(temp[i][0])
+                    score_history.append(temp[i][1])
+                    if i <= 9:
+                        last_10_change += mmr_history[i]
+                        if mmr_history[i] > 0:
+                            last_10_wins += 1
+                        else:
+                            last_10_losses += 1
+        except Exception as e:
+            await send_to_debug_channel(ctx, e)
+            await ctx.respond(f'You have not played in {tier.mention}')
+            return
+        partner_average = await get_partner_avg(ctx.author.id, tier.id)
     else:
-        if tier.id in TIER_ID_LIST:
-            try:
-                with DBA.DBAccess() as db:
-                    temp = db.query('SELECT pm.mmr_change, pm.score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.mogi_id = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
-                    for i in range(len(temp)):
-                        mmr_history.append(temp[i][0])
-                        score_history.append(temp[i][1])
-                        if i <= 9:
-                            last_10_change += mmr_history[i]
-                            if mmr_history[i] > 0:
-                                last_10_wins += 1
-                            else:
-                                last_10_losses += 1
-            except Exception as e:
-                await send_to_debug_channel(ctx, e)
-                await ctx.respond(f'You have not played in {tier.mention}')
-                return
-            partner_average = await get_partner_avg(ctx.author.id, tier.id)
-        else:
-            await ctx.respond('``Error 30:`` What the crap')
+        await ctx.respond('``Error 30:`` What the crap')
+        return
     events_played = len(mmr_history)
     top_score = max(score_history)
     try:
