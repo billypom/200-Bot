@@ -898,6 +898,7 @@ async def stats(
     largest_gain = 0 #
     largest_loss = 0 #
     rank = 0
+    count_of_wins = 0
     # Create matplotlib MMR history graph
     with DBA.DBAccess() as db:
         temp = db.query('SELECT base_mmr, peak_mmr, penalty_mmr, mmr, player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
@@ -920,8 +921,8 @@ async def stats(
                 mmr_history.append(temp[i][0])
                 score_history.append(temp[i][1])
                 if i <= 9:
-                    last_10_change += score_history[i]
-                    if score_history[i] > 0:
+                    last_10_change += mmr_history[i]
+                    if mmr_history[i] > 0:
                         last_10_wins += 1
                     else:
                         last_10_losses += 1
@@ -933,9 +934,14 @@ async def stats(
         largest_loss = min(mmr_history)
         average_score = sum(score_history)/len(score_history)
         temp_for_average_mmr = base
+        running_sum = 0
         for match in mmr_history:
             temp_for_average_mmr += match
             running_sum +=temp_for_average_mmr
+            if match > 0:
+                count_of_wins += 1
+            else:
+                count_of_losses += 1
         average_mmr = running_sum/len(mmr_history)
     else:
         with DBA.DBAccess() as db:
@@ -957,7 +963,14 @@ async def stats(
         largest_loss = min(mmr_history)
         average_score = sum(score_history)/len(score_history)
         partner_average = await get_partner_avg(ctx.author.id)
-
+        temp_for_average_mmr = base
+        running_sum = 0
+        for match in mmr_history:
+            temp_for_average_mmr += match
+            running_sum +=temp_for_average_mmr
+            if match > 0:
+                count_of_wins += 1
+    win_rate = count_of_wins/len(mmr_history)
 
 
 
@@ -983,7 +996,7 @@ async def stats(
     embed.add_field(name='Rank', value=f'{rank}', inline=False)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
     embed.add_field(name='Peak MMR', value=f'{peak}', inline=True)
-    embed.add_field(name='Win Rate', value=f'{}', inline=False)
+    embed.add_field(name='Win Rate', value=f'{win_rate}', inline=False)
     embed.add_field(name='W-L (Last 10)', value=f'{last_10_wins} - {last_10_losses}', inline=True)
     embed.add_field(name='+/- (Last 10)', value=f'{last_10_change}', inline=True)
     embed.add_field(name='Avg. Score', value=f'{average_score}', inline=False)
