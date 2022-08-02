@@ -1013,16 +1013,16 @@ async def stats(
     embed.add_field(name='Win Rate', value=f'{win_rate}', inline=False)
     embed.add_field(name='W-L (Last 10)', value=f'{last_10_wins} - {last_10_losses}', inline=True)
     embed.add_field(name='+/- (Last 10)', value=f'{last_10_change}', inline=True)
-    embed.add_field(name='Avg. Score', value=f'{average_score}', inline=False)
+    embed.add_field(name='Avg. Score', value=f'{round(average_score, 2)}', inline=False)
     embed.add_field(name='Top Score', value=f'{top_score}', inline=True) # website link
     embed.add_field(name='Partner Avg.', value=f'{partner_average}', inline=True)
     embed.add_field(name='Events Played', value=f'{events_played}', inline=False)
     embed.add_field(name='Largest Gain', value=f'{largest_gain}', inline=True)
     embed.add_field(name='Largest Loss', value=f'{largest_loss}', inline=True)
-    embed.add_field(name='Average MMR', value=f'{average_mmr}', inline=False)
+    embed.add_field(name='Average MMR', value=f'{round(average_mmr,0)}', inline=False)
     embed.add_field(name='Base MMR', value=f'{base}', inline=True)
-    embed.add_field(name=' : ', value=ctx.author.id, inline=False)
-    await ctx.respond(embed=embed, file=f)
+    embed.set_image(url='stats.png')
+    await ctx.respond(embed=embed)
     return
 
 
