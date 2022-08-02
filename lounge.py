@@ -967,6 +967,7 @@ async def stats(
             largest_gain = max(mmr_history)
             largest_loss = min(mmr_history)
             average_score = sum(score_history)/len(score_history)
+            partner_average = await get_partner_avg(ctx.author.id, tier.id)
             temp_for_average_mmr = base
             running_sum = 0
             for match in mmr_history:
@@ -1391,7 +1392,7 @@ async def check_if_banned_characters(message):
 
 
 # Takes in ctx, returns avg partner score
-async def get_partner_avg(uid, mogi_format):
+async def get_partner_avg(uid, *mogi_format):
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid, uid))
