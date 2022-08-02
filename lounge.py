@@ -763,10 +763,16 @@ async def table(
             team.append(math.ceil(temp_value))
 
         # Create mmr table string
-        mmr_table_string = ''
+        if mogi_format == 1:
+            string_mogi_format = 'FFA'
+        else:
+            string_mogi_format = f'{str(mogi_format)}v{str(mogi_format)}'
+        mmr_table_string = f'<big>{ctx.channel.name} {string_mogi_format}</big>'
         for team in sorted_list:
             # print(team)
+            my_player_place = team[len(team)-2]
             for idx, player in enumerate(team):
+                mmr_table_string += '\n'
                 if idx > (mogi_format-1):
                     break
                 with DBA.DBAccess() as db:
@@ -780,7 +786,6 @@ async def table(
                         # print('its none...')
                         my_player_peak = 0
                 my_player_score = int(player[1])
-                my_player_place = team[len(team)-2]
                 my_player_new_rank = ''
 
                 # Place the placement players
@@ -873,7 +878,7 @@ async def table(
                             await member.add_roles(new_role)
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
-                            my_player_new_rank += f'- {new_role}'
+                            my_player_new_rank += f'+ {new_role}'
                         # Rank down - assign roles - update DB
                         elif my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
                             guild = client.get_guild(Lounge[0])
@@ -884,7 +889,7 @@ async def table(
                             await member.add_roles(new_role)
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
-                            my_player_new_rank += f'+ {new_role}'
+                            my_player_new_rank += f'- {new_role}'
                     except Exception as e:
                         pass
                         # my_player_rank_id = role_id
@@ -894,7 +899,8 @@ async def table(
                         # member.remove_roles(discord.Role)
                 string_my_player_new_rank = f'{str(my_player_new_rank).center(15)}'
                 formatted_my_player_new_rank = await new_rank_wrapper(string_my_player_new_rank, my_player_new_mmr)
-                mmr_table_string += f'{formatted_my_player_new_rank}\n'
+                mmr_table_string += f'{formatted_my_player_new_rank}'
+                my_player_place = ''
 
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
