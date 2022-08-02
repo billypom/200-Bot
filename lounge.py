@@ -953,6 +953,7 @@ async def stats(
     else:
         await ctx.respond('``Error 30:`` What the crap')
         return
+    print(score_history)
     events_played = len(mmr_history)
     top_score = max(score_history)
     try:
