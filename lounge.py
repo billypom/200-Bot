@@ -380,13 +380,13 @@ async def c(
     #     return
     try:
         with DBA.DBAccess() as db:
-            db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
+            db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
             await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
             channel = client.get_channel(ctx.channel.id)
             await channel.send(f'<@{ctx.author.id}> has joined the mogi!')
             count+=1
     except Exception as e:
-        await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secretly.my_discord}. {e}')
+        await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secretly.my_discord}.')
         await send_to_debug_channel(ctx, e)
         return
     if count >= MAX_PLAYERS_IN_MOGI:
