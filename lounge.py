@@ -118,11 +118,38 @@ def update_mogilist():
     mllu_message = asyncio.run_coroutine_threadsafe(mllu.fetch_message(ml_lu_channel_message_id), client.loop)
     asyncio.run_coroutine_threadsafe(mllu_message.result().edit(content=f'{mllu_string}'), client.loop)
 
+def inactivity_check():
+    dtobject_now = datetime.datetime.now()
+    unix_now = time.mktime(dtobject_now.timetuple())
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id FROM lineups WHERE can_drop = %s;', (1,))
+            for i in range(len(temp)):
+                unix_difference = unix_now - temp[i][1]
+                if (unix_difference) < 720 and (unix_difference) > 600:
+                    channel = client.get_channel(temp[i][2])
+                    message = f'<@{temp[i][0]}> Type anything in the chat in the next 2 minutes to keep your spot in the mogi.'
+                    asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
+                    continue
+                elif unix_difference > 720:
+                    with DBA.DBAccess() as db:
+                        db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
+                    channel = client.get_channel(temp[i][2])
+                    message = f'<@{temp[i][0]}> has been removed from the mogi due to inactivity'
+                    asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
+                    continue
+                    # remove player from lineup
+                else:
+                    continue
+    except Exception as e:
+        message = e
+        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(message), client.loop)
 
 def lounge_threads():
     time.sleep(10)
     while(True):
         update_mogilist()
+        inactivity_check()
         time.sleep(15)
 
 
@@ -165,12 +192,12 @@ async def on_message(ctx):
     if ctx.author.id == lounge_id:
         return
     if ctx.channel.id in TIER_ID_LIST:
+        # Set votes, if tier is currently voting
         with DBA.DBAccess() as db:
             get_tier = db.query('SELECT voting, tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
         if get_tier[0][0]:
             if get_tier[0][1] == ctx.channel.id:
                 if str(ctx.content) in ['1', '2', '3', '4', '6']:
-                    # print('its in there lol')
                     try:
                         with DBA.DBAccess() as db:
                             temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s ORDER BY create_date LIMIT %s;', (ctx.author.id, ctx.channel.id, MAX_PLAYERS_IN_MOGI)) # limit prevents 13th person from voting
@@ -183,10 +210,15 @@ async def on_message(ctx):
                     except Exception as e:
                         await send_to_debug_channel(ctx, e)
                         return
-    # get discord id and channel id
-    # if user and channel id in lineups
-    message = ctx.content
-    # print(message)
+        # Set player activity time, if in lineup
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
+            if temp[0][0] is None:
+                return
+            else:
+                if ctx.author.id == temp[0][0]: # Correct player (idk would a select ever mess up?)
+                    with DBA.DBAccess() as db:
+                        db.execute('UPDATE lineups SET last_active = %s WHERE player_id = %s;', (datetime.datetime.now(), ctx.author.id))
 
 
 
@@ -344,7 +376,7 @@ async def c(
     #     return
     try:
         with DBA.DBAccess() as db:
-            db.execute('INSERT INTO lineups (player_id, tier_id) values (%s, %s);', (ctx.author.id, ctx.channel.id))
+            db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
             await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
             channel = client.get_channel(ctx.channel.id)
             await channel.send(f'<@{ctx.author.id}> has joined the mogi!')
