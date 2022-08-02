@@ -895,7 +895,7 @@ async def table(
                         # guild.get_member(discord_id)
                         # member.add_roles(discord.Role)
                         # member.remove_roles(discord.Role)
-                # mmr_table_string += '\n'
+                mmr_table_string += '\n'
 
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
