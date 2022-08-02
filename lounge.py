@@ -126,20 +126,21 @@ def inactivity_check():
             temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id, wait_for_activity FROM lineups WHERE can_drop = %s;', (1,))
             for i in range(len(temp)):
                 unix_difference = unix_now - temp[i][1]
-                if (unix_difference) < 720 and (unix_difference) > 600:
+                # if (unix_difference) < 720 and (unix_difference) > 600:
+                if (unix_difference) < 60 and (unix_difference) > 1:
                     channel = client.get_channel(temp[i][2])
                     if temp[0][3] == 0:
                         message = f'<@{temp[i][0]}> Type anything in the chat in the next 2 minutes to keep your spot in the mogi.'
-                        asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
+                        asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=120), client.loop)
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0]))
                     continue
-                elif unix_difference > 720:
+                elif unix_difference > 60:
                     with DBA.DBAccess() as db:
                         db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
                     channel = client.get_channel(temp[i][2])
                     message = f'<@{temp[i][0]}> has been removed from the mogi due to inactivity'
-                    asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
+                    asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=120), client.loop)
                     continue
                     # remove player from lineup
                 else:
@@ -199,11 +200,11 @@ async def on_message(ctx):
         # Set player activity time, if in lineup
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
+                temp = db.query('SELECT player_id, tier_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
                 if temp[0][0] is None:
                     return
                 else:
-                    if ctx.author.id == temp[0][0]: # Correct player (idk would a select ever mess up?)
+                    if ctx.channel.id == temp[0][1]: # Type activity in correct channel
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE lineups SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
         except Exception:
