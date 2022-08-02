@@ -886,6 +886,8 @@ async def stats(
     tier: discord.Option(discord.TextChannel, description='Choose a channel', required=False)
     ):
     await ctx.defer()
+    # Check for valid player
+
     mmr_history = [] #
     score_history = [] #
     last_10_wins = 0 #
@@ -900,50 +902,25 @@ async def stats(
     rank = 0
     count_of_wins = 0
     # Create matplotlib MMR history graph
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT base_mmr, peak_mmr, penalty_mmr, mmr, player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
-        if temp[0][0] is None:
-            base = 0
-        else:
-            base = temp[0][0]
-        peak = temp[0][1]
-        penalty = temp[0][2]
-        mmr = temp[0][3]
-        player_name = temp[0][4]
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT COUNT(*) FROM player WHERE mmr >= %s ORDER BY mmr DESC;', (mmr,))
-        rank = temp[0][0]
-
-    if tier.id in TIER_ID_LIST:
+    try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s AND mogi_is = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
-            for i in range(len(temp)):
-                mmr_history.append(temp[i][0])
-                score_history.append(temp[i][1])
-                if i <= 9:
-                    last_10_change += mmr_history[i]
-                    if mmr_history[i] > 0:
-                        last_10_wins += 1
-                    else:
-                        last_10_losses += 1
-        file = plotting.create_plot(base, mmr_history)
-        f=discord.File(fp=file, filename='stats.png')
-        events_played = len(mmr_history)
-        top_score = max(score_history)
-        largest_gain = max(mmr_history)
-        largest_loss = min(mmr_history)
-        average_score = sum(score_history)/len(score_history)
-        temp_for_average_mmr = base
-        running_sum = 0
-        for match in mmr_history:
-            temp_for_average_mmr += match
-            running_sum +=temp_for_average_mmr
-            if match > 0:
-                count_of_wins += 1
+            temp = db.query('SELECT base_mmr, peak_mmr, penalty_mmr, mmr, player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
+            if temp[0][0] is None:
+                base = 0
             else:
-                count_of_losses += 1
-        average_mmr = running_sum/len(mmr_history)
-    else:
+                base = temp[0][0]
+            peak = temp[0][1]
+            penalty = temp[0][2]
+            mmr = temp[0][3]
+            player_name = temp[0][4]
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT COUNT(*) FROM player WHERE mmr >= %s ORDER BY mmr DESC;', (mmr,))
+            rank = temp[0][0]
+    except Exception as e:
+        await send_raw_to_debug_channel(ctx, e)
+        await ctx.respond('``Error 31:`` Player not found.')
+
+    if tier is None:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date ASC;', (ctx.author.id,))
             for i in range(len(temp)):
@@ -970,7 +947,40 @@ async def stats(
             running_sum +=temp_for_average_mmr
             if match > 0:
                 count_of_wins += 1
+    else:
+        if tier.id in TIER_ID_LIST:
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s AND mogi_is = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
+                for i in range(len(temp)):
+                    mmr_history.append(temp[i][0])
+                    score_history.append(temp[i][1])
+                    if i <= 9:
+                        last_10_change += mmr_history[i]
+                        if mmr_history[i] > 0:
+                            last_10_wins += 1
+                        else:
+                            last_10_losses += 1
+            file = plotting.create_plot(base, mmr_history)
+            f=discord.File(fp=file, filename='stats.png')
+            events_played = len(mmr_history)
+            top_score = max(score_history)
+            largest_gain = max(mmr_history)
+            largest_loss = min(mmr_history)
+            average_score = sum(score_history)/len(score_history)
+            temp_for_average_mmr = base
+            running_sum = 0
+            for match in mmr_history:
+                temp_for_average_mmr += match
+                running_sum +=temp_for_average_mmr
+                if match > 0:
+                    count_of_wins += 1
+                else:
+                    count_of_losses += 1
+            average_mmr = running_sum/len(mmr_history)
+        else:
+            await ctx.respond('``Error 30:`` What the crap')
     win_rate = count_of_wins/len(mmr_history)
+
 
 
 
