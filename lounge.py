@@ -905,6 +905,9 @@ async def table(
                 my_player_place = ''
 
         # Create imagemagick image
+        print('_______')
+        print(mmr_table_string)
+        print('_______')
         # https://imagemagick.org/script/color.php
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
         mmr_filename = f'{hex(ctx.author.id)}mmr.jpg'
@@ -916,7 +919,7 @@ async def table(
         embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', description=f'mmr', color = discord.Color.blurple())
         embed.set_image(url='attachment://mmr.jpg')
         await results_channel.send(content=None, embed=embed, file=f)
-        # 
+        #  discord ansi coloring (doesn't work on mobile)
         # https://gist.github.com/kkrypt0nn/a02506f3712ff2d1c8ca7c9e0aed7c06
         # https://rebane2001.com/discord-colored-text-generator/ 
         await ctx.respond('`Table Accepted.`', delete_after=300)
@@ -1703,6 +1706,7 @@ def mt_lounge_request_mkc_user_id(ctx):
         return -1
     return mkc_user_id
 
+# https://imagemagick.org/script/color.php
 async def new_rank_wrapper(input, mmr):
     if input != "               ":
         if mmr < 1500:
