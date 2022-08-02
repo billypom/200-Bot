@@ -123,13 +123,16 @@ def inactivity_check():
     unix_now = time.mktime(dtobject_now.timetuple())
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id FROM lineups WHERE can_drop = %s;', (1,))
+            temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id, wait_for_activity FROM lineups WHERE can_drop = %s;', (1,))
             for i in range(len(temp)):
                 unix_difference = unix_now - temp[i][1]
                 if (unix_difference) < 720 and (unix_difference) > 600:
                     channel = client.get_channel(temp[i][2])
-                    message = f'<@{temp[i][0]}> Type anything in the chat in the next 2 minutes to keep your spot in the mogi.'
-                    asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
+                    if temp[0][3] == 0:
+                        message = f'<@{temp[i][0]}> Type anything in the chat in the next 2 minutes to keep your spot in the mogi.'
+                        asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
+                        with DBA.DBAccess() as db:
+                            db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0]))
                     continue
                 elif unix_difference > 720:
                     with DBA.DBAccess() as db:
