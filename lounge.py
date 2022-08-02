@@ -967,7 +967,7 @@ async def stats(
     win_rate = count_of_wins/len(mmr_history)
 
     file = plotting.create_plot(base, mmr_history)
-    f=discord.File('/stats.png', filename='stats.png')
+    f=discord.File(fp=file, filename='stats.png')
 
 
 
@@ -1003,7 +1003,7 @@ async def stats(
     embed.add_field(name='Largest Loss', value=f'{largest_loss}', inline=True)
     embed.add_field(name='Average MMR', value=f'{round(average_mmr,0)}', inline=False)
     embed.add_field(name='Base MMR', value=f'{base}', inline=True)
-    embed.set_image(url=f.filename)
+    embed.set_image(url=f.fp)
     await ctx.respond(embed=embed)
     return
 
