@@ -878,7 +878,7 @@ async def table(
 # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
 @client.slash_command(
     name='stats',
-    description='Graph of your match history',
+    description='Player statistics',
     guilds_ids=Lounge
 )
 async def stats(
@@ -886,8 +886,6 @@ async def stats(
     tier: discord.Option(discord.TextChannel, description='Choose a channel', required=False)
     ):
     await ctx.defer()
-    # Check for valid player
-
     mmr_history = [] #
     score_history = [] #
     last_10_wins = 0 #
@@ -902,7 +900,7 @@ async def stats(
     rank = 0
     count_of_wins = 0
     # Create matplotlib MMR history graph
-    try:
+    try: # Checks for valid player
         with DBA.DBAccess() as db:
             temp = db.query('SELECT base_mmr, peak_mmr, penalty_mmr, mmr, player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
             if temp[0][0] is None:
@@ -919,6 +917,7 @@ async def stats(
     except Exception as e:
         await send_raw_to_debug_channel(ctx, e)
         await ctx.respond('``Error 31:`` Player not found.')
+        return
 
     if tier is None:
         with DBA.DBAccess() as db:
@@ -935,17 +934,22 @@ async def stats(
         partner_average = await get_partner_avg(ctx.author.id)
     else:
         if tier.id in TIER_ID_LIST:
-            with DBA.DBAccess() as db:
-                temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s AND mogi_is = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
-                for i in range(len(temp)):
-                    mmr_history.append(temp[i][0])
-                    score_history.append(temp[i][1])
-                    if i <= 9:
-                        last_10_change += mmr_history[i]
-                        if mmr_history[i] > 0:
-                            last_10_wins += 1
-                        else:
-                            last_10_losses += 1
+            try:
+                with DBA.DBAccess() as db:
+                    temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s AND mogi_is = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
+                    for i in range(len(temp)):
+                        mmr_history.append(temp[i][0])
+                        score_history.append(temp[i][1])
+                        if i <= 9:
+                            last_10_change += mmr_history[i]
+                            if mmr_history[i] > 0:
+                                last_10_wins += 1
+                            else:
+                                last_10_losses += 1
+            except Exception as e:
+                await send_to_debug_channel(ctx, e)
+                await ctx.respond(f'You have not played in {tier.mention}')
+                return
             partner_average = await get_partner_avg(ctx.author.id, tier.id)
         else:
             await ctx.respond('``Error 30:`` What the crap')
