@@ -936,7 +936,7 @@ async def stats(
         if tier.id in TIER_ID_LIST:
             try:
                 with DBA.DBAccess() as db:
-                    temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s AND m.mogi_id = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
+                    temp = db.query('SELECT pm.mmr_change, pm.score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.mogi_id = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
                     for i in range(len(temp)):
                         mmr_history.append(temp[i][0])
                         score_history.append(temp[i][1])
@@ -955,7 +955,10 @@ async def stats(
             await ctx.respond('``Error 30:`` What the crap')
     events_played = len(mmr_history)
     top_score = max(score_history)
-    largest_gain = max(mmr_history)
+    try:
+        largest_gain = max(mmr_history)
+    except Exception:
+        largest_gain = 0
     largest_loss = min(mmr_history)
     average_score = sum(score_history)/len(score_history)
     temp_for_average_mmr = base
