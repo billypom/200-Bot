@@ -965,7 +965,9 @@ async def stats(
     if tier is None:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date ASC;', (ctx.author.id,))
-            if temp is None: # Haven't played any matches
+            try:
+                did_u_play_yet = temp[0][0]
+            except Exception:
                 await ctx.respond('You must play at least 1 match to use `/stats`')
                 return
             for i in range(len(temp)):
