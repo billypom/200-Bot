@@ -886,33 +886,58 @@ async def stats(
     tier: discord.Option(discord.TextChannel, description='Choose a channel', required=False)
     ):
     await ctx.defer()
+    mmr_history = [] #
+    score_history = [] #
+    last_10_wins = 0 #
+    last_10_losses = 0 #
+    last_10_change = 0 #
+    average_score = 0
+    partner_average = 0
+    top_score = 0 #
+    events_played = 0 #
+    largest_gain = 0 #
+    largest_loss = 0 #
+    rank = 0
+    # Create matplotlib MMR history graph
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT base_mmr, peak_mmr, penalty_mmr, mmr, player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
+        if temp[0][0] is None:
+            base = 0
+        else:
+            base = temp[0][0]
+        peak = temp[0][1]
+        penalty = temp[0][2]
+        mmr = temp[0][3]
+        player_name = temp[0][4]
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT COUNT(*) FROM player WHERE mmr >= %s ORDER BY mmr DESC;', (mmr,))
+        rank = temp[0][0]
+
     if tier.id in TIER_ID_LIST:
-        print('yay')
-        await ctx.respond('yay!')
-    else:
-
-        # Create matplotlib MMR history graph
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT base_mmr, peak_mmr, penalty_mmr, mmr FROM player WHERE player_id = %s;', (ctx.author.id,))
-            if temp[0][0] is None:
-                base = 0
-            else:
-                base = temp[0][0]
-            peak = temp[0][1]
-            penalty = temp[0][2]
-            mmr = temp[0][3]
-
-        mmr_history = [] #
-        score_history = [] #
-        last_10_wins = 0 #
-        last_10_losses = 0 #
-        last_10_change = 0 #
-        average_score = 0
-        partner_average = 0
-        top_score = 0 #
-        events_played = 0 #
-        largest_gain = 0 #
-        largest_loss = 0 #
+            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s AND mogi_is = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
+            for i in range(len(temp)):
+                mmr_history.append(temp[i][0])
+                score_history.append(temp[i][1])
+                if i <= 9:
+                    last_10_change += score_history[i]
+                    if score_history[i] > 0:
+                        last_10_wins += 1
+                    else:
+                        last_10_losses += 1
+        file = plotting.create_plot(base, mmr_history)
+        f=discord.File(fp=file, filename='stats.png')
+        events_played = len(mmr_history)
+        top_score = max(score_history)
+        largest_gain = max(mmr_history)
+        largest_loss = min(mmr_history)
+        average_score = sum(score_history)/len(score_history)
+        temp_for_average_mmr = base
+        for match in mmr_history:
+            temp_for_average_mmr += match
+            running_sum +=temp_for_average_mmr
+        average_mmr = running_sum/len(mmr_history)
+    else:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date ASC;', (ctx.author.id,))
             for i in range(len(temp)):
@@ -938,10 +963,40 @@ async def stats(
 
 
 
-
-
-        await ctx.respond(file=f)
-        return
+    # mmr_history = [] #
+    # score_history = [] #
+    # last_10_wins = 0 #
+    # last_10_losses = 0 #
+    # last_10_change = 0 #
+    # average_score = 0
+    # partner_average = 0
+    # top_score = 0 #
+    # events_played = 0 #
+    # largest_gain = 0 #
+    # largest_loss = 0 #
+    # peak = temp[0][1]
+    # penalty = temp[0][2]
+    # mmr = temp[0][3]
+    # player_name = temp[0][4]
+    channel = client.get_channel(ctx.author.id)
+    embed = discord.Embed(title='Stats', description=f'{player_name}', color = discord.Color.blurple()) # website link
+    embed.add_field(name='Rank', value=f'{rank}', inline=False)
+    embed.add_field(name='MMR', value=f'{mmr}', inline=True)
+    embed.add_field(name='Peak MMR', value=f'{peak}', inline=True)
+    embed.add_field(name='Win Rate', value=f'{}', inline=False)
+    embed.add_field(name='W-L (Last 10)', value=f'{last_10_wins} - {last_10_losses}', inline=True)
+    embed.add_field(name='+/- (Last 10)', value=f'{last_10_change}', inline=True)
+    embed.add_field(name='Avg. Score', value=f'{average_score}', inline=False)
+    embed.add_field(name='Top Score', value=f'{top_score}', inline=True) # website link
+    embed.add_field(name='Partner Avg.', value=f'{partner_average}', inline=True)
+    embed.add_field(name='Events Played', value=f'{events_played}', inline=False)
+    embed.add_field(name='Largest Gain', value=f'{largest_gain}', inline=True)
+    embed.add_field(name='Largest Loss', value=f'{largest_loss}', inline=True)
+    embed.add_field(name='Average MMR', value=f'{average_mmr}', inline=False)
+    embed.add_field(name='Base MMR', value=f'{base}', inline=True)
+    embed.add_field(name=' : ', value=ctx.author.id, inline=False)
+    await ctx.respond(file=f, embed=embed)
+    return
 
 
 
