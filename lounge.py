@@ -126,8 +126,7 @@ def inactivity_check():
             temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id, wait_for_activity FROM lineups WHERE can_drop = %s;', (1,))
             for i in range(len(temp)):
                 unix_difference = unix_now - temp[i][1]
-                # if (unix_difference) < 720 and (unix_difference) > 600:
-                if (unix_difference) < 60 and (unix_difference) > 1:
+                if (unix_difference) < 720 and (unix_difference) > 600:
                     channel = client.get_channel(temp[i][2])
                     if temp[0][3] == 0:
                         message = f'<@{temp[i][0]}> Type anything in the chat in the next 2 minutes to keep your spot in the mogi.'
@@ -135,12 +134,12 @@ def inactivity_check():
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0]))
                     continue
-                elif unix_difference > 60:
+                elif unix_difference > 720:
                     with DBA.DBAccess() as db:
                         db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
                     channel = client.get_channel(temp[i][2])
                     message = f'<@{temp[i][0]}> has been removed from the mogi due to inactivity'
-                    asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=120), client.loop)
+                    asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=30), client.loop)
                     continue
                     # remove player from lineup
                 else:
