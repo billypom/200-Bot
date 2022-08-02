@@ -953,7 +953,6 @@ async def stats(
     else:
         await ctx.respond('``Error 30:`` What the crap')
         return
-    print(score_history)
     events_played = len(mmr_history)
     top_score = max(score_history)
     try:
@@ -983,7 +982,7 @@ async def stats(
         title=f'{tier.name} stats' 
 
     channel = client.get_channel(ctx.channel.id)
-    embed = discord.Embed(title='stats', description=f'{player_name}', color = discord.Color.blurple()) # website link
+    embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.blurple()) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
     embed.add_field(name='Peak MMR', value=f'{peak}', inline=True)
