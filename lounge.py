@@ -953,12 +953,20 @@ async def stats(
     else:
         await ctx.respond('``Error 30:`` What the crap')
         return
+
     events_played = len(mmr_history)
-    top_score = max(score_history)
+    try:
+        top_score = max(score_history)
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
+        await ctx.respond(f'You have not played in {tier.mention}')
+        return
+
     try:
         largest_gain = max(mmr_history)
     except Exception:
         largest_gain = 0
+
     largest_loss = min(mmr_history)
     average_score = sum(score_history)/len(score_history)
     temp_for_average_mmr = base
