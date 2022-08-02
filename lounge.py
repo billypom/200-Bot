@@ -986,7 +986,7 @@ async def stats(
     embed.add_field(name='Average MMR', value=f'{round(average_mmr,-1)}', inline=False)
     embed.add_field(name='Base MMR', value=f'{base}', inline=False)
     embed.set_image(url='attachment://stats.png')
-    await channel.send(file=f embed=embed)
+    await channel.send(file=f, embed=embed)
     await ctx.respond(':coin:')
     return
 
