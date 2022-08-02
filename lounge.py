@@ -441,6 +441,18 @@ async def sub(
     subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
     ):
     await ctx.defer()
+    a = await check_if_uid_exists(leaving_player.id)
+    if a:
+        pass
+    else:
+        await ctx.respond('Use `/verify <mkc link>` to register for Lounge')
+        return
+    b = await check_if_uid_exists(subbing_player.id)
+    if b:
+        pass
+    else:
+        await ctx.respond(f'{subbing_player.name} is not registered for Lounge')
+        return
     x = await check_if_mogi_is_ongoing(ctx)
     if x:
         pass
@@ -1365,6 +1377,17 @@ async def check_if_player_exists(ctx):
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM player WHERE player_id = %s;', (ctx.author.id, ))
             if temp[0][0] == ctx.author.id:
+                return True
+            else:
+                return False
+    except Exception as e:
+        return False
+
+async def check_if_uid_exists(uid):
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id FROM player WHERE player_id = %s;', (uid, ))
+            if temp[0][0] == uid:
                 return True
             else:
                 return False
