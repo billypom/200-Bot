@@ -1727,9 +1727,9 @@ async def new_rank_wrapper(input, mmr):
         elif mmr >= 11000:
             return await grandmaster_wrapper(input)
         else:
-            return 'placement'
+            return input
     else:
-        return ''
+        return input
 
 async def grandmaster_wrapper(input):
     # return (f'[0;2m[0;40m[0;31m{input}[0m[0;40m[0m[0m')
