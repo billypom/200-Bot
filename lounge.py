@@ -205,7 +205,7 @@ async def on_message(ctx):
                 else:
                     if ctx.author.id == temp[0][0]: # Correct player (idk would a select ever mess up?)
                         with DBA.DBAccess() as db:
-                            db.execute('UPDATE lineups SET last_active = %s WHERE player_id = %s;', (datetime.datetime.now(), ctx.author.id))
+                            db.execute('UPDATE lineups SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
         except Exception:
             pass
         # Set votes, if tier is currently voting
