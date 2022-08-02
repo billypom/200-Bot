@@ -353,7 +353,6 @@ async def verify(
             await send_to_verification_log(ctx, message, verify_color, verify_description)
             return
 
-
 @client.slash_command(
     name='c',
     description='🙋 Can up for a mogi',
@@ -469,7 +468,6 @@ async def l(
     await ctx.respond(response, delete_after=30)
     return
 
-
 @client.slash_command(
     name='sub',
     description='Sub out a player',
@@ -523,8 +521,6 @@ async def sub(
     await send_to_sub_log(ctx, f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}>')
     return
 
-
-
 # /setfc
 @client.slash_command(
     name='fc',
@@ -557,12 +553,10 @@ async def setfc(
         confirmation_msg = await update_friend_code(ctx, fc)
         await ctx.respond(confirmation_msg)
 
-
-
 @client.slash_command(
     name='table',
     description='Submit a table',
-    guilds_ids=Lounge
+    guild_ids=Lounge
 )
 async def table(
     ctx,
@@ -939,12 +933,11 @@ async def table(
     else:
         await ctx.respond('`Table Denied.`', delete_after=300)
 
-
 # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
 @client.slash_command(
     name='stats',
     description='Player statistics',
-    guilds_ids=Lounge
+    guild_ids=Lounge
 )
 async def stats(
     ctx,
@@ -1080,8 +1073,26 @@ async def stats(
     await ctx.respond(':coin:', delete_after=1)
     return
 
-
-
+@client.slash_command(
+    name='twitch',
+    description='Link your Twitch stream',
+    guild_ids=Lounge
+)
+async def twitch(
+    ctx,
+    username: discord.Option(str, 'Your twitch username - your mogi streams will appear in the media channel', required=True)
+    ):
+    await ctx.defer(ephemeral=True)
+    x = check_if_player_exists(ctx)
+    if x:
+        pass
+    else:
+        await ctx.respond('Use `/verify` to register with Lounge')
+        return
+    y = check_if_banned_characters(username):
+    if y:
+        await send_to_verification_log(ctx, username)
+        await ctx.respond('Invalid Twitch Username')
 
 
 
