@@ -1021,7 +1021,7 @@ async def stats(
     embed.add_field(name='Largest Loss', value=f'{largest_loss}', inline=True)
     embed.add_field(name='Average MMR', value=f'{round(average_mmr,0)}', inline=False)
     embed.add_field(name='Base MMR', value=f'{base}', inline=True)
-    embed.set_image(url='stats.png')
+    embed.set_image(url=file)
     await ctx.respond(embed=embed)
     return
 
