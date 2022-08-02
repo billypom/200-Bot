@@ -883,7 +883,7 @@ async def table(
 )
 async def stats(
     ctx,
-    tier: discord.Option(discord.TextChannel, description='Choose a channel', required=False)
+    tier: discord.Option(discord.TextChannel(name='tier'), description='Choose a channel', required=False)
     ):
     await ctx.defer()
     mmr_history = [] #
