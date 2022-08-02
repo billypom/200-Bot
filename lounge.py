@@ -848,7 +848,7 @@ async def table(
                         # Update player record
                         db.execute('UPDATE player SET mmr = %s, peak_mmr = %s WHERE player_id = %s;', (int(my_player_new_mmr), int(string_my_player_new_mmr), player[0]))
                         # Remove player from lineups
-                        db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
+                        # db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
                 except Exception as e:
                     # print('duplicate player...skipping')
                     pass
@@ -892,13 +892,15 @@ async def table(
 
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
-        correct = subprocess.run(['convert', '-background', 'gray21', 'pango:', '<tt><span foreground="white">{mmr_table_string}</span></tt>', f'{hex(ctx.author.id)}mmr.png'], check=True, text=True)
-
+        pango_string = f'pango:"<tt>{mmr_table_string}</tt>"'
+        mmr_filename = f'{hex(ctx.author.id)}mmr.png'
+        correct = subprocess.run(['convert', '-background', 'gray38', pango_string, mmr_filename], check=True, text=True)
+        f=discord.File(mmr_filename, filename='mmr.png')
 
         # Create embed
         results_channel = client.get_channel(db_results_channel)
-        embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', description=f'```ansi\n{mmr_table_string}```', color = discord.Color.blurple())
-        await results_channel.send(content=None, embed=embed)
+        embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', description=f'mmr', color = discord.Color.blurple())
+        await results_channel.send(content=None, embed=embed, file=f)
 
         # Create MMR Table
         #```ansi
@@ -1700,37 +1702,48 @@ def mt_lounge_request_mkc_user_id(ctx):
 
 
 async def grandmaster_wrapper(input):
-    return (f'[0;2m[0;40m[0;31m{input}[0m[0;40m[0m[0m')
+    # return (f'[0;2m[0;40m[0;31m{input}[0m[0;40m[0m[0m')
+    return (f'<span foreground="DarkRed">{input}</span>')
 
 async def master_wrapper(input):
-    return (f'[2;40m[2;37m{input}[0m[2;40m[0m')
+    # return (f'[2;40m[2;37m{input}[0m[2;40m[0m')
+    return (f'<span foreground="black">{input}</span>')
 
 async def diamond_wrapper(input):
-    return (f'[0;2m[0;34m{input}[0m[0m')
+    # return (f'[0;2m[0;34m{input}[0m[0m')
+    return (f'<span foreground="PowerBlue">{input}</span>')
 
 async def platinum_wrapper(input):
-    return (f'[2;40m[2;36m{input}[0m[2;40m[0m')
+    # return (f'[2;40m[2;36m{input}[0m[2;40m[0m')
+    return (f'<span foreground="teal">{input}</span>')
 
 async def gold_wrapper(input):
-    return (f'[2;40m[2;33m{input}[0m[2;40m[0m')
+    # return (f'[2;40m[2;33m{input}[0m[2;40m[0m')
+    return (f'<span foreground="gold1">{input}</span>')
 
 async def silver_wrapper(input):
-    return (f'[0;2m[0;42m[0;37m{input}[0m[0;42m[0m[0m')
+    # return (f'[0;2m[0;42m[0;37m{input}[0m[0;42m[0m[0m')
+    return (f'<span foreground="LightBlue4">{input}</span>')
 
 async def bronze_wrapper(input):
-    return (f'[0;2m[0;47m[0;33m{input}[0m[0;47m[0m[0m')
+    # return (f'[0;2m[0;47m[0;33m{input}[0m[0;47m[0m[0m')
+    return (f'<span foreground="DarkOrange2">{input}</span>')
 
 async def iron_wrapper(input):
-    return (f'[0;2m[0;30m[0;47m{input}[0m[0;30m[0m[0m')
+    # return (f'[0;2m[0;30m[0;47m{input}[0m[0;30m[0m[0m')
+    return (f'<span foreground="DarkGray">{input}</span>')
 
 async def pos_mmr_wrapper(input):
-    return (f'[0;2m[0;32m{input}[0m[0m')
+    # return (f'[0;2m[0;32m{input}[0m[0m')
+    return (f'<span foreground="chartreuse">{input}</span>')
 
 async def neg_mmr_wrapper(input):
-    return (f'[0;2m[0;31m{input}[0m[0m')
+    # return (f'[0;2m[0;31m{input}[0m[0m')
+    return (f'<span foreground="Red2">{input}</span>')
 
 async def peak_mmr_wrapper(input):
-    return (f'[0;2m[0;41m[0;37m{input}[0m[0;41m[0m[0m')
+    # return (f'[0;2m[0;41m[0;37m{input}[0m[0;41m[0m[0m')
+    return (f'<span foreground="Yellow1">{input}</span>')
 
 async def bold_wrapper(input):
     return (f'[0;2m[1;2m{input}[0m[0m')
