@@ -883,7 +883,7 @@ async def table(
 )
 async def stats(
     ctx,
-    tier: discord.Option(discord.TextChannel(name='tier'), description='Choose a channel', required=False)
+    tier: discord.Option(discord.TextChannel(), name='tier', description='Choose a channel', required=False)
     ):
     await ctx.defer()
     mmr_history = [] #
@@ -973,8 +973,13 @@ async def stats(
     file = plotting.create_plot(base, mmr_history)
     f=discord.File(file, filename='stats.png')
 
+    if tier is None:
+        title='Stats'
+    else:
+        title=f'{tier.name} stats' 
+
     channel = client.get_channel(ctx.channel.id)
-    embed = discord.Embed(title='Stats', description=f'{player_name}', color = discord.Color.blurple()) # website link
+    embed = discord.Embed(title='stats', description=f'{player_name}', color = discord.Color.blurple()) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
     embed.add_field(name='Peak MMR', value=f'{peak}', inline=True)
