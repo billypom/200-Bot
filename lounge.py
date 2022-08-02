@@ -142,8 +142,9 @@ def inactivity_check():
                 else:
                     continue
     except Exception as e:
-        message = e
-        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('inactivity check error',message), client.loop)
+        return
+        # message = e
+        # asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('inactivity check error',message), client.loop)
 
 def lounge_threads():
     time.sleep(10)
