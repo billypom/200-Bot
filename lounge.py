@@ -592,8 +592,9 @@ async def table(
     if count < 12:
         await ctx.respond('Mogi has not started. Cannot create a table now')
         return
-        
+
     # Check for role? (reporter? or how do i do that...)
+    # await get_role()
 
     # Check the mogi_format
     if mogi_format == 1:
