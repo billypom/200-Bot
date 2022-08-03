@@ -1068,8 +1068,6 @@ async def stats(
         running_sum +=temp_for_average_mmr
         if match > 0:
             count_of_wins += 1
-        else:
-            count_of_losses += 1
     average_mmr = running_sum/len(mmr_history)
     win_rate = count_of_wins/len(mmr_history)*100
 
