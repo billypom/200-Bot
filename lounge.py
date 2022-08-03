@@ -937,14 +937,14 @@ async def table(
 
         # Create embed
         results_channel = client.get_channel(db_results_channel)
-        embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', color = discord.Color.blurple())
-        embed.add_field(name='Table ID', value=f'{str(db_mogi_id)}', inline=True)
-        embed.add_field(name='Tier', value=f'{tier_name.upper()}', inline=True)
-        embed.add_field(name='Submitted by', value=f'<@{ctx.author.id}>', inline=True)
-        embed.add_field(name='View on website', value=f'https://peng2n.com/lounge/mogi/{db_mogi_id}', inline=False)
-        embed.add_field(name='yup', value='yes the domain will be different. this is just a placeholder...', inline=False)
-        embed.set_image(url='attachment://table.jpg')
-        await results_channel.send(content=None, embed=embed, file=sf)
+        embed2 = discord.Embed(title=f'Tier {tier_name.upper()} Results', color = discord.Color.blurple())
+        embed2.add_field(name='Table ID', value=f'{str(db_mogi_id)}', inline=True)
+        embed2.add_field(name='Tier', value=f'{tier_name.upper()}', inline=True)
+        embed2.add_field(name='Submitted by', value=f'<@{ctx.author.id}>', inline=True)
+        embed2.add_field(name='View on website', value=f'https://peng2n.com/lounge/mogi/{db_mogi_id}', inline=False)
+        embed2.add_field(name='yup', value='yes the domain will be different. this is just a placeholder...', inline=False)
+        embed2.set_image(url='attachment://table.jpg')
+        await results_channel.send(content=None, embed=embed2, file=sf)
 
         embed = discord.Embed(title=f'Tier {tier_name.upper()} MMR', color = discord.Color.blurple())
         embed.add_field(name='Table ID', value=f'{str(db_mogi_id)}', inline=True)
