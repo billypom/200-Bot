@@ -565,19 +565,19 @@ async def setname(
     name: discord.Option(str, 'New name', required=True)
     ):
     await ctx.defer(ephemeral=True)
-    y = check_if_player_exists(ctx)
+    y = await check_if_player_exists(ctx)
     if y:
         pass
     else:
         await ctx.respond('Use `/verify <mkc link>` to register with Lounge')
         return
-    z = check_if_uid_in_tier(ctx.author.id)
+    z = await check_if_uid_in_tier(ctx.author.id)
     if z:
         await ctx.respond('You cannot change your name while playing/waiting for a Mogi.')
         return
     else:
         pass
-    x = check_if_banned_characters(name)
+    x = await check_if_banned_characters(name)
     if x:
         await send_to_verification_log(ctx, name, discord.Color.blurple(), vlog_msg.error1)
         await ctx.respond('You cannot use this name')
