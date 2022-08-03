@@ -929,7 +929,7 @@ async def table(
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
         mmr_filename = f'{hex(ctx.author.id)}mmr.jpg'
         # correct = subprocess.run(['convert', '-background', 'gray21', '-fill', 'white', pango_string, mmr_filename], check=True, text=True)
-        correct = subprocess.run(['convert', '-background', 'None', '-fill', 'white', pango_string, '-fill', '#00000050', '-draw', 'rectangle 50,50 590,336', 'mkbg.png', '+swap', '-compose', 'Over', '-composite', '-quality', '75', mmr_filename], check=True, text=True)
+        correct = subprocess.run(['convert', '-background', 'None', '-fill', 'white', pango_string, '-fill', '#00000050', '-draw', 'rectangle 20,20 620,356', 'mkbg.png', '+swap', '-compose', 'Over', '-composite', '-quality', '75', mmr_filename], check=True, text=True)
         f=discord.File(mmr_filename, filename='mmr.jpg')
 
         # Create embed
