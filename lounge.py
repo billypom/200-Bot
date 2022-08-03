@@ -1583,7 +1583,7 @@ async def send_raw_to_debug_channel(anything, error):
 async def send_to_sub_log(ctx, message):
     unix_now = await get_unix_time_now()
     channel = client.get_channel(secretly.sub_channel)
-    embed = discord.Embed(title='Sub', description=f'<t:{str(round(unix_now,-1))}:F>', color = discord.Color.blurple())
+    embed = discord.Embed(title='Sub', description=f'<t:{str(int(unix_now))}:F>', color = discord.Color.blurple())
     embed.add_field(name='Name: ', value=ctx.author, inline=False)
     embed.add_field(name='Message: ', value=str(message), inline=False)
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
