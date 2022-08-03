@@ -1050,7 +1050,6 @@ async def stats(
     try:
         top_score = max(score_history)
     except Exception as e:
-        await send_to_debug_channel(ctx, e)
         await ctx.respond(f'You have not played in {tier.mention}')
         return
 
