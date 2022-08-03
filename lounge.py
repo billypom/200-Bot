@@ -1628,7 +1628,7 @@ async def send_to_sub_log(ctx, message):
 async def send_to_name_change_log(ctx, message):
     channel = client.get_channel(secretly.name_change_channel)
     embed = discord.Embed(title='Name Change Request', description=f'/', color = discord.Color.blurple())
-    embed.add_field(name='Current Name: ', value=ctx.author, inline=False)
+    embed.add_field(name='Current Name: ', value=ctx.author.display_name, inline=False)
     embed.add_field(name='New Name: ', value=str(message), inline=False)
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
     embed.set_thumbnail(url=ctx.author.avatar.url)
