@@ -916,7 +916,7 @@ async def table(
                         # guild.get_member(discord_id)
                         # member.add_roles(discord.Role)
                         # member.remove_roles(discord.Role)
-                string_my_player_new_rank = f'{str(my_player_new_rank).center(13)}'
+                string_my_player_new_rank = f'{str(my_player_new_rank).center(12)}'
                 formatted_my_player_new_rank = await new_rank_wrapper(string_my_player_new_rank, my_player_new_mmr)
                 mmr_table_string += f'{formatted_my_player_new_rank}'
                 my_player_place = ''
