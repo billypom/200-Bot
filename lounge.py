@@ -611,7 +611,7 @@ async def setname(
                     await ctx.respond(f'Request denied. You can change your name again on <t:{str(int(last_change) + int(NAME_CHANGE_DELTA_LIMIT))}:F>')
                     return
         except Exception as e:
-            await send_to_debug_channel(ctx, e)
+            await send_to_debug_channel(ctx, f'First name change request from <@{ctx.author.id}>. Still logging this error 34 in case...\n{e}')
             await ctx.respond(f'``Error 34:`` Oops! Something went wrong. Please try again or contact {secretly.my_discord}')
             return
         try:
