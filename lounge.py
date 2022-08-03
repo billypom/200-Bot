@@ -1099,7 +1099,7 @@ async def twitch(
     else:
         await ctx.respond('Use `/verify` to register with Lounge')
         return
-    y = check_if_banned_characters(username):
+    y = await check_if_banned_characters(username)
     if y:
         await send_to_verification_log(ctx, username)
         await ctx.respond('Invalid Twitch Username')
