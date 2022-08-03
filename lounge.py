@@ -574,12 +574,12 @@ async def table(
     # Create list
     score_string = str(scores)
     score_list = score_string.split()
-    print(score_list)
+    # print(score_list)
     for i in range(0, len(score_list), 2):
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (score_list[i],))
             score_list[i] = temp[0][0]
-    print(score_list)
+    # print(score_list)
 
     # remove_chars = {
     #     60:None, #<
@@ -922,9 +922,9 @@ async def table(
                 my_player_place = ''
 
         # Create imagemagick image
-        print('_______')
-        print(mmr_table_string)
-        print('_______')
+        # print('_______')
+        # print(mmr_table_string)
+        # print('_______')
         # https://imagemagick.org/script/color.php
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
         mmr_filename = f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}mmr.jpg'
