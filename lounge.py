@@ -35,12 +35,14 @@ client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge'))
 # manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
 # send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
 
+# Initialize the TIER_ID_LIST
 with DBA.DBAccess() as db:
     get_tier_list = db.query('SELECT tier_id FROM tier WHERE tier_id > %s;', (0,))
     for i in range(len(get_tier_list)):
         TIER_ID_LIST.append(get_tier_list[i][0])
     # print(TIER_ID_LIST)
 
+# Discord UI button - Confirmation button
 class Confirm(View):
     def __init__(self, uid):
         super().__init__()
@@ -230,8 +232,6 @@ async def on_message(ctx):
 
 
 
-# Can up - keep track of who is in lineup
-
 # /verify <link>
 @client.slash_command(
     name='verify',
@@ -353,6 +353,7 @@ async def verify(
             await send_to_verification_log(ctx, message, verify_color, verify_description)
             return
 
+# /c
 @client.slash_command(
     name='c',
     description='🙋 Can up for a mogi',
@@ -403,6 +404,7 @@ async def c(
         # start the mogi, vote on format, create teams
     return
 
+# /d
 @client.slash_command(
     name='d',
     description='Drop from the mogi',
@@ -444,9 +446,10 @@ async def d(
         await ctx.respond('You are not in a mogi')
         return
 
+# /l
 @client.slash_command(
     name='l',
-    description='Show the mogi lineup',
+    description='Show the mogi list',
     guild_ids=Lounge
 )
 # @commands.command(aliases=['list'])
@@ -569,24 +572,22 @@ async def table(
         await send_to_verification_log(ctx, scores, discord.Color.blurple(), vlog_msg.error1)
         return f'``Error 32:`` Invalid input. There must be 12 players and 12 scores.'
 
-    
-    # Replace playernames with playerids
-    # Create list
-    score_string = str(scores)
-    score_list = score_string.split()
-    # print(score_list)
-    for i in range(0, len(score_list), 2):
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (score_list[i],))
-            score_list[i] = temp[0][0]
-    # print(score_list)
-
     # remove_chars = {
     #     60:None, #<
     #     62:None, #>
     #     33:None, #!
     #     64:None, #@
     # }
+    
+    # Replace playernames with playerids
+    # Create list
+    score_string = str(scores) #.translate(remove_chars)
+    score_list = score_string.split()
+    for i in range(0, len(score_list), 2):
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (score_list[i],))
+            score_list[i] = temp[0][0]
+
     # Check for if mogi has started
     try:
         with DBA.DBAccess() as db:
