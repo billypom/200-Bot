@@ -729,7 +729,7 @@ async def table(
     if table_view.value is None:
         await ctx.respond('No response from reporter. Timed out')
     elif table_view.value: # yes
-
+        db_mogi_id = 0
         # Create mogi
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO mogi (mogi_format, tier_id) values (%s, %s);', (mogi_format, ctx.channel.id))
@@ -929,12 +929,15 @@ async def table(
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
         mmr_filename = f'{hex(ctx.author.id)}mmr.jpg'
         # correct = subprocess.run(['convert', '-background', 'gray21', '-fill', 'white', pango_string, mmr_filename], check=True, text=True)
-        correct = subprocess.run(['convert', '-background', 'None', '-fill', '#00000050', '-draw', 'rectangle 5,5 565,363', '-fill', 'white', pango_string, 'mkbg.png', '+swap', '-compose', 'Over', '-composite', '-quality', '100', mmr_filename], check=True, text=True)
+        correct = subprocess.run(['convert', '-background', 'None', '-fill', '#00000050', '-draw', 'rectangle 0,0 570,368', '-fill', 'white', pango_string, 'mkbg.png', '+swap', '-compose', 'Over', '-composite', '-quality', '100', mmr_filename], check=True, text=True)
         f=discord.File(mmr_filename, filename='mmr.jpg')
 
         # Create embed
         results_channel = client.get_channel(db_results_channel)
         embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', description=f'mmr', color = discord.Color.blurple())
+        embed.add_field(name='Table ID', value=f'{str(db_mogi_id)}', inline=True)
+        embed.add_field(name='Tier', value=f'{tier_name.upper()}', inline=True)
+        embed.add_field(name='Submitted by', value=f'<@{ctx.author.id}>', inline=True)
         embed.set_image(url='attachment://mmr.jpg')
         await results_channel.send(content=None, embed=embed, file=f)
         #  discord ansi coloring (doesn't work on mobile)
