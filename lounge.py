@@ -520,8 +520,9 @@ async def sub(
         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
         await send_to_debug_channel(ctx, e)
         return
+    unix_now = await get_unix_time_now()
     await ctx.respond(f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}>')
-    await send_to_sub_log(ctx, f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}>')
+    await send_to_sub_log(ctx, f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}> in {ctx.channel.mention} @ <t:{unix_now}:F>')
     return
 
 # /setfc
@@ -1496,7 +1497,8 @@ async def check_if_banned_characters(message):
     return False
 
 
-
+async def get_unix_time_now():
+    return time.mktime(datetime.datetime.now().timetuple())
 # Takes in ctx, returns avg partner score
 async def get_partner_avg(uid, *mogi_format):
     try:
