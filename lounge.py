@@ -929,7 +929,7 @@ async def table(
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
         mmr_filename = f'{hex(ctx.author.id)}mmr.jpg'
         # correct = subprocess.run(['convert', '-background', 'gray21', '-fill', 'white', pango_string, mmr_filename], check=True, text=True)
-        correct = subprocess.run(['convert', '-background', 'None', '-fill', '#00000040', '-draw', 'rectangle 0,0 570,368', '-fill', 'white', pango_string, 'mkbg.png', '+swap', '-compose', 'Multiply', '-composite', '-quality', '100', mmr_filename], check=True, text=True)
+        correct = subprocess.run(['convert', '-background', 'None', '-fill', 'white', pango_string, 'mkbg.png', '+swap', '-compose', 'Over', '-composite', '-quality', '100', mmr_filename], check=True, text=True)
         f=discord.File(mmr_filename, filename='mmr.jpg')
         sf=discord.File(f'{hex(ctx.author.id)}table.png', filename='table.jpg')
 
