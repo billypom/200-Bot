@@ -612,8 +612,6 @@ async def setname(
                     return
         except Exception as e:
             await send_to_debug_channel(ctx, f'First name change request from <@{ctx.author.id}>. Still logging this error 34 in case...\n{e}')
-            await ctx.respond(f'``Error 34:`` Oops! Something went wrong. Please try again or contact {secretly.my_discord}')
-            return
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player_name_request (player_id, requested_name) VALUES (%s, %s);', (ctx.author.id, name))
