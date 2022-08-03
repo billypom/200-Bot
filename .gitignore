@@ -2,7 +2,8 @@ secrets.py
 secretly.py
 vlog_msg.py
 init.sql
-/image_magick_test
+/magick_test
+/images
 magicktest.py
 url_encode.py
 /__pycache__
