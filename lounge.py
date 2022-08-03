@@ -935,7 +935,7 @@ async def table(
 
         # Create embed
         results_channel = client.get_channel(db_results_channel)
-        embed = discord.Embed(title=f'Tier {tier_name.upper()} MMR', color = discord.Color.blurple())
+        embed = discord.Embed(title=f'Tier {tier_name.upper()} Results', color = discord.Color.blurple())
         embed.add_field(name='Table ID', value=f'{str(db_mogi_id)}', inline=True)
         embed.add_field(name='Tier', value=f'{tier_name.upper()}', inline=True)
         embed.add_field(name='Submitted by', value=f'<@{ctx.author.id}>', inline=True)
