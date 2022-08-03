@@ -838,7 +838,7 @@ async def table(
                 my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
 
                 # Start creating string for MMR table
-                mmr_table_string += f'{str(my_player_place).center(3)}|'
+                mmr_table_string += f'{str(my_player_place).center(2)}|'
                 mmr_table_string +=f'{my_player_name.center(18)}|'
                 mmr_table_string += f'{str(my_player_mmr).center(7)}|'
 
@@ -916,7 +916,7 @@ async def table(
                         # guild.get_member(discord_id)
                         # member.add_roles(discord.Role)
                         # member.remove_roles(discord.Role)
-                string_my_player_new_rank = f'{str(my_player_new_rank).center(15)}'
+                string_my_player_new_rank = f'{str(my_player_new_rank).center(13)}'
                 formatted_my_player_new_rank = await new_rank_wrapper(string_my_player_new_rank, my_player_new_mmr)
                 mmr_table_string += f'{formatted_my_player_new_rank}'
                 my_player_place = ''
