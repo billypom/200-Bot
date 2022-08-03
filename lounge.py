@@ -716,14 +716,14 @@ async def table(
     query_string = urllib.parse.quote(lorenzi_query)
     url = f'https://gb.hlorenzi.com/table.png?data={query_string}'
     response = requests.get(url, stream=True)
-    with open(f'/images/{hex(ctx.author.id)}table.png', 'wb') as out_file:
+    with open(f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}table.png', 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     del response
 
     # Ask for table confirmation
     table_view = Confirm(ctx.author.id)
     channel = client.get_channel(ctx.channel.id)
-    await channel.send(file=discord.File(f'/images/{hex(ctx.author.id)}table.png'), delete_after=300)
+    await channel.send(file=discord.File(f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}table.png'), delete_after=300)
     await channel.send('Is this table correct? :thinking:', view=table_view, delete_after=300)
     await table_view.wait()
     if table_view.value is None:
@@ -927,13 +927,13 @@ async def table(
         print('_______')
         # https://imagemagick.org/script/color.php
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
-        mmr_filename = f'/images/{hex(ctx.author.id)}mmr.jpg'
+        mmr_filename = f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}mmr.jpg'
         # correct = subprocess.run(['convert', '-background', 'gray21', '-fill', 'white', pango_string, mmr_filename], check=True, text=True)
         correct = subprocess.run(['convert', '-background', 'None', '-fill', 'white', pango_string, 'mkbg.png', '-compose', 'DstOver', '-layers', 'flatten', mmr_filename], check=True, text=True)
         # '+swap', '-compose', 'Over', '-composite', '-quality', '100',
         # '-fill', '#00000040', '-draw', 'rectangle 0,0 570,368',
         f=discord.File(mmr_filename, filename='mmr.jpg')
-        sf=discord.File(f'/images/{hex(ctx.author.id)}table.png', filename='table.jpg')
+        sf=discord.File(f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}table.png', filename='table.jpg')
 
         # Create embed
         results_channel = client.get_channel(db_results_channel)
