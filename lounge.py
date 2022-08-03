@@ -593,9 +593,7 @@ async def setname(
             else:
                 is_name_taken = True
     except Exception as e:
-        await send_to_debug_channel(ctx, name)
-        await ctx.respond(f'``Error 33:`` Oops! Something went wrong. Please try again or contact {secretly.my_discord}')
-        return
+        is_name_taken = False
     if is_name_taken:
         await ctx.respond('Name is taken. Please try again.')
         return
