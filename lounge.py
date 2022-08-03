@@ -561,19 +561,32 @@ async def setfc(
 async def table(
     ctx,
     mogi_format: discord.Option(int, '1=FFA, 2=2v2, 3=3v3, 4=4v4, 6=6v6', required=True),
-    scores: discord.Option(str, '@player scores (i.e. @popuko 12 @Brandon 100 @Maxarx 180...)', required=True)
+    scores: discord.Option(str, '@player scores (i.e. popuko 12 JPGiviner 42 Technical 180...)', required=True)
     ):
     await ctx.defer()
-    naughty = await check_if_banned_characters(scores)
+    naughty = await check_if_banned_characters(str(scores))
     if naughty:
         await send_to_verification_log(ctx, scores, discord.Color.blurple(), vlog_msg.error1)
         return f'``Error 32:`` Invalid input. There must be 12 players and 12 scores.'
-    remove_chars = {
-        60:None, #<
-        62:None, #>
-        33:None, #!
-        64:None, #@
-    }
+
+    
+    # Replace playernames with playerids
+    # Create list
+    score_string = str(scores)
+    score_list = score_string.split()
+    print(score_list)
+    for i in range(0, len(score_list), 2):
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (score_list[i],))
+            score_list[i] = temp[0][0]
+    print(score_list)
+
+    # remove_chars = {
+    #     60:None, #<
+    #     62:None, #>
+    #     33:None, #!
+    #     64:None, #@
+    # }
     # Check for if mogi has started
     try:
         with DBA.DBAccess() as db:
@@ -604,10 +617,6 @@ async def table(
     else:
         await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, 4, or 6.')
         return
-
-    # Check for score = 984
-    score_string = str(scores).translate(remove_chars)
-    score_list = score_string.split()
 
     # Check for 12 players
     if len(score_list) == 24:
@@ -658,6 +667,7 @@ async def table(
         team.append(team_score)
         team.append(team_mmr)
         mogi_score += team_score
+    # Check for 984 score
     if mogi_score == 984:
         pass
     else:
