@@ -25,11 +25,10 @@ Lounge = [461383953937596416]
 lounge_id = 999835318104625252
 ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
-symbol_up = '▴'
-symbol_down = '▾' 
 TIER_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
+NAME_CHANGE_DELTA_LIMIT = 5184000
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 # manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
@@ -57,7 +56,7 @@ class Confirm(View):
         # Only accept input from user who initiated the interaction
         if self.uid != interaction.user.id:
             return
-        await interaction.response.send_message("Calculating MMR...", ephemeral=True)
+        await interaction.response.send_message("Confirming...", ephemeral=True)
         self.value = True
         self.stop()
 
@@ -67,10 +66,9 @@ class Confirm(View):
         # Only accept input from user who initiated the interaction
         if self.uid != interaction.user.id:
             return
-        await interaction.response.send_message("Deleting...", ephemeral=True)
+        await interaction.response.send_message("Denying...", ephemeral=True)
         self.value = False
         self.stop()
-
 
 
 
@@ -556,6 +554,79 @@ async def setfc(
             return '``Error 25:`` Player does not exist. Use `/verify <mkc link>` to register with the Lounge.'
         confirmation_msg = await update_friend_code(ctx, fc)
         await ctx.respond(confirmation_msg)
+
+@client.slash_command(
+    name='setname',
+    description='Change your name',
+    guild_ids=Lounge
+)
+async def setname(
+    ctx,
+    name: discord.Option(str, 'New name', required=True)
+    ):
+    await ctx.defer(ephemeral=True)
+    y = check_if_player_exists(ctx)
+    if y:
+        pass
+    else:
+        await ctx.respond('Use `/verify <mkc link>` to register with Lounge')
+        return
+    z = check_if_uid_in_tier(ctx.author.id)
+    if z:
+        await ctx.respond('You cannot change your name while playing/waiting for a Mogi.')
+        return
+    else:
+        pass
+    x = check_if_banned_characters(name)
+    if x:
+        await send_to_verification_log(ctx, name, discord.Color.blurple(), vlog_msg.error1)
+        await ctx.respond('You cannot use this name')
+        return
+    else:
+        pass
+    is_name_taken = True
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (name,))
+            if temp[0][0] is None:
+                is_name_taken = False
+            else:
+                is_name_taken = True
+    except Exception as e:
+        await send_to_debug_channel(ctx, name)
+        await ctx.respond(f'``Error 33:`` Oops! Something went wrong. Please try again or contact {secretly.my_discord}')
+        return
+    if is_name_taken:
+        await ctx.respond('Name is taken. Please try again.')
+        return
+    else:
+        try:
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM player_name_request WHERE player_id = %s;', (ctx.author.id,))
+                last_change = temp[0][0]
+                unix_now = await get_unix_time_now()
+                difference = unix_now - last_change
+                # 2 months for every name change
+                if difference > NAME_CHANGE_DELTA_LIMIT:
+                    pass
+                else:
+                    await ctx.respond(f'Request denied. You can change your name again on <t:{str(int(last_change) + int(NAME_CHANGE_DELTA_LIMIT))}:F>')
+                    return
+        except Exception as e:
+            await send_to_debug_channel(ctx, e)
+            await ctx.respond(f'``Error 34:`` Oops! Something went wrong. Please try again or contact {secretly.my_discord}')
+            return
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('INSERT INTO player_name_request (player_id, requested_name) VALUES (%s, %s);', (ctx.author.id, name))
+            await send_to_name_change_log(ctx, name)
+            await ctx.respond('Your name change request was submitted to the staff team for review.')
+            return
+        except Exception as e:
+            await send_to_debug_channel(ctx, e)
+            await ctx.respond(f'``Error 35:`` Oops! Something went wrong. Please try again or contact {secretly.my_discord}')
+            return
+
 
 @client.slash_command(
     name='table',
@@ -1422,7 +1493,6 @@ async def create_teams(ctx, poll_results):
     response_string+=f'\n\n{host_string}'
     return response_string
 
-
 async def check_if_mogi_is_ongoing(ctx):
     try:
         with DBA.DBAccess() as db:
@@ -1496,9 +1566,9 @@ async def check_if_banned_characters(message):
             return True
     return False
 
-
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
+
 # Takes in ctx, returns avg partner score
 async def get_partner_avg(uid, *mogi_format):
     try:
@@ -1508,35 +1578,6 @@ async def get_partner_avg(uid, *mogi_format):
     except Exception as e:
         await send_raw_to_debug_channel(e)
     return 0
-
-
-
-
-    # list_of_mogis = list()
-    # try:
-    #     with DBA.DBAccess() as db:
-    #         mogis = db.query("SELECT mogi_id, place FROM player_mogi WHERE player_id = %s;", (uid,))
-    #         for mogi in mogis:
-    #             list_of_mogis.append([mogi[0], mogi[1]])
-    # except Exception as e:
-    #     await send_to_debug_channel(ctx, e)
-    #     return -1
-
-    # if mogi_format is None: # get all partner avg
-    #     try:
-    #         with DBA.DBAccess() as db:
-    #             temp = db.query('SELECT ')
-    #     except Exception as e:
-    #         await send_to_debug_channel(ctx, e)
-    #         return -1
-    # else: # get all partner avg from specific format
-    #     try:
-    #         with DBA.DBAccess() as db:
-    #             pass
-    #     except Exception as e:
-    #         await send_to_debug_channel(ctx, e)
-    #         return -1
-    # return temp[0][0]
 
 # Takes in ctx, returns mmr
 async def get_player_mmr(ctx):
@@ -1553,7 +1594,6 @@ async def cancel_mogi(ctx):
     with DBA.DBAccess() as db:
         db.execute('DELETE FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     return
-
 
 # Somebody did a bad
 # ctx | message | discord.Color.red() | my custom message
@@ -1588,6 +1628,16 @@ async def send_to_sub_log(ctx, message):
     embed.add_field(name='Message: ', value=str(message), inline=False)
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
     await channel.send(content=None, embed=embed)
+
+async def send_to_name_change_log(ctx, message):
+    channel = client.get_channel(secretly.name_change_channel)
+    embed = discord.Embed(title='Name Change Request', description=f'/', color = discord.Color.blurple())
+    embed.add_field(name='Current Name: ', value=ctx.author, inline=False)
+    embed.add_field(name='New Name: ', value=str(message), inline=False)
+    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
+    embed.set_thumbnail(url=ctx.avatar.url)
+    await channel.send(content=None, embed=embed)
+
 
 async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
     channel = client.get_channel(secretly.ip_match_channel)
