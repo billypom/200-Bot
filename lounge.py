@@ -163,7 +163,42 @@ poll_thread.start()
 
 
 
+@client.event
+async def on_raw_reaction_add(payload):
+    if int(payload.user_id) == int(secretly.bot_id):
+        # Return if bot reaction
+        return
 
+    # Stuff relating to the current embed
+    guild = client.get_guild(payload.guild_id)
+    member = guild.get_member(payload.user_id)
+    channel = client.get_channel(payload.channel_id)
+    message = await channel.fetch_message(payload.message_id)
+    try:
+        with DBA.DBAccess() as db:
+            message_ids = db.query('SELECT embed_message_id, player_id, requested_name FROM player_name_request WHERE was_accepted = %s;', (0,))
+    except Exception:
+        return
+
+    # Look @ all embed message ids
+    for i in range(0, len(message_ids)):
+        if int(payload.message_id) == int(message_ids[i][0]):
+            # Join
+            if str(payload.emoji) == '✅':
+                with DBA.DBAccess() as db:
+                    # Set record to accepted
+                    db.execute('UPDATE player_name_request SET was_accepted = %s WHERE embed_message_id = %s;', (payload.message_id,))
+                    # Change the username
+                    db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[i][2], message_ids[i][1]))
+                    # Delete the embed message
+                    await client.delete_message(message)
+            if str(paylod.emoji) == '❌'
+                with DBA.DBAccess() as db:
+                    # Remove the db record
+                    db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (payload.message_id,))
+                    # Delete the embed message
+                    await client.delete_message(message)
+    
 
 @client.event
 async def on_application_command_error(ctx, error):
