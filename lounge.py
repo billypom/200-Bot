@@ -29,7 +29,7 @@ TIER_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
 NAME_CHANGE_DELTA_LIMIT = 5184000
-intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True)
+intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 # manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
 # send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
