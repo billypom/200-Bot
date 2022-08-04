@@ -899,7 +899,7 @@ async def table(
                     else:
                         temp1 = team_y_mmr - team_x_mmr
                         temp2 = temp1/9998
-                        temp3 + temp2 + 1
+                        temp3 = temp2 + 1
                         temp4 = temp3**MULTIPLIER_SPECIAL
                         temp5 = temp4 * OTHER_SPECIAL_INT
                         pre_mmr = temp5 + 1
