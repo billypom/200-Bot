@@ -897,14 +897,16 @@ async def table(
                         else: #team_x_mmr < team_y_mmr:
                             pass
                     else:
-                        if idx > idy:
+                        temp1 = team_y_mmr - team_x_mmr
+                        temp2 = temp1/9998
+                        temp3 + temp2 + 1
+                        temp4 = temp3**MULTIPLIER_SPECIAL
+                        temp5 = temp4 * OTHER_SPECIAL_INT
+                        pre_mmr = temp5 + 1
                         #-(1 + 39*                          (1 +              (O23-O22)  /9998)^3.0000001        ))
-                            pre_mmr = (1 + OTHER_SPECIAL_INT*((1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL))
-                        elif idx < idy:
-                            pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998))**MULTIPLIER_SPECIAL
+                        # pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
                         if team_x_placement > team_y_placement:
-                            print(f'x placement > y placement')
-                            
+                            print(f'x placement > y placement')    
                             pass
                         else: #team_x_placement < team_y_placement
                             print(f'x placement < y placement')
