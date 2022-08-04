@@ -898,25 +898,26 @@ async def table(
                         else: #team_x_mmr < team_y_mmr:
                             pass
                     else:
-                        temp1 = team_y_mmr - team_x_mmr
-                        print(f'temp1 = team_y_mmr - team_x_mmr | {temp1}')
-                        temp2 = temp1/9998
-                        print(f'temp2 = temp1/9998 | {temp2}')
-                        temp3 = temp2 + 1
-                        print(f'temp3 = temp2 + 1 | {temp3}')
-                        temp4 = temp3**MULTIPLIER_SPECIAL
-                        print(f'temp4 = temp3**MULTIPLIER_SPECIAL | {temp4}')
-                        temp5 = temp4 * OTHER_SPECIAL_INT
-                        print(f'temp5 = temp4 * OTHER_SPECIAL_INT | {temp5}')
-                        pre_mmr = temp5 + 1
+                        # temp1 = team_y_mmr - team_x_mmr
+                        # print(f'temp1 = team_y_mmr - team_x_mmr | {temp1}')
+                        # temp2 = temp1/9998
+                        # print(f'temp2 = temp1/9998 | {temp2}')
+                        # temp3 = temp2 + 1
+                        # print(f'temp3 = temp2 + 1 | {temp3}')
+                        # temp4 = temp3**MULTIPLIER_SPECIAL
+                        # print(f'temp4 = temp3**MULTIPLIER_SPECIAL | {temp4}')
+                        # temp5 = temp4 * OTHER_SPECIAL_INT
+                        # print(f'temp5 = temp4 * OTHER_SPECIAL_INT | {temp5}')
+                        # pre_mmr = temp5 + 1
                         #-(1 + 39*                          (1 +              (O23-O22)  /9998)^3.0000001        ))
-                        # pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
                         if team_x_placement > team_y_placement:
-                            print(f'x placement > y placement')    
+                            pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_x_mmr-team_y_mmr)/9998)**MULTIPLIER_SPECIAL)
+                            # print(f'x placement > y placement')
                             pass
                         else: #team_x_placement < team_y_placement
-                            print(f'x placement < y placement')
-                            pre_mmr = pre_mmr * -1
+                            pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
+                            # print(f'x placement < y placement')
+                            # pre_mmr = pre_mmr * -1
                         print(f'pre mmr: {pre_mmr}')
                 working_list.append(pre_mmr)
             value_table.append(working_list)
