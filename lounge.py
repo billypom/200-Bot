@@ -615,7 +615,14 @@ async def setname(
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player_name_request (player_id, requested_name) VALUES (%s, %s);', (ctx.author.id, name))
-            await send_to_name_change_log(ctx, name)
+                temp = db.query('SELECT id FROM player_name_request WHERE player_id = %s AND requested_name = %s ORDER BY create_date DESC;', (ctx.author.id, name))
+                player_name_request_id = temp[0][0]
+            request_message = await send_to_name_change_log(ctx, player_name_request_id, name)
+            request_message_id = request_message.id
+            await request_message.add_reaction('✅')
+            await request_message.add_reaction('❌')
+            with DBA.DBAccess() as db:
+                db.execute('UPDATE player_name_request SET embed_message_id = %s WHERE id = %s;', (request_message_id, player_name_request_id))
             await ctx.respond('Your name change request was submitted to the staff team for review.')
             return
         except Exception as e:
@@ -1625,9 +1632,9 @@ async def send_to_sub_log(ctx, message):
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
     await channel.send(content=None, embed=embed)
 
-async def send_to_name_change_log(ctx, message):
+async def send_to_name_change_log(ctx, id, message):
     channel = client.get_channel(secretly.name_change_channel)
-    embed = discord.Embed(title='Name Change Request', description=f'/', color = discord.Color.blurple())
+    embed = discord.Embed(title='Name Change Request', description=f'id: {id}', color = discord.Color.blurple())
     embed.add_field(name='Current Name: ', value=ctx.author.display_name, inline=False)
     embed.add_field(name='New Name: ', value=str(message), inline=False)
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
