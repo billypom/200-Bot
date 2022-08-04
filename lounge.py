@@ -990,12 +990,15 @@ async def table(
                 try:
                     with DBA.DBAccess() as db:
                         # Get ID of the last inserted table
+                        print('a')
                         temp = db.query('SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
                         db_mogi_id = temp[0][0]
+                        print('b')
                         # Insert reference record
                         db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))
+                        print('c')
                         # Update player record
-                        db.execute('UPDATE player SET mmr = %s, peak_mmr = %s WHERE player_id = %s;', (int(my_player_new_mmr), int(string_my_player_new_mmr), player[0]))
+                        db.execute('UPDATE player SET mmr = %s, peak_mmr = %s WHERE player_id = %s;', (my_player_new_mmr, my_player_new_mmr, player[0]))
                         # Remove player from lineups
                         # db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
                 except Exception as e:
