@@ -722,7 +722,8 @@ async def table(
         for player in team:
             try:
                 with DBA.DBAccess() as db:
-                    temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
+                    # This part makes sure that only players in the current channel's lineup can have a table made for them
+                    temp = db.query('SELECT p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.player_id = %s AND l.tier_id = %s;', (player[0], ctx.channel.id))
                     if temp[0][0] is None:
                         mmr = 0
                     else:
