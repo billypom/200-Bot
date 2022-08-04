@@ -727,14 +727,19 @@ async def table(
     # Check the mogi_format
     if mogi_format == 1:
         SPECIAL_TEAMS_INTEGER = 63
+        OTHER_SPECIAL_INT = 19
     elif mogi_format == 2:
         SPECIAL_TEAMS_INTEGER = 142
+        OTHER_SPECIAL_INT = 39
     elif mogi_format == 3:
         SPECIAL_TEAMS_INTEGER = 288
+        OTHER_SPECIAL_INT = 59
     elif mogi_format == 4:
         SPECIAL_TEAMS_INTEGER = 402
+        OTHER_SPECIAL_INT = 79
     elif mogi_format == 6:
         SPECIAL_TEAMS_INTEGER = 525
+        OTHER_SPECIAL_INT = 99
     else:
         await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, 4, or 6.')
         return
@@ -882,7 +887,7 @@ async def table(
                         else: #team_x_mmr < team_y_mmr:
                             pass
                     else:
-                        pre_mmr = (1 + 19*(1 + (team_y_mmr-team_x_mmr)/9998)**2.1)
+                        pre_mmr = (1 + (OTHER_SPECIAL_INT)*(1 + (team_y_mmr-team_x_mmr)/9998)**2.1)
                         if team_x_placement > team_y_placement:
                             pass
                         else: #team_x_placement < team_y_placement
