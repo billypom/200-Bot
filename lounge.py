@@ -272,6 +272,8 @@ async def on_raw_reaction_add(payload):
     return
 
 
+
+
 # /verify <link>
 @client.slash_command(
     name='verify',
@@ -597,6 +599,7 @@ async def setfc(
         confirmation_msg = await update_friend_code(ctx, fc)
         await ctx.respond(confirmation_msg)
 
+# /setname
 @client.slash_command(
     name='setname',
     description='Change your name',
@@ -1522,7 +1525,7 @@ async def create_teams(ctx, poll_results):
         response_string += f'   `Team {team_count}:` '
         for player in team:
             try:
-                player_score_string += f'<@{player[1]}> 0 '
+                player_score_string += f'{player[0]} 0 '
                 response_string += f'{player[0]} '
             except TypeError:
                 response_string += f'(MMR: {math.ceil(player)})\n'
