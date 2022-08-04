@@ -889,6 +889,7 @@ async def table(
                             pre_mmr = pre_mmr * -1
                 working_list.append(pre_mmr)
             value_table.append(working_list)
+        print(value_table)
 
         # Actually calculate the MMR
         for idx, team in enumerate(sorted_list):
@@ -896,9 +897,9 @@ async def table(
             for pre_mmr_list in value_table:
                 for idx2, value in enumerate(pre_mmr_list):
                     if idx == idx2:
-                        temp_value += value
-                    else:
                         pass
+                    else:
+                        temp_value += value
             team.append(math.ceil(temp_value))
 
         # Create mmr table string
