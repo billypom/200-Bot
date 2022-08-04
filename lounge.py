@@ -1006,7 +1006,7 @@ async def table(
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
         mmr_filename = f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}mmr.jpg'
         # correct = subprocess.run(['convert', '-background', 'gray21', '-fill', 'white', pango_string, mmr_filename], check=True, text=True)
-        correct = subprocess.run(['convert', '-background', 'None', '-fill', 'white', pango_string, 'mkbg.png', '-compose', 'DstOver', '-layers', 'flatten', mmr_filename], check=True, text=True)
+        correct = subprocess.run(['convert', '-background', 'None', '-fill', 'white', pango_string, 'mkbg.jpg', '-compose', 'DstOver', '-layers', 'flatten', mmr_filename], check=True, text=True)
         # '+swap', '-compose', 'Over', '-composite', '-quality', '100',
         # '-fill', '#00000040', '-draw', 'rectangle 0,0 570,368',
         f=discord.File(mmr_filename, filename='mmr.jpg')
