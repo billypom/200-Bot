@@ -861,8 +861,7 @@ async def table(
         else:
             string_mogi_format = f'{str(mogi_format)}v{str(mogi_format)}'
 
-        mmr_table_string = f'<big><big>{ctx.channel.name} {string_mogi_format}</big></big>\n'
-        mmr_table_string = f'place |       name       |  mmr  | gain/loss | new mmr | rankups'
+        mmr_table_string = f'<big><big>{ctx.channel.name} {string_mogi_format}</big></big>'
 
         for team in sorted_list:
             # print(team)
@@ -915,22 +914,22 @@ async def table(
                 my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
 
                 # Start creating string for MMR table
-                mmr_table_string += f'{str(my_player_place).center(6)}|'
+                mmr_table_string += f'{str(my_player_place).center(2)}|'
                 mmr_table_string +=f'{my_player_name.center(18)}|'
                 mmr_table_string += f'{str(my_player_mmr).center(7)}|'
 
                 # Check sign of mmr delta
                 if my_player_mmr_change >= 0:
                     temp_string = f'+{str(my_player_mmr_change)}'
-                    string_my_player_mmr_change = f'{temp_string.center(11)}'
+                    string_my_player_mmr_change = f'{temp_string.center(6)}'
                     formatted_my_player_mmr_change = await pos_mmr_wrapper(string_my_player_mmr_change)
                 else:
-                    string_my_player_mmr_change = f'{str(my_player_mmr_change).center(11)}'
+                    string_my_player_mmr_change = f'{str(my_player_mmr_change).center(6)}'
                     formatted_my_player_mmr_change = await neg_mmr_wrapper(string_my_player_mmr_change)
                 mmr_table_string += f'{formatted_my_player_mmr_change}|'
 
                 # Check for new peak
-                string_my_player_new_mmr = str(my_player_new_mmr).center(9)
+                string_my_player_new_mmr = str(my_player_new_mmr).center(7)
                 if my_player_peak < (my_player_new_mmr):
                     # print('its less than')
                     formatted_my_player_new_mmr = await peak_mmr_wrapper(string_my_player_new_mmr)
