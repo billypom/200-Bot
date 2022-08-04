@@ -886,13 +886,15 @@ async def table(
                     team_y_mmr = team_y[len(team_y)-2]
                     team_y_placement = team_y[len(team_y)-1]
                     if team_x_placement == team_y_placement:
-                        pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/9998)**2)**0.333)**2)
+                        #                            -142*((((O22                 -O23)/9998)^2)  ^(1/3))^2
+                        pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/9998)**2)**(1/3))**2)
                         if team_x_mmr >= team_y_mmr:
                             pre_mmr = pre_mmr * -1
                         else: #team_x_mmr < team_y_mmr:
                             pass
                     else:
-                        pre_mmr = (1 + (OTHER_SPECIAL_INT)*(1 + (team_y_mmr-team_x_mmr)/9998)**(MULTIPLIER_SPECIAL))
+                        #-(1 + 39*                          (1 +              (O23-O22)  /9998)^3.0000001        ))
+                        pre_mmr = (1 + OTHER_SPECIAL_INT*((1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL))
                         if team_x_placement > team_y_placement:
                             pass
                         else: #team_x_placement < team_y_placement
