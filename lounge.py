@@ -862,7 +862,7 @@ async def table(
             string_mogi_format = f'{str(mogi_format)}v{str(mogi_format)}'
 
         mmr_table_string = f'<big><big>{ctx.channel.name} {string_mogi_format}</big></big>\n'
-        mmr_table_string += f'place |       name       |  mmr  | gain/loss | new mmr | rankups'
+        mmr_table_string += f'place |       name       |  mmr  |  +/-  | new mmr |  rankups'
 
         for team in sorted_list:
             # print(team)
@@ -922,10 +922,10 @@ async def table(
                 # Check sign of mmr delta
                 if my_player_mmr_change >= 0:
                     temp_string = f'+{str(my_player_mmr_change)}'
-                    string_my_player_mmr_change = f'{temp_string.center(11)}'
+                    string_my_player_mmr_change = f'{temp_string.center(7)}'
                     formatted_my_player_mmr_change = await pos_mmr_wrapper(string_my_player_mmr_change)
                 else:
-                    string_my_player_mmr_change = f'{str(my_player_mmr_change).center(11)}'
+                    string_my_player_mmr_change = f'{str(my_player_mmr_change).center(7)}'
                     formatted_my_player_mmr_change = await neg_mmr_wrapper(string_my_player_mmr_change)
                 mmr_table_string += f'{formatted_my_player_mmr_change}|'
 
