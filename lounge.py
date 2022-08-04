@@ -875,9 +875,7 @@ async def table(
         # Pre MMR table calculate
         value_table = list()
         for idx, team_x in enumerate(sorted_list):
-            print(f'{idx}th iteration')
             working_list = list()
-            print(f'working list: {working_list}')
             for idy, team_y in enumerate(sorted_list):
                 pre_mmr = 0.0
                 if idx == idy: # skip value vs. self
@@ -887,45 +885,25 @@ async def table(
                     team_x_placement = team_x[len(team_x)-1]
                     team_y_mmr = team_y[len(team_y)-2]
                     team_y_placement = team_y[len(team_y)-1]
-                    print(f'Team X: {team_x_placement}|{team_x_mmr} - Team Y: {team_y_placement}|{team_y_mmr}')
                     if team_x_placement == team_y_placement:
-                        print('x placement = y placement')
-                        #                            -142*((((O22                 -O23)/9998)^2)  ^(1/3))^2
                         pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/9998)**2)**(1/3))**2)
-                        print(f'pre mmr: {pre_mmr}')
                         if team_x_mmr >= team_y_mmr:
                             pre_mmr = pre_mmr * -1
                         else: #team_x_mmr < team_y_mmr:
                             pass
                     else:
-                        # temp1 = team_y_mmr - team_x_mmr
-                        # print(f'temp1 = team_y_mmr - team_x_mmr | {temp1}')
-                        # temp2 = temp1/9998
-                        # print(f'temp2 = temp1/9998 | {temp2}')
-                        # temp3 = temp2 + 1
-                        # print(f'temp3 = temp2 + 1 | {temp3}')
-                        # temp4 = temp3**MULTIPLIER_SPECIAL
-                        # print(f'temp4 = temp3**MULTIPLIER_SPECIAL | {temp4}')
-                        # temp5 = temp4 * OTHER_SPECIAL_INT
-                        # print(f'temp5 = temp4 * OTHER_SPECIAL_INT | {temp5}')
-                        # pre_mmr = temp5 + 1
-                        #-(1 + 39*                          (1 +              (O23-O22)  /9998)^3.0000001        ))
                         if team_x_placement > team_y_placement:
                             pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_x_mmr-team_y_mmr)/9998)**MULTIPLIER_SPECIAL)
-                            # print(f'x placement > y placement')
                             pass
                         else: #team_x_placement < team_y_placement
                             pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
-                            # print(f'x placement < y placement')
-                            # pre_mmr = pre_mmr * -1
-                        print(f'pre mmr: {pre_mmr}')
                 working_list.append(pre_mmr)
             value_table.append(working_list)
 
-        # DEBUG
-        print(f'\nprinting value table:\n')
-        for _list in value_table:
-            print(_list)
+        # # DEBUG
+        # print(f'\nprinting value table:\n')
+        # for _list in value_table:
+        #     print(_list)
 
         # Actually calculate the MMR
         for idx, team in enumerate(sorted_list):
