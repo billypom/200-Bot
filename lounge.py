@@ -911,7 +911,7 @@ async def table(
         mmr_table_string += f'PLACE |       NAME       |  MMR  |  +/-  | NEW MMR |  RANKUPS\n'
 
         for team in sorted_list:
-            # print(team)
+            print(team)
             my_player_place = team[len(team)-2]
             for idx, player in enumerate(team):
                 mmr_table_string += '\n'
