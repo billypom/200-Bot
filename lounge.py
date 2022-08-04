@@ -889,7 +889,10 @@ async def table(
                             pre_mmr = pre_mmr * -1
                 working_list.append(pre_mmr)
             value_table.append(working_list)
-        print(value_table)
+
+        # DEBUG
+        for _list in value_table:
+            print(_list)
 
         # Actually calculate the MMR
         for idx, team in enumerate(sorted_list):
@@ -897,9 +900,9 @@ async def table(
             for pre_mmr_list in value_table:
                 for idx2, value in enumerate(pre_mmr_list):
                     if idx == idx2:
-                        pass
-                    else:
                         temp_value += value
+                    else:
+                        pass
             team.append(math.ceil(temp_value))
 
         # Create mmr table string
@@ -912,7 +915,6 @@ async def table(
         mmr_table_string += f'PLACE |       NAME       |  MMR  |  +/-  | NEW MMR |  RANKUPS\n'
 
         for team in sorted_list:
-            print(team)
             my_player_place = team[len(team)-2]
             string_my_player_place = str(my_player_place)
             for idx, player in enumerate(team):
@@ -992,13 +994,13 @@ async def table(
                 try:
                     with DBA.DBAccess() as db:
                         # Get ID of the last inserted table
-                        print('a')
+
                         temp = db.query('SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
                         db_mogi_id = temp[0][0]
-                        print('b')
+
                         # Insert reference record
                         db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))
-                        print('c')
+
                         # Update player record
                         db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
                         # Remove player from lineups
