@@ -230,11 +230,10 @@ async def on_message(ctx):
 
 @client.event
 async def on_raw_reaction_add(payload):
-    print('hello??')
     if int(payload.user_id) == int(secretly.bot_id):
         # Return if bot reaction
         return
-    print('a')
+
     # Stuff relating to the current embed
     guild = client.get_guild(payload.guild_id)
     member = guild.get_member(payload.user_id)
@@ -245,13 +244,12 @@ async def on_raw_reaction_add(payload):
             message_ids = db.query('SELECT embed_message_id, player_id, requested_name FROM player_name_request WHERE was_accepted = %s;', (0,))
     except Exception:
         return
-    print('b')
+
     # Look @ all embed message ids
     for i in range(0, len(message_ids)):
         if int(payload.message_id) == int(message_ids[i][0]):
             # Join
             if str(payload.emoji) == '✅':
-                print('c')
                 with DBA.DBAccess() as db:
                     # Set record to accepted
                     db.execute('UPDATE player_name_request SET was_accepted = %s WHERE embed_message_id = %s;', (1, int(payload.message_id)))
@@ -260,13 +258,12 @@ async def on_raw_reaction_add(payload):
                     # Delete the embed message
                     await message.delete()
             if str(payload.emoji) == '❌':
-                print('d')
                 with DBA.DBAccess() as db:
                     # Remove the db record
                     db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
                     # Delete the embed message
                     await message.delete()
-    await message.remove_reaction(payload.emoji, member)
+        await message.remove_reaction(payload.emoji, member)
     return
 
 
