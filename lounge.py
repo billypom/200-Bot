@@ -877,6 +877,7 @@ async def table(
         for idx, team_x in enumerate(sorted_list):
             print(f'{idx}th iteration')
             working_list = list()
+            print(f'working list: {working_list}')
             for idy, team_y in enumerate(sorted_list):
                 pre_mmr = 0.0
                 if idx == idy: # skip value vs. self
