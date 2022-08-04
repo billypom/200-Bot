@@ -1894,7 +1894,7 @@ async def master_wrapper(input):
 
 async def diamond_wrapper(input):
     # return (f'[0;2m[0;34m{input}[0m[0m')
-    return (f'<span foreground="PowerBlue">{input}</span>')
+    return (f'<span foreground="PowderBlue">{input}</span>')
 
 async def platinum_wrapper(input):
     # return (f'[2;40m[2;36m{input}[0m[2;40m[0m')
