@@ -263,7 +263,10 @@ async def on_raw_reaction_add(payload):
                     db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
                     # Delete the embed message
                     await message.delete()
-        await message.remove_reaction(payload.emoji, member)
+        try:
+            await message.remove_reaction(payload.emoji, member)
+        except Exception:
+            pass
     return
 
 
