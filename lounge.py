@@ -191,13 +191,14 @@ async def on_raw_reaction_add(payload):
                     # Change the username
                     db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[i][2], message_ids[i][1]))
                     # Delete the embed message
-                    await client.delete_message(message)
+                    await message.delete()
             if str(paylod.emoji) == '❌':
                 with DBA.DBAccess() as db:
                     # Remove the db record
                     db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (payload.message_id,))
                     # Delete the embed message
-                    await client.delete_message(message)
+                    await message.delete()
+    await message.remove_reaction(payload.emoji, member)
     
 
 @client.event
