@@ -913,6 +913,7 @@ async def table(
         for team in sorted_list:
             print(team)
             my_player_place = team[len(team)-2]
+            string_my_player_place = str(my_player_place)
             for idx, player in enumerate(team):
                 mmr_table_string += '\n'
                 if idx > (mogi_format-1):
@@ -961,7 +962,7 @@ async def table(
                 my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
 
                 # Start creating string for MMR table
-                mmr_table_string += f'{str(my_player_place).center(6)}|'
+                mmr_table_string += f'{string_my_player_place.center(6)}|'
                 mmr_table_string +=f'{my_player_name.center(18)}|'
                 mmr_table_string += f'{str(my_player_mmr).center(7)}|'
 
@@ -995,7 +996,7 @@ async def table(
                         db_mogi_id = temp[0][0]
                         print('b')
                         # Insert reference record
-                        db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))
+                        db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(string_my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))
                         print('c')
                         # Update player record
                         db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
@@ -1045,7 +1046,7 @@ async def table(
                 string_my_player_new_rank = f'{str(my_player_new_rank).center(12)}'
                 formatted_my_player_new_rank = await new_rank_wrapper(string_my_player_new_rank, my_player_new_mmr)
                 mmr_table_string += f'{formatted_my_player_new_rank}'
-                my_player_place = ''
+                string_my_player_place = ''
 
         # Create imagemagick image
         # print('_______')
