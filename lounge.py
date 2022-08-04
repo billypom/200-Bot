@@ -899,10 +899,15 @@ async def table(
                             pass
                     else:
                         temp1 = team_y_mmr - team_x_mmr
+                        print(f'temp1 = team_y_mmr - team_x_mmr | {temp1}')
                         temp2 = temp1/9998
+                        print(f'temp2 = temp1/9998 | {temp2}')
                         temp3 = temp2 + 1
+                        print(f'temp3 = temp2 + 1 | {temp3}')
                         temp4 = temp3**MULTIPLIER_SPECIAL
+                        print(f'temp4 = temp3**MULTIPLIER_SPECIAL | {temp4}')
                         temp5 = temp4 * OTHER_SPECIAL_INT
+                        print(f'temp5 = temp4 * OTHER_SPECIAL_INT | {temp5}')
                         pre_mmr = temp5 + 1
                         #-(1 + 39*                          (1 +              (O23-O22)  /9998)^3.0000001        ))
                         # pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
