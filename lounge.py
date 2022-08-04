@@ -165,6 +165,7 @@ poll_thread.start()
 
 @client.event
 async def on_raw_reaction_add(payload):
+    print('hello??')
     if int(payload.user_id) == int(secretly.bot_id):
         # Return if bot reaction
         return
