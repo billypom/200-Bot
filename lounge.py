@@ -862,7 +862,7 @@ async def table(
             string_mogi_format = f'{str(mogi_format)}v{str(mogi_format)}'
 
         mmr_table_string = f'<big><big>{ctx.channel.name} {string_mogi_format}</big></big>\n'
-        mmr_table_string += f'PLACE |       NAME       |  MMR  |  +/-  | NEW MMR |  RANKUPS'
+        mmr_table_string += f'PLACE |       NAME       |  MMR  |  +/-  | NEW MMR |  RANKUPS\n'
 
         for team in sorted_list:
             # print(team)
