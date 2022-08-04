@@ -236,7 +236,6 @@ async def on_raw_reaction_add(payload):
 
     # Stuff relating to the current embed
     guild = client.get_guild(payload.guild_id)
-    member = guild.get_member(payload.user_id)
     channel = client.get_channel(payload.channel_id)
     message = await channel.fetch_message(payload.message_id)
     try:
@@ -253,8 +252,11 @@ async def on_raw_reaction_add(payload):
                 with DBA.DBAccess() as db:
                     # Set record to accepted
                     db.execute('UPDATE player_name_request SET was_accepted = %s WHERE embed_message_id = %s;', (1, int(payload.message_id)))
-                    # Change the username
+                    # Change the db username
                     db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[i][2], message_ids[i][1]))
+                    # Change the discord username
+                    member = guild.get_member(message_ids[i][1])
+                    await member.edit(nick=str(message_ids[i][2]))
                     # Delete the embed message
                     await message.delete()
             if str(payload.emoji) == '❌':
