@@ -29,6 +29,9 @@ TIER_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
 NAME_CHANGE_DELTA_LIMIT = 5184000
+REPORTER_ROLE = 872770141606273034
+ADMIN_ROLE = 461388423572357130
+UPDATER_ROLE = 461461018971996162
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 # manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
@@ -685,7 +688,7 @@ async def setname(
     description='Submit a table',
     guild_ids=Lounge
 )
-@commands.has_role(['Reporter'])
+@commands.has_role([872770141606273034])
 async def table(
     ctx,
     mogi_format: discord.Option(int, '1=FFA, 2=2v2, 3=3v3, 4=4v4, 6=6v6', required=True),
