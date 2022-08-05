@@ -149,7 +149,7 @@ def mogi_media_check():
         # embed_message = "```" + str(list_of_match_names[i]) + "```" + "https://twitch.tv/" + str(list_of_streams[i])
     embed = discord.Embed(title="Mogi Streams", description=embed_message, color=discord.Color.purple())
     embed.set_thumbnail(url = twitch_thumbnail)
-    await ctx.respond(content=None, embed=embed)
+    # await ctx.respond(content=None, embed=embed)
 
 def update_mogilist():
     MOGILIST = {}
