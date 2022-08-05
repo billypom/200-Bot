@@ -96,8 +96,8 @@ def get_live_streamers(temp):
         else:
             streamer_name = str(streamer_name).strip().lower()
         body = {
-            'client_id': secrets.twitch_client_id,
-            'client_secret': secrets.twitch_client_secret,
+            'client_id': secretly.twitch_client_id,
+            'client_secret': secretly.twitch_client_secret,
             "grant_type": 'client_credentials'
         }
         r = requests.post('https://id.twitch.tv/oauth2/token', body)
@@ -105,7 +105,7 @@ def get_live_streamers(temp):
         keys = r.json()
         #print(keys)
         headers = {
-            'Client-ID': secrets.twitch_client_id,
+            'Client-ID': secretly.twitch_client_id,
             'Authorization': 'Bearer ' + keys['access_token']
         }
         #print(headers)
