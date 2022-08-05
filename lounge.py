@@ -513,6 +513,7 @@ async def l(
     await ctx.respond(response, delete_after=30)
     return
 
+# /sub
 @client.slash_command(
     name='sub',
     description='Sub out a player',
@@ -675,7 +676,7 @@ async def setname(
             await ctx.respond(f'``Error 35:`` Oops! Something went wrong. Please try again or contact {secretly.my_discord}')
             return
 
-
+# /table
 @client.slash_command(
     name='table',
     description='Submit a table',
@@ -1103,6 +1104,7 @@ async def table(
         await ctx.respond('`Table Denied.`', delete_after=300)
 
 # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
+# /stats
 @client.slash_command(
     name='stats',
     description='Player statistics',
@@ -1239,6 +1241,7 @@ async def stats(
     await ctx.respond(':coin:', delete_after=1)
     return
 
+# /twitch
 @client.slash_command(
     name='twitch',
     description='Link your Twitch stream',
@@ -1246,7 +1249,7 @@ async def stats(
 )
 async def twitch(
     ctx,
-    username: discord.Option(str, 'Your twitch username - your mogi streams will appear in the media channel', required=True)
+    username: discord.Option(str, 'Enter your twitch username - your mogi streams will appear in the media channel', required=True)
     ):
     await ctx.defer(ephemeral=True)
     x = check_if_player_exists(ctx)
@@ -1257,12 +1260,134 @@ async def twitch(
         return
     y = await check_if_banned_characters(username)
     if y:
-        await send_to_verification_log(ctx, username)
-        await ctx.respond('Invalid Twitch Username')
+        await ctx.respond("Invalid twitch username")
+        await send_to_verification_log(ctx, username, discord.Color.blurple(), vlog_msg.error1)
+        return
+    if len(str(username)) > 25:
+        await ctx.respond("Invalid twitch username")
+        return
+    try:
+        with DBA.DBAccess() as db:
+            db.execute("UPDATE player SET twitch_link = %s WHERE player_id = %s;", (str(username), ctx.author.id))
+            await ctx.respond("Twitch username updated.")
+    except Exception:
+        await ctx.respond("``Error 33:`` Player not found. Use ``/verify <mkc link>`` to register with Lounge")
+    
+# /spectate
+@client.slash_command(
+    name="spectate",
+    description="Any streamers?",
+    guild_ids=Lounge
+)
+async def spectate(ctx):
+    await ctx.defer()
+    list_of_streams = list()
+    list_of_match_names = list()
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT p.twitch_link FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
+    except Exception:
+        await ctx.respond("No one is streaming...")
+        return
+    if len(temp) == 0:
+        await ctx.respond("No one is streaming...")
+        return
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(get_live_streamers, temp)
+        embed_message = future.result()
 
 
+    # for i in range(0, len(list_of_streams)-1):
+    #     embed_message = "```" + str(list_of_match_names[i]) + "```" + "https://twitch.tv/" + str(list_of_streams[i])
+    embed = discord.Embed(title="STREAMS", description=embed_message, color=discord.Color.purple())
+    embed.set_thumbnail(url = twitch_thumbnail)
+    await ctx.respond(content=None, embed=embed)
 
+# /revert TODO: Limit to admins/updaters
+@client.slash_command(
+    name="revert",
+    description="Undo a table",
+    guild_ids=Lounge
+)
+async def revert(
+    ctx,
+    mogi_id: discord.Option(int, 'Mogi ID / Table ID', required=True)
+    ):
+    await ctx.defer()
+    x = await check_if_player_exists(ctx)
+    # Make sure mogi exists
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT mogi_id FROM mogi WHERE mogi_id = %s;', (mogi_id,))
+            if temp[0][0] is None:
+                await ctx.respond('``Error 34:`` Mogi could not be found.')
+                return
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
+        await ctx.respond('``Error 35:`` Mogi could not be found')
+        return
+    with DBA.DBAccess() as db:
+        db.execute('DELETE FROM player_mogi WHERE mogi_id = %s;', (mogi_id,))
+        db.execute('DELETE FROM mogi WHERE mogi_id = %s;', (mogi_id,))
+    await ctx.respond(f'Mogi ID `{mogi_id}` has been removed.')
+    return
 
+# /swapscore
+@client.slash_command(
+    name="swapscore",
+    description="Swap the score of two players on the same team",
+    guild_ids=Lounge
+)
+async def swapscore(
+    ctx,
+    player1: discord.Option(str, "Player name", required=True),
+    player2: discord.Option(str, "Player name", required=True),
+    mogi_id: discord.Option(int, "Mogi ID", required = True)
+    ):
+    await ctx.defer()
+    x = await check_if_banned_characters(player1)
+    if x:
+        await ctx.respond("Invalid player1 name")
+        await send_to_verification_log(ctx, player1, discord.Color.blurple(), vlog_msg.error1)
+        return
+    else:
+        pass
+    y = await check_if_banned_characters(player2)
+    if y:
+        await ctx.respond("Invalid player2 name")
+        await send_to_verification_log(ctx, player1, discord.Color.blurple(), vlog_msg.error1)
+        return
+    else:
+        pass
+    id1=0
+    id2=0
+    idmogi=0
+    try:
+        with DBA.DBAccess() as db:
+            temp1 = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player1,))
+            temp2 = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player2,))
+            temp3 = db.query('SELECT mogi_id FROM mogi WHERE mogi_id = %s;', (mogi_id,))
+            id1 = temp1[0][0]
+            id2 = temp2[0][0]
+            idmogi = temp3[0][0]
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
+        await ctx.respond('``Error 35:`` One of your inputs is invalid. Please try again')
+    try:
+        with DBA.DBAccess() as db:
+            temp1 = db.query('SELECT score FROM player_mogi WHERE player_id = %s AND mogi_id = %s;', (id1, idmogi))
+            id1_score = temp1[0][0]
+            temp2 = db.query('SELECT score FROM player_mogi WHERE player_id = %s AND mogi_id = %s;', (id2, idmogi))
+            id2_score = temp2[0][0]
+            db.execute('UPDATE player_mogi SET score = %s WHERE player_id = %s AND mogi_id = %s', (id1_score, id2, idmogi))
+            db.execute('UPDATE player_mogi SET score = %s WHERE player_id = %s AND mogi_id = %s', (id2_score, id1, idmogi))
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
+        await ctx.respond('``Error 36:`` Oops! Something went wrong.')
+    await ctx.respond(f'Scores swapped successfully.\n{player1} {id1_score} -> {id2_score}\n{player2} {id2_score} -> {id1_score}')
+    return
+
+    
 
 
 
@@ -1633,6 +1758,50 @@ async def check_if_banned_characters(message):
         if value in message:
             return True
     return False
+
+# This should probably be async, but it worked in testing and i'm lazy and nobody has ever used the bot so i dont care go crazy aaaa go stupid aaa
+def get_live_streamers(temp):
+    for i in range(0, len(temp)-1):
+        streamer_name = temp[i][0]
+        if streamer_name == None:
+            continue
+        else:
+            streamer_name = str(streamer_name).strip().lower()
+        vs_string = str(temp[0][1]) + " vs. " + str(temp[0][2])
+        body = {
+            'client_id': secrets.twitch_client_id,
+            'client_secret': secrets.twitch_client_secret,
+            "grant_type": 'client_credentials'
+        }
+        r = requests.post('https://id.twitch.tv/oauth2/token', body)
+        #data output
+        keys = r.json()
+        #print(keys)
+        headers = {
+            'Client-ID': secrets.twitch_client_id,
+            'Authorization': 'Bearer ' + keys['access_token']
+        }
+        #print(headers)
+        stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
+        stream_data = stream.json()
+        #print(stream_data)
+        if len(stream_data['data']) == 1:
+            #print(streamer_name + ' is live: ' + stream_data['data'][0]['title'] + ' playing ' + stream_data['data'][0]['game_name'])
+            is_live = True
+        else:
+            is_live = False
+            #print(streamer_name + ' is not live')
+        if is_live:
+            list_of_streams.append(streamer_name)
+            list_of_match_names.append(vs_string)
+    # print("length of list of streams")
+    # print(len(list_of_streams))
+    embed_message = ""
+    i = 0
+    for stream in list_of_streams:
+        embed_message = embed_message + ("```" + list_of_match_names[i] + "```" + "https://twitch.tv/" + stream + " ")
+        i += 1
+    return embed_message
 
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
