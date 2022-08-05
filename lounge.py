@@ -641,13 +641,13 @@ async def sub(
     await send_to_sub_log(ctx, f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}> in {ctx.channel.mention}')
     return
 
-# /setfc
+# /fc
 @client.slash_command(
     name='fc',
     description='Display or set your friend code',
     guild_ids=Lounge
 )
-async def setfc(
+async def fc(
     ctx,
     fc: discord.Option(str, 'XXXX-XXXX-XXXX', required=False)):
     if fc == None:
@@ -673,13 +673,13 @@ async def setfc(
         confirmation_msg = await update_friend_code(ctx, fc)
         await ctx.respond(confirmation_msg)
 
-# /setname
+# /name
 @client.slash_command(
-    name='setname',
+    name='name',
     description='Change your name',
     guild_ids=Lounge
 )
-async def setname(
+async def name(
     ctx,
     name: discord.Option(str, 'New name', required=True)
     ):
@@ -1435,16 +1435,16 @@ async def swapscore(
     return
 
 @client.slash_command(
-    name='popuko',
-    description='popuko',
+    name='strike',
+    description='Add strike & -mmr penalty to a player',
     guild_ids=Lounge
 )
-async def popuko(ctx):
-    channel = client.get_channel(1005091507604312074)
-    embed = discord.Embed(title="STREAMS", description='dsadasdas', color=discord.Color.purple())
-    embed.set_thumbnail(url = twitch_thumbnail)
-    await channel.send(content=None, embed=embed)
-
+async def strike(
+    ctx,
+    player: discord.Option(discord.Member, description='Which player?', required=True)
+    ):
+    await ctx.defer()
+    await ctx.respond(f'Player chosen: {player.mention}')
 
 
 
@@ -1887,7 +1887,6 @@ async def send_to_name_change_log(ctx, id, message):
     embed.set_thumbnail(url=ctx.author.avatar.url)
     x = await channel.send(content=None, embed=embed)
     return x
-
 
 async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
     channel = client.get_channel(secretly.ip_match_channel)
