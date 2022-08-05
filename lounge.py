@@ -92,7 +92,6 @@ def get_live_streamers(temp):
     for i in range(0, len(temp)-1):
         streamer_name = temp[i][0]
         if streamer_name is None:
-            print('streamer name is none')
             break
         else:
             streamer_name = str(streamer_name).strip().lower()
