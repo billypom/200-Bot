@@ -112,24 +112,18 @@ def get_live_streamers(temp):
         #print(headers)
         stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
         stream_data = stream.json()
-        print(stream_data)
         if len(stream_data['data']) == 1:
-            #print(streamer_name + ' is live: ' + stream_data['data'][0]['title'] + ' playing ' + stream_data['data'][0]['game_name'])
             is_live = True
         else:
             is_live = False
-            #print(streamer_name + ' is not live')
         if is_live:
             streamer_name = stream_data['data'][0]['user_name']
             stream_title = stream_data['data'][0]['title']
-            print(streamer_name)
-            print(stream_title)
             list_of_streams.append([streamer_name, stream_title])
-    # print("length of list of streams")
-    # print(len(list_of_streams))
     embed_message = ""
     for stream in list_of_streams:
-        embed_message = embed_message + ("```" + stream[1] + "```" + "https://twitch.tv/" + stream[0] + " ")
+        # embed_message = embed_message + ("```" + stream[1] + "```" + "https://twitch.tv/" + stream[0] + " ")
+        embed_message = embed_message + (f'[{stream[1]}](https://twitch.tv/{stream[0]})')
     return embed_message
 
 def mogi_media_check():
