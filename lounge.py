@@ -122,6 +122,7 @@ def get_live_streamers(temp):
             list_of_streams.append([streamer_name, stream_title])
     embed_message = "No one is streaming"
     if list_of_streams:
+        embed_message = ""
         for stream in list_of_streams:
             embed_message = embed_message + (f'[{stream[1]}](https://twitch.tv/{stream[0]})\n')
     return embed_message
@@ -1347,36 +1348,6 @@ async def twitch(
             await ctx.respond("Twitch username updated.")
     except Exception:
         await ctx.respond("``Error 33:`` Player not found. Use ``/verify <mkc link>`` to register with Lounge")
-    
-# /spectate
-@client.slash_command(
-    name="spectate",
-    description="Any streamers?",
-    guild_ids=Lounge
-)
-async def spectate(ctx):
-    await ctx.defer()
-    list_of_streams = list()
-    list_of_match_names = list()
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT p.twitch_link FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
-    except Exception:
-        await ctx.respond("No one is streaming...")
-        return
-    if len(temp) == 0:
-        await ctx.respond("No one is streaming...")
-        return
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        future = executor.submit(get_live_streamers, temp)
-        embed_message = future.result()
-
-
-    # for i in range(0, len(list_of_streams)-1):
-    #     embed_message = "```" + str(list_of_match_names[i]) + "```" + "https://twitch.tv/" + str(list_of_streams[i])
-    embed = discord.Embed(title="STREAMS", description=embed_message, color=discord.Color.purple())
-    embed.set_thumbnail(url = twitch_thumbnail)
-    await ctx.respond(content=None, embed=embed)
 
 # /revert TODO: Limit to admins/updaters
 @client.slash_command(
