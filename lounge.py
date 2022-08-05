@@ -1327,7 +1327,7 @@ async def twitch(
     username: discord.Option(str, 'Enter your twitch username - your mogi streams will appear in the media channel', required=True)
     ):
     await ctx.defer(ephemeral=True)
-    x = check_if_player_exists(ctx)
+    x = await check_if_player_exists(ctx)
     if x:
         pass
     else:
