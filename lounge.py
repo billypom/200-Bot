@@ -130,6 +130,7 @@ def get_live_streamers(temp):
     return embed_message
 
 def mogi_media_check():
+    print('a')
     list_of_streams = list()
     try:
         with DBA.DBAccess() as db:
@@ -145,7 +146,7 @@ def mogi_media_check():
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(get_live_streamers, temp)
         embed_message = future.result()
-
+    print('b')
 
     # for i in range(0, len(list_of_streams)-1):
         # embed_message = "```" + str(list_of_match_names[i]) + "```" + "https://twitch.tv/" + str(list_of_streams[i])
