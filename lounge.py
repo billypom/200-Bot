@@ -1684,6 +1684,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         return [ind, poll_dictionary]
 
 # poll_results is [index of the voted on format, a dictionary of format:voters]
+# creates teams, finds host, returns a big string formatted...
 async def create_teams(ctx, poll_results):
     # print('creating teams')
     keys_list = list(poll_results[1])
@@ -1757,6 +1758,7 @@ async def create_teams(ctx, poll_results):
             host_string += f'`Host:` <@{host_temp[0][1]}> | {host_temp[0][0]}'
     except Exception as e:
         await send_to_debug_channel(ctx, e)
+        host_string = '    `No FC found` - Choose amongst yourselves'
     # create a return string
     response_string+=f'\n\n{host_string}'
     return response_string
