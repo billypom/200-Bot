@@ -778,10 +778,17 @@ async def table(
     # Create list
     score_string = str(scores) #.translate(remove_chars)
     score_list = score_string.split()
+    player_list_check = []
     for i in range(0, len(score_list), 2):
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (score_list[i],))
             score_list[i] = temp[0][0]
+            player_list_check.append(score_list[i])
+
+    has_dupes = await check_for_dupes_in_list(player_list_check)
+    if has_dupes:
+        await ctx.respond('You cannot have duplicate players on a table')
+        return
 
     # Check for if mogi has started
     try:
@@ -1439,6 +1446,7 @@ async def swapscore(
     description='Add strike & -mmr penalty to a player',
     guild_ids=Lounge
 )
+@commands.has_any_role(UPDATER_ROLE, ADMIN_ROLE)
 async def strike(
     ctx,
     player: discord.Option(discord.Member, description='Which player?', required=True)
@@ -1446,7 +1454,18 @@ async def strike(
     await ctx.defer()
     await ctx.respond(f'Player chosen: {player.mention}')
 
-
+@client.slash_command(
+    name='hostban',
+    description='Add hostban to a player',
+    guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE, ADMIN_ROLE)
+async def hostban(
+    ctx,
+    player: discord.Option(discord.Member, description='Which player?', required=True)
+    ):
+    await ctx.defer()
+    await ctx.respond(f'Player chosen: {player.mention}')
 
 
 
@@ -1815,6 +1834,11 @@ async def check_if_banned_characters(message):
             return True
     return False
 
+async def check_for_dupes_in_list(my_list):
+    if len(my_list) == len(set(my_list)):
+        return False
+    else:
+        return True
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
 
