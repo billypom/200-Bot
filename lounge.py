@@ -132,17 +132,18 @@ def get_live_streamers(temp):
 def mogi_media_check():
     print('a')
     list_of_streams = list()
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT p.twitch_link FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
-    except Exception:
-        # await ctx.respond("No one is streaming...")
-        embed_message = 'No one is streaming'
-        return
-    if len(temp) == 0:
-        # await ctx.respond("No one is streaming...")
-        embed_message = 'No one is streaming'
-        return
+    # try:
+    #     with DBA.DBAccess() as db:
+    #         temp = db.query('SELECT p.twitch_link FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
+    # except Exception:
+    #     # await ctx.respond("No one is streaming...")
+    #     embed_message = 'No one is streaming'
+    #     return
+    # if len(temp) == 0:
+    #     # await ctx.respond("No one is streaming...")
+    #     embed_message = 'No one is streaming'
+    #     return
+    temp = [[0],[0]]
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(get_live_streamers, temp)
         embed_message = future.result()
