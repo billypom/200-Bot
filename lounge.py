@@ -88,6 +88,7 @@ class Confirm(View):
 
 # This should probably be async, but it worked in testing and i'm lazy and nobody has ever used the bot so i dont care go crazy aaaa go stupid aaa
 def get_live_streamers(temp):
+    list_of_streams = []
     for i in range(0, len(temp)-1):
         streamer_name = temp[i][0]
         streamer_name = 'VALORANT'
@@ -119,14 +120,16 @@ def get_live_streamers(temp):
             is_live = False
             #print(streamer_name + ' is not live')
         if is_live:
+            streamer_name = stream_data['data'][0]['user_name']
+            stream_title = stream_data['data'][0]['title']
+            print(streamer_name)
+            print(stream_title)
             list_of_streams.append([streamer_name, stream_title])
     # print("length of list of streams")
     # print(len(list_of_streams))
     embed_message = ""
-    i = 0
     for stream in list_of_streams:
         embed_message = embed_message + ("```" + stream[1] + "```" + "https://twitch.tv/" + stream[0] + " ")
-        i += 1
     return embed_message
 
 def mogi_media_check():
