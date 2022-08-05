@@ -25,6 +25,8 @@ Lounge = [461383953937596416]
 lounge_id = 999835318104625252
 ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
+mogi_media_channel_id = 1005091507604312074
+mogi_media_message_id = 1005205285817831455
 TIER_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
@@ -149,6 +151,11 @@ def mogi_media_check():
         # embed_message = "```" + str(list_of_match_names[i]) + "```" + "https://twitch.tv/" + str(list_of_streams[i])
     embed = discord.Embed(title="Mogi Streams", description=embed_message, color=discord.Color.purple())
     embed.set_thumbnail(url = twitch_thumbnail)
+
+    mogi_media = client.get_channel(mogi_media_channel_id)
+    mogi_media_message = asyncio.run_coroutine_threadsafe(mogi_media.fetch_message(mogi_media_message_id), client.loop)
+    asyncio.run_coroutine_threadsafe(ml_message.result().edit(embed=embed), client.loop)
+
     # await ctx.respond(content=None, embed=embed)
 
 def update_mogilist():
@@ -224,6 +231,7 @@ def lounge_threads():
     while(True):
         update_mogilist()
         inactivity_check()
+        mogi_media_check()
         time.sleep(15)
 
 
