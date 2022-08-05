@@ -32,6 +32,7 @@ NAME_CHANGE_DELTA_LIMIT = 5184000
 REPORTER_ROLE = 872770141606273034
 ADMIN_ROLE = 461388423572357130
 UPDATER_ROLE = 461461018971996162
+twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 # manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
@@ -83,7 +84,72 @@ class Confirm(View):
 
 
 
+# This should probably be async, but it worked in testing and i'm lazy and nobody has ever used the bot so i dont care go crazy aaaa go stupid aaa
+def get_live_streamers(temp):
+    for i in range(0, len(temp)-1):
+        streamer_name = temp[i][0]
+        streamer_name = 'VALORANT'
+        if streamer_name == None:
+            continue
+        else:
+            streamer_name = str(streamer_name).strip().lower()
+        body = {
+            'client_id': secrets.twitch_client_id,
+            'client_secret': secrets.twitch_client_secret,
+            "grant_type": 'client_credentials'
+        }
+        r = requests.post('https://id.twitch.tv/oauth2/token', body)
+        #data output
+        keys = r.json()
+        #print(keys)
+        headers = {
+            'Client-ID': secrets.twitch_client_id,
+            'Authorization': 'Bearer ' + keys['access_token']
+        }
+        #print(headers)
+        stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
+        stream_data = stream.json()
+        print(stream_data)
+        if len(stream_data['data']) == 1:
+            #print(streamer_name + ' is live: ' + stream_data['data'][0]['title'] + ' playing ' + stream_data['data'][0]['game_name'])
+            is_live = True
+        else:
+            is_live = False
+            #print(streamer_name + ' is not live')
+        if is_live:
+            list_of_streams.append([streamer_name, stream_title])
+    # print("length of list of streams")
+    # print(len(list_of_streams))
+    embed_message = ""
+    i = 0
+    for stream in list_of_streams:
+        embed_message = embed_message + ("```" + stream[1] + "```" + "https://twitch.tv/" + stream[0] + " ")
+        i += 1
+    return embed_message
 
+def mogi_media_check():
+    list_of_streams = list()
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT p.twitch_link FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
+    except Exception:
+        # await ctx.respond("No one is streaming...")
+        embed_message = 'No one is streaming'
+        return
+    if len(temp) == 0:
+        # await ctx.respond("No one is streaming...")
+        embed_message = 'No one is streaming'
+        return
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(get_live_streamers, temp)
+        embed_message = future.result()
+
+
+    # for i in range(0, len(list_of_streams)-1):
+        # embed_message = "```" + str(list_of_match_names[i]) + "```" + "https://twitch.tv/" + str(list_of_streams[i])
+    embed = discord.Embed(title="Mogi Streams", description=embed_message, color=discord.Color.purple())
+    embed.set_thumbnail(url = twitch_thumbnail)
+    await ctx.respond(content=None, embed=embed)
 
 def update_mogilist():
     MOGILIST = {}
@@ -1111,6 +1177,7 @@ async def table(
         await ctx.respond('`Table Denied.`', delete_after=300)
 
 # https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
+
 # /stats
 @client.slash_command(
     name='stats',
@@ -1316,6 +1383,7 @@ async def spectate(ctx):
     description="Undo a table",
     guild_ids=Lounge
 )
+@commands.has_any_role(UPDATER_ROLE, ADMIN_ROLE)
 async def revert(
     ctx,
     mogi_id: discord.Option(int, 'Mogi ID / Table ID', required=True)
@@ -1345,6 +1413,7 @@ async def revert(
     description="Swap the score of two players on the same team",
     guild_ids=Lounge
 )
+@commands.has_any_role(UPDATER_ROLE, ADMIN_ROLE)
 async def swapscore(
     ctx,
     player1: discord.Option(str, "Player name", required=True),
@@ -1394,7 +1463,16 @@ async def swapscore(
     await ctx.respond(f'Scores swapped successfully.\n{player1} {id1_score} -> {id2_score}\n{player2} {id2_score} -> {id1_score}')
     return
 
-    
+@client.slash_command(
+    name='popuko',
+    description='popuko',
+    guild_ids=Lounge
+)
+async def popuko(ctx):
+    channel = client.get_channel(1005091507604312074)
+    embed = discord.Embed(title="STREAMS", description=embed_message, color=discord.Color.purple())
+    embed.set_thumbnail(url = twitch_thumbnail)
+    await channel.send(content=None, embed=embed)
 
 
 
@@ -1765,50 +1843,6 @@ async def check_if_banned_characters(message):
         if value in message:
             return True
     return False
-
-# This should probably be async, but it worked in testing and i'm lazy and nobody has ever used the bot so i dont care go crazy aaaa go stupid aaa
-def get_live_streamers(temp):
-    for i in range(0, len(temp)-1):
-        streamer_name = temp[i][0]
-        if streamer_name == None:
-            continue
-        else:
-            streamer_name = str(streamer_name).strip().lower()
-        vs_string = str(temp[0][1]) + " vs. " + str(temp[0][2])
-        body = {
-            'client_id': secrets.twitch_client_id,
-            'client_secret': secrets.twitch_client_secret,
-            "grant_type": 'client_credentials'
-        }
-        r = requests.post('https://id.twitch.tv/oauth2/token', body)
-        #data output
-        keys = r.json()
-        #print(keys)
-        headers = {
-            'Client-ID': secrets.twitch_client_id,
-            'Authorization': 'Bearer ' + keys['access_token']
-        }
-        #print(headers)
-        stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
-        stream_data = stream.json()
-        #print(stream_data)
-        if len(stream_data['data']) == 1:
-            #print(streamer_name + ' is live: ' + stream_data['data'][0]['title'] + ' playing ' + stream_data['data'][0]['game_name'])
-            is_live = True
-        else:
-            is_live = False
-            #print(streamer_name + ' is not live')
-        if is_live:
-            list_of_streams.append(streamer_name)
-            list_of_match_names.append(vs_string)
-    # print("length of list of streams")
-    # print(len(list_of_streams))
-    embed_message = ""
-    i = 0
-    for stream in list_of_streams:
-        embed_message = embed_message + ("```" + list_of_match_names[i] + "```" + "https://twitch.tv/" + stream + " ")
-        i += 1
-    return embed_message
 
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
