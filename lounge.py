@@ -1373,7 +1373,7 @@ async def spectate(ctx):
 
     # for i in range(0, len(list_of_streams)-1):
     #     embed_message = "```" + str(list_of_match_names[i]) + "```" + "https://twitch.tv/" + str(list_of_streams[i])
-    embed = discord.Embed(title="STREAMS", description=embed_message, color=discord.Color.purple())
+    embed = discord.Embed(title="STREAMS", description='dfasdas', color=discord.Color.purple())
     embed.set_thumbnail(url = twitch_thumbnail)
     await ctx.respond(content=None, embed=embed)
 
