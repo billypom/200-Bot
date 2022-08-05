@@ -688,7 +688,7 @@ async def setname(
     description='Submit a table',
     guild_ids=Lounge
 )
-@commands.has_role([872770141606273034])
+@commands.has_role([REPORTER_ROLE])
 async def table(
     ctx,
     mogi_format: discord.Option(int, '1=FFA, 2=2v2, 3=3v3, 4=4v4, 6=6v6', required=True),
