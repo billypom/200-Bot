@@ -159,7 +159,7 @@ def mogi_media_check():
 
     mogi_media = client.get_channel(mogi_media_channel_id)
     mogi_media_message = asyncio.run_coroutine_threadsafe(mogi_media.fetch_message(mogi_media_message_id), client.loop)
-    asyncio.run_coroutine_threadsafe(ml_message.result().edit(embed=embed), client.loop)
+    asyncio.run_coroutine_threadsafe(mogi_media_message.result().edit(embed=embed), client.loop)
 
     # await ctx.respond(content=None, embed=embed)
 
