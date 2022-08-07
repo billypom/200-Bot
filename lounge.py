@@ -1457,7 +1457,7 @@ async def strike(
     if len(reason) > 32:
         await ctx.respond('Reason too long (32 character limit)')
         return
-    x = await check_if_player_exists(player)
+    x = await check_if_uid_exists(player.id)
     if x:
         pass
     else:
