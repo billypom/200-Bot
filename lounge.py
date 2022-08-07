@@ -1449,10 +1449,35 @@ async def swapscore(
 @commands.has_any_role(UPDATER_ROLE, ADMIN_ROLE)
 async def strike(
     ctx,
-    player: discord.Option(discord.Member, description='Which player?', required=True)
+    player: discord.Option(discord.Member, description='Which player?', required=True),
+    mmr_penalty: discord.Option(int, description='How much penalty to apply?', required=True),
+    reason: discord.Option(str, description='Why?', required=True)
     ):
     await ctx.defer()
-    await ctx.respond(f'Player chosen: {player.mention}')
+    if len(reason) > 32:
+        await ctx.respond('Reason too long (32 character limit)')
+        return
+    x = await check_if_player_exists(player)
+    if x:
+        pass
+    else:
+        await ctx.respond('Player not found')
+        return
+    y = await check_if_banned_characters(reason)
+    if y:
+        await ctx.respond('Invalid reason')
+        return
+    else:
+        pass
+    # Send info to strikes table
+    # Update player MMR
+    current_time = datetime.datetime.now()
+    expiration_date = current_time + datetime.timedelta(months=1)
+    with DBA.DBAccess() as db:
+        db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date))
+        temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
+        db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((temp[0][0]-mmr_penalty), player.id))
+    await ctx.respond(f'Strike applied to {player.mention} | Penalty: {mmr_penalty}')
 
 @client.slash_command(
     name='hostban',
@@ -1465,7 +1490,15 @@ async def hostban(
     player: discord.Option(discord.Member, description='Which player?', required=True)
     ):
     await ctx.defer()
-    await ctx.respond(f'Player chosen: {player.mention}')
+    x = await check_if_player_exists(player)
+    if x:
+        pass
+    else:
+        await ctx.respond('Player not found')
+        return
+    with DBA.DBAccess() as db:
+        db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (player.id,))
+    await ctx.respond(f'{player.mention} has been host banned')
 
 
 
