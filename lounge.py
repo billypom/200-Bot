@@ -1476,7 +1476,11 @@ async def strike(
     with DBA.DBAccess() as db:
         db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date))
         temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
-        db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((temp[0][0]-mmr_penalty), player.id))
+        if temp[0][0] is None:
+            mmr = mmr_penalty
+        else:
+            mmr = temp[0][0]
+        db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((mmr-mmr_penalty), player.id))
     await ctx.respond(f'Strike applied to {player.mention} | Penalty: {mmr_penalty}')
 
 @client.slash_command(
