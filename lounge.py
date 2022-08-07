@@ -1472,7 +1472,7 @@ async def strike(
     # Send info to strikes table
     # Update player MMR
     current_time = datetime.datetime.now()
-    expiration_date = current_time + datetime.timedelta(months=1)
+    expiration_date = current_time + datetime.timedelta(days=30)
     with DBA.DBAccess() as db:
         db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date))
         temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
