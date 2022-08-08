@@ -299,7 +299,7 @@ async def on_message(ctx):
             pass
         else:
             print('BAD')
-            ctx.delete()
+            await ctx.delete()
     if ctx.channel.id in TIER_ID_LIST:
         # Set player activity time, if in lineup
         try:
