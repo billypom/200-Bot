@@ -34,8 +34,6 @@ NAME_CHANGE_DELTA_LIMIT = 5184000
 REPORTER_ROLE = 872770141606273034
 ADMIN_ROLE = 461388423572357130
 UPDATER_ROLE = 461461018971996162
-GUILD = ''
-CHAT_RESTRICTED_ROLE = 0
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -253,8 +251,8 @@ poll_thread.start()
 
 @client.event
 async def on_ready():
-    GUILD = client.get_guild(Lounge[0])
-    CHAT_RESTRICTED_ROLE = GUILD.get_role(845084987417559040)
+    global GUILD = client.get_guild(Lounge[0])
+    global CHAT_RESTRICTED_ROLE = GUILD.get_role(845084987417559040)
 
 @client.event
 async def on_application_command_error(ctx, error):
