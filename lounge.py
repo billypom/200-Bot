@@ -251,8 +251,10 @@ poll_thread.start()
 
 @client.event
 async def on_ready():
-    global GUILD = client.get_guild(Lounge[0])
-    global CHAT_RESTRICTED_ROLE = GUILD.get_role(845084987417559040)
+    global GUILD
+    global CHAT_RESTRICTED_ROLE
+    GUILD = client.get_guild(Lounge[0])
+    CHAT_RESTRICTED_ROLE = GUILD.get_role(845084987417559040)
 
 @client.event
 async def on_application_command_error(ctx, error):
