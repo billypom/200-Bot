@@ -31,9 +31,11 @@ TIER_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
 NAME_CHANGE_DELTA_LIMIT = 5184000
-REPORTER_ROLE = 872770141606273034
-ADMIN_ROLE = 461388423572357130
-UPDATER_ROLE = 461461018971996162
+REPORTER_ROLE_ID = 872770141606273034
+ADMIN_ROLE_ID = 461388423572357130
+UPDATER_ROLE_ID = 461461018971996162
+CHAT_RESTRICTED_ROLE_ID = 845084987417559040
+LOUNGELESS_ROLE_ID = 463868896743522304
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -253,8 +255,10 @@ poll_thread.start()
 async def on_ready():
     global GUILD
     global CHAT_RESTRICTED_ROLE
+    global LOUNGELESS_ROLE
     GUILD = client.get_guild(Lounge[0])
-    CHAT_RESTRICTED_ROLE = GUILD.get_role(845084987417559040)
+    CHAT_RESTRICTED_ROLE = GUILD.get_role(CHAT_RESTRICTED_ROLE_ID)
+    LOUNGELESS_ROLE = GUILD.get_role(LOUNGELESS_ROLE_ID)
 
 @client.event
 async def on_application_command_error(ctx, error):
@@ -292,13 +296,9 @@ async def on_message(ctx):
         return
     user = await GUILD.fetch_member(ctx.author.id)
     if CHAT_RESTRICTED_ROLE in user.roles:
-        print(f'ctx.content: {ctx.content}')
-        # print(f'ctx.message.content: {ctx.message.content}')
         if ctx.content in secretly.chat_restricted_words:
-            print('safe')
             pass
         else:
-            print('BAD')
             await ctx.delete()
     if ctx.channel.id in TIER_ID_LIST:
         # Set player activity time, if in lineup
@@ -786,7 +786,7 @@ async def name(
     description='Submit a table',
     guild_ids=Lounge
 )
-@commands.has_role(REPORTER_ROLE)
+@commands.has_role(REPORTER_ROLE_ID)
 async def table(
     ctx,
     mogi_format: discord.Option(int, '1=FFA, 2=2v2, 3=3v3, 4=4v4, 6=6v6', required=True),
@@ -816,11 +816,6 @@ async def table(
             score_list[i] = temp[0][0]
             player_list_check.append(score_list[i])
 
-    has_dupes = await check_for_dupes_in_list(player_list_check)
-    if has_dupes:
-        await ctx.respond('You cannot have duplicate players on a table')
-        return
-
     # Check for if mogi has started
     try:
         with DBA.DBAccess() as db:
@@ -834,8 +829,18 @@ async def table(
         await ctx.respond('Mogi has not started. Cannot create a table now')
         return
 
-    # Check for role? (reporter? or how do i do that...)
-    # await get_role()
+    # Check for 12 players
+    if len(score_list) == 24:
+        pass
+    else:
+        await ctx.respond(f'``Error 26:`` Invalid input. There must be 12 players and 12 scores.')
+        return
+    
+    # Check for duplicate players
+    has_dupes = await check_for_dupes_in_list(player_list_check)
+    if has_dupes:
+        await ctx.respond('``Error 37:`` You cannot have duplicate players on a table')
+        return
 
     # Check the mogi_format
     if mogi_format == 1:
@@ -860,13 +865,6 @@ async def table(
         MULTIPLIER_SPECIAL = 3.5
     else:
         await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, 4, or 6.')
-        return
-
-    # Check for 12 players
-    if len(score_list) == 24:
-        pass
-    else:
-        await ctx.respond(f'``Error 26:`` Invalid input. There must be 12 players and 12 scores.')
         return
 
     # Initialize a list so we can group players and scores together
@@ -1386,14 +1384,14 @@ async def twitch(
     except Exception:
         await ctx.respond("``Error 33:`` Player not found. Use ``/verify <mkc link>`` to register with Lounge")
 
-# /revert TODO: Limit to admins/updaters
+# /revert
 @client.slash_command(
-    name="revert",
-    description="Undo a table",
+    name="zrevert",
+    description="Undo a table [Admin only]",
     guild_ids=Lounge
 )
-@commands.has_any_role(UPDATER_ROLE, ADMIN_ROLE)
-async def revert(
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zrevert(
     ctx,
     mogi_id: discord.Option(int, 'Mogi ID / Table ID', required=True)
     ):
@@ -1418,12 +1416,12 @@ async def revert(
 
 # /swapscore
 @client.slash_command(
-    name="swapscore",
-    description="Swap the score of two players on the same team",
+    name="zswapscore",
+    description="Swap the score of two players on the same team [Admin only]",
     guild_ids=Lounge
 )
-@commands.has_any_role(UPDATER_ROLE, ADMIN_ROLE)
-async def swapscore(
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zswapscore(
     ctx,
     player1: discord.Option(str, "Player name", required=True),
     player2: discord.Option(str, "Player name", required=True),
@@ -1473,12 +1471,12 @@ async def swapscore(
     return
 
 @client.slash_command(
-    name='strike',
-    description='Add strike & -mmr penalty to a player',
+    name='zstrike',
+    description='Add strike & -mmr penalty to a player [Admin only]',
     guild_ids=Lounge
 )
-@commands.has_any_role(UPDATER_ROLE, ADMIN_ROLE)
-async def strike(
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zstrike(
     ctx,
     player: discord.Option(discord.Member, description='Which player?', required=True),
     mmr_penalty: discord.Option(int, description='How much penalty to apply?', required=True),
@@ -1505,6 +1503,7 @@ async def strike(
     current_time = datetime.datetime.now()
     expiration_date = current_time + datetime.timedelta(days=30)
     mmr = 0
+    num_of_strikes = 0
     with DBA.DBAccess() as db:
         temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
         if temp[0][0] is None:
@@ -1514,32 +1513,68 @@ async def strike(
     with DBA.DBAccess() as db:
         db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date))
         db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((mmr-mmr_penalty), player.id))
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT COUNT(*) FROM strike WHERE player_id = %s AND is_active = %s;', (player.id, 1))
+        num_of_strikes = temp[0][0]
+    if num_of_strikes >= 3:
+        user = GUILD.fetch_member(player.id)
+        await user.add_roles(LOUNGELESS_ROLE)
+        channel = GUILD.get_channel(secretly.strikes_channel)
+        await channel.send(f'{player.mention} has reached 3 strikes. Loungeless role applied')
     await ctx.respond(f'Strike applied to {player.mention} | Penalty: {mmr_penalty}')
 
 @client.slash_command(
-    name='hostban',
-    description='Add hostban to a player',
+    name='zhostban',
+    description='Add hostban to a player [Admin only]',
     guild_ids=Lounge
 )
-@commands.has_any_role(UPDATER_ROLE, ADMIN_ROLE)
-async def hostban(
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zhostban(
     ctx,
     player: discord.Option(discord.Member, description='Which player?', required=True)
     ):
     await ctx.defer()
-    x = await check_if_player_exists(player)
+    x = await check_if_uid_exists(player.id)
     if x:
         pass
     else:
         await ctx.respond('Player not found')
         return
     with DBA.DBAccess() as db:
-        db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (1, player.id))
-    await ctx.respond(f'{player.mention} has been host banned')
+        temp = db.query('SELECT is_host_banned FROM player WHERE player_id = %s;', (player.id,))
+    if temp[0][0]:
+        with DBA.DBAccess() as db:
+            db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (0, player.id))
+            await ctx.respond(f'{player.mention} has been un-host-banned')
+    else:
+        with DBA.DBAccess() as db:
+            db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (1, player.id))
+            await ctx.respond(f'{player.mention} has been host-banned')
 
 @client.slash_command(
-    name='restrict'
+    name='zrestrict',
+    description='Chat restrict a player [Admin only]'
+    guild_ids=Lounge
 )
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zrestrict(
+    ctx,
+    player: discord.Option(discord.Member, description='Which player?', required=True)
+    ):
+    await ctx.defer()
+    x = await check_if_uid_exists(player.id)
+    if x:
+        pass
+    else:
+        await ctx.respond('Player not found')
+        return
+    user = GUILD.fetch_member(player.id)
+    if CHAT_RESTRICTED_ROLE in user.roles:
+        await user.remove_roles(CHAT_RESTRICTED_ROLE)
+        await ctx.respond(f'{player.mention} has been unrestricted')
+    else:
+        await user.add_roles(CHAT_RESTRICTED_ROLE)
+        await ctx.respond(f'{player.mention} has been restricted')
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
