@@ -801,7 +801,7 @@ async def table(
     # Create list
     score_string = str(scores) #.translate(remove_chars)
     score_list = score_string.split()
-    print(f'score list: {score_list}')
+    #print(f'score list: {score_list}')
     player_list_check = []
     for i in range(0, len(score_list), 2):
         with DBA.DBAccess() as db:
@@ -875,6 +875,7 @@ async def table(
     count = 0
     mogi_score = 0
     # print(f'length of chunked list: {len(chunked_list)}')
+    print(f'chunked list: {chunked_list}')
     for team in chunked_list:
         temp_mmr = 0
         team_score = 0
@@ -923,7 +924,6 @@ async def table(
     prev_team_score = 0
     prev_team_placement = 1
     team_placement = 0
-    player_count_for_feedback = 0
     for team in sorted_list:
         # If team score = prev team score, use prev team placement, else increase placement and use placement
         # print('if team score == prev team score')
@@ -940,11 +940,10 @@ async def table(
                 continue
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_name, country_code FROM player WHERE player_id = %s;', (player[0],))
-                player_name = player_list_check[player_count_for_feedback]
+                player_name = temp[0][0]
                 country_code = temp[0][1]
                 score = player[1]
             lorenzi_query += f'{player_name} [{country_code}] {score}\n'
-            player_count_for_feedback += 1
 
         # Assign previous values before leaving
         prev_team_placement = team_placement
