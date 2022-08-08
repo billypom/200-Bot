@@ -1515,12 +1515,20 @@ async def zstrike(
         db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((mmr-mmr_penalty), player.id))
     with DBA.DBAccess() as db:
         temp = db.query('SELECT COUNT(*) FROM strike WHERE player_id = %s AND is_active = %s;', (player.id, 1))
-        num_of_strikes = temp[0][0]
+        if temp[0][0] is None:
+            num_of_strikes = 0
+        else:
+            num_of_strikes = temp[0][0]
     if num_of_strikes >= 3:
+        times_strike_limit_reached = 0
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT times_strike_limit_reached FROM player WHERE player_id = %s;', (player.id,))
+            times_strike_limit_reached = temp[0][0] + 1
+            db.execute('UPDATE player SET times_strike_limit_reached = %s WHERE player_id = %s;', (temp[0][0], player.id))
         user = await GUILD.fetch_member(player.id)
         await user.add_roles(LOUNGELESS_ROLE)
         channel = client.get_channel(secretly.strikes_channel)
-        await channel.send(f'{player.mention} has reached 3 strikes. Loungeless role applied')
+        await channel.send(f'{player.mention} has reached 3 strikes. Loungeless role applied\n`# of offenses` {times_strike_limit_reached}')
     await ctx.respond(f'Strike applied to {player.mention} | Penalty: {mmr_penalty}')
 
 @client.slash_command(
