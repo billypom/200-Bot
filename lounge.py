@@ -1553,7 +1553,7 @@ async def zhostban(
 
 @client.slash_command(
     name='zrestrict',
-    description='Chat restrict a player [Admin only]'
+    description='Chat restrict a player [Admin only]',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
