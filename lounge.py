@@ -34,6 +34,8 @@ NAME_CHANGE_DELTA_LIMIT = 5184000
 REPORTER_ROLE = 872770141606273034
 ADMIN_ROLE = 461388423572357130
 UPDATER_ROLE = 461461018971996162
+GUILD = ''
+CHAT_RESTRICTED_ROLE = 0
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -49,15 +51,12 @@ client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge'))
 # await member.add_roles(new_role)
 # with DBA.DBAccess() as db:
 
-GUILD = client.get_guild(Lounge[0])
-CHAT_RESTRICTED_ROLE = GUILD.get_role(845084987417559040)
 
 # Initialize the TIER_ID_LIST
 with DBA.DBAccess() as db:
     get_tier_list = db.query('SELECT tier_id FROM tier WHERE tier_id > %s;', (0,))
     for i in range(len(get_tier_list)):
         TIER_ID_LIST.append(get_tier_list[i][0])
-    # print(TIER_ID_LIST)
 
 # Discord UI button - Confirmation button
 class Confirm(View):
@@ -252,6 +251,10 @@ poll_thread.start()
 
 # 3 strikes = loungeless role
 
+@client.event
+async def on_ready():
+    GUILD = client.get_guild(Lounge[0])
+    CHAT_RESTRICTED_ROLE = GUILD.get_role(845084987417559040)
 
 @client.event
 async def on_application_command_error(ctx, error):
