@@ -243,14 +243,6 @@ poll_thread = threading.Thread(target=lounge_threads)
 poll_thread.start()
 
 
-
-# CR & Loungeless serve different purposes. CR players are allowed to play events but are only able to send a handful of messages - they can also send said messages in any channel. Loungeless players can only view the channels under Community (with the exception of looking-for-players and looking-for-team) — an individual strike expires after a month.
-
-# chat restriction is for behavioural
-# loungeless is for breaking mogi rules
-
-# 3 strikes = loungeless role
-
 @client.event
 async def on_ready():
     global GUILD
@@ -930,6 +922,7 @@ async def table(
     prev_team_score = 0
     prev_team_placement = 1
     team_placement = 0
+    player_count_for_feedback = 0
     for team in sorted_list:
         # If team score = prev team score, use prev team placement, else increase placement and use placement
         # print('if team score == prev team score')
@@ -946,10 +939,11 @@ async def table(
                 continue
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_name, country_code FROM player WHERE player_id = %s;', (player[0],))
-                player_name = temp[0][0]
+                player_name = player_list_check[player_count_for_feedback]
                 country_code = temp[0][1]
                 score = player[1]
             lorenzi_query += f'{player_name} [{country_code}] {score}\n'
+            player_count_for_feedback += 1
 
         # Assign previous values before leaving
         prev_team_placement = team_placement
@@ -1384,7 +1378,37 @@ async def twitch(
     except Exception:
         await ctx.respond("``Error 33:`` Player not found. Use ``/verify <mkc link>`` to register with Lounge")
 
-# /revert
+# /strikes
+@client.slash_command(
+    name='strikes',
+    description='See your strikes',
+    guild_ids=Lounge
+)
+async def strikes(ctx):
+    await ctx.defer()
+    x = await check_if_uid_exists(ctx.author.id)
+    if x:
+        pass
+    else:
+        await ctx.respond('Player not found. Use `/verify <mkc link>` to register with Lounge')
+        return
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT UNIX_TIMESTAMP(expiration_date) FROM strike WHERE player_id = %s AND is_active = %s ORDER BY create_date ASC;', (ctx.author.id, 1))
+            if temp[0][0]:
+                response = ''
+                for i in range(len(temp)):
+                    response += f'`Strike {i+1}` Expires: <t:{str(int(temp[i][0]))}:F>\n'
+                await ctx.respond(response)
+                return
+            else:
+                pass
+    except Exception:
+        pass
+    await ctx.respond('You have no strikes')
+    return
+       
+# /zrevert
 @client.slash_command(
     name="zrevert",
     description="Undo a table [Admin only]",
@@ -1414,7 +1438,7 @@ async def zrevert(
     await ctx.respond(f'Mogi ID `{mogi_id}` has been removed.')
     return
 
-# /swapscore
+# /zswapscore
 @client.slash_command(
     name="zswapscore",
     description="Swap the score of two players on the same team [Admin only]",
@@ -1470,6 +1494,7 @@ async def zswapscore(
     await ctx.respond(f'Scores swapped successfully.\n{player1} {id1_score} -> {id2_score}\n{player2} {id2_score} -> {id1_score}')
     return
 
+# /zstrike
 @client.slash_command(
     name='zstrike',
     description='Add strike & -mmr penalty to a player [Admin only]',
@@ -1530,37 +1555,8 @@ async def zstrike(
         channel = client.get_channel(secretly.strikes_channel)
         await channel.send(f'{player.mention} has reached 3 strikes. Loungeless role applied\n`# of offenses:` {times_strike_limit_reached}')
     await ctx.respond(f'Strike applied to {player.mention} | Penalty: {mmr_penalty}')
-
-@client.slash_command(
-    name='strikes',
-    description='See your strikes',
-    guild_ids=Lounge
-)
-async def strikes(ctx):
-    await ctx.defer()
-    x = await check_if_uid_exists(ctx.author.id)
-    if x:
-        pass
-    else:
-        await ctx.respond('Player not found. Use `/verify <mkc link>` to register with Lounge')
-        return
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT UNIX_TIMESTAMP(expiration_date) FROM strike WHERE player_id = %s AND is_active = %s ORDER BY create_date ASC;', (ctx.author.id, 1))
-            if temp[0][0]:
-                response = ''
-                for i in range(len(temp)):
-                    response += f'`Strike {i+1}` Expires: <t:{str(int(temp[i][0]))}:F>\n'
-                await ctx.respond(response)
-                return
-            else:
-                pass
-    except Exception:
-        pass
-    await ctx.respond('You have no strikes')
-    return
-            
-
+     
+# /zhostban
 @client.slash_command(
     name='zhostban',
     description='Add hostban to a player [Admin only]',
@@ -1589,6 +1585,7 @@ async def zhostban(
             db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (1, player.id))
             await ctx.respond(f'{player.mention} has been host-banned')
 
+# /zrestrict
 @client.slash_command(
     name='zrestrict',
     description='Chat restrict a player [Admin only]',
@@ -1985,6 +1982,7 @@ async def check_for_dupes_in_list(my_list):
         return False
     else:
         return True
+
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
 
@@ -2071,16 +2069,6 @@ async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
         await channel.send(content=None, embed=embed)
     except Exception as e:
         await channel.send(f'TOO MANY MATCHES: {e} {user_matches_list}')
-
-
-
-
-
-
-
-
-
-
 
 
 
