@@ -876,10 +876,12 @@ async def table(
     mogi_score = 0
     # print(f'length of chunked list: {len(chunked_list)}')
     print(f'chunked list: {chunked_list}')
+    player_count_for_feedback = 0
     for team in chunked_list:
         temp_mmr = 0
         team_score = 0
         for player in team:
+            player.append(player_list_check[player_count_for_feedback])
             try:
                 with DBA.DBAccess() as db:
                     # This part makes sure that only players in the current channel's lineup can have a table made for them
@@ -899,6 +901,7 @@ async def table(
                 await send_to_debug_channel(ctx, e)
                 await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>')
                 return
+            player_count_for_feedback += 1
         # print(team_score)
         team_mmr = temp_mmr/len(team)
         team.append(team_score)
@@ -939,9 +942,9 @@ async def table(
             if idx > (mogi_format-1):
                 continue
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT player_name, country_code FROM player WHERE player_id = %s;', (player[0],))
-                player_name = temp[0][0]
-                country_code = temp[0][1]
+                temp = db.query('SELECT country_code FROM player WHERE player_id = %s;', (player[0],))
+                player_name = player[2]
+                country_code = temp[0][0]
                 score = player[1]
             lorenzi_query += f'{player_name} [{country_code}] {score}\n'
 
