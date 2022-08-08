@@ -290,7 +290,8 @@ async def on_application_command_error(ctx, error):
 async def on_message(ctx):
     if ctx.author.id == lounge_id: # ignore self messages
         return
-    if CHAT_RESTRICTED_ROLE in ctx.roles:
+    user = await client.fetch_member(ctx.author.id)
+    if CHAT_RESTRICTED_ROLE in user.roles:
         print('ur restricted')
     if ctx.channel.id in TIER_ID_LIST:
         # Set player activity time, if in lineup
