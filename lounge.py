@@ -1544,17 +1544,21 @@ async def strikes(ctx):
     else:
         await ctx.respond('Player not found. Use `/verify <mkc link>` to register with Lounge')
         return
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT UNIX_TIMESTAMP(expiration_date) FROM strike WHERE player_id = %s AND is_active = %s ORDER BY create_date ASC;', (ctx.author.id, 1))
-        if temp[0][0]:
-            response = ''
-            for i in range(len(temp)):
-                response += f'`Strike {i+1}` Expires: <t:{str(int(temp[i][0]))}:F>\n'
-            await ctx.respond(response)
-            return
-        else:
-            await ctx.respons('You have no strikes')
-            return
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT UNIX_TIMESTAMP(expiration_date) FROM strike WHERE player_id = %s AND is_active = %s ORDER BY create_date ASC;', (ctx.author.id, 1))
+            if temp[0][0]:
+                response = ''
+                for i in range(len(temp)):
+                    response += f'`Strike {i+1}` Expires: <t:{str(int(temp[i][0]))}:F>\n'
+                await ctx.respond(response)
+                return
+            else:
+                pass
+    except Exception:
+        pass
+    await ctx.respond('You have no strikes')
+    return
             
 
 @client.slash_command(
