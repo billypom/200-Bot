@@ -292,7 +292,12 @@ async def on_message(ctx):
         return
     user = await GUILD.fetch_member(ctx.author.id)
     if CHAT_RESTRICTED_ROLE in user.roles:
-        print('ur restricted')
+        print(f'ctx.content: {ctx.content}')
+        print(f'ctx.message.content: {ctx.message.content}')
+        if ctx.content in secretly.chat_restricted_words:
+            pass
+        else:
+            ctx.delete()
     if ctx.channel.id in TIER_ID_LIST:
         # Set player activity time, if in lineup
         try:
