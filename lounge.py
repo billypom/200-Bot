@@ -1517,9 +1517,9 @@ async def zstrike(
         temp = db.query('SELECT COUNT(*) FROM strike WHERE player_id = %s AND is_active = %s;', (player.id, 1))
         num_of_strikes = temp[0][0]
     if num_of_strikes >= 3:
-        user = GUILD.fetch_member(player.id)
+        user = await GUILD.fetch_member(player.id)
         await user.add_roles(LOUNGELESS_ROLE)
-        channel = GUILD.get_channel(secretly.strikes_channel)
+        channel = client.get_channel(secretly.strikes_channel)
         await channel.send(f'{player.mention} has reached 3 strikes. Loungeless role applied')
     await ctx.respond(f'Strike applied to {player.mention} | Penalty: {mmr_penalty}')
 
@@ -1568,7 +1568,7 @@ async def zrestrict(
     else:
         await ctx.respond('Player not found')
         return
-    user = GUILD.fetch_member(player.id)
+    user = await GUILD.fetch_member(player.id)
     if CHAT_RESTRICTED_ROLE in user.roles:
         await user.remove_roles(CHAT_RESTRICTED_ROLE)
         await ctx.respond(f'{player.mention} has been unrestricted')
