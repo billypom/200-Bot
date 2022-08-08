@@ -40,6 +40,18 @@ client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge'))
 # manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
 # send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
 
+
+# guild = client.get_guild(Lounge[0])
+# current_role = guild.get_role(my_player_rank_id)
+# new_role = guild.get_role(rank_id)
+# member = await guild.fetch_member(player[0])
+# await member.remove_roles(current_role)
+# await member.add_roles(new_role)
+# with DBA.DBAccess() as db:
+
+GUILD = client.get_guild(Lounge[0])
+CHAT_RESTRICTED_ROLE = GUILD.get_role(845084987417559040)
+
 # Initialize the TIER_ID_LIST
 with DBA.DBAccess() as db:
     get_tier_list = db.query('SELECT tier_id FROM tier WHERE tier_id > %s;', (0,))
@@ -233,6 +245,12 @@ poll_thread.start()
 
 
 
+# CR & Loungeless serve different purposes. CR players are allowed to play events but are only able to send a handful of messages - they can also send said messages in any channel. Loungeless players can only view the channels under Community (with the exception of looking-for-players and looking-for-team) — an individual strike expires after a month.
+
+# chat restriction is for behavioural
+# loungeless is for breaking mogi rules
+
+# 3 strikes = loungeless role
 
 
 @client.event
@@ -267,8 +285,10 @@ async def on_application_command_error(ctx, error):
 
 @client.event
 async def on_message(ctx):
-    if ctx.author.id == lounge_id:
+    if ctx.author.id == lounge_id: # ignore self messages
         return
+    if CHAT_RESTRICTED_ROLE in ctx.roles:
+        print('ur restricted')
     if ctx.channel.id in TIER_ID_LIST:
         # Set player activity time, if in lineup
         try:
@@ -1473,13 +1493,15 @@ async def strike(
     # Update player MMR
     current_time = datetime.datetime.now()
     expiration_date = current_time + datetime.timedelta(days=30)
+    mmr = 0
     with DBA.DBAccess() as db:
-        db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date))
         temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
         if temp[0][0] is None:
             mmr = mmr_penalty
         else:
             mmr = temp[0][0]
+    with DBA.DBAccess() as db:
+        db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date))
         db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((mmr-mmr_penalty), player.id))
     await ctx.respond(f'Strike applied to {player.mention} | Penalty: {mmr_penalty}')
 
@@ -1501,10 +1523,12 @@ async def hostban(
         await ctx.respond('Player not found')
         return
     with DBA.DBAccess() as db:
-        db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (player.id,))
+        db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (1, player.id))
     await ctx.respond(f'{player.mention} has been host banned')
 
-
+@client.slash_command(
+    name='restrict'
+)
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
