@@ -1238,15 +1238,14 @@ async def stats(
     # Create matplotlib MMR history graph
     try: # Checks for valid player
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT base_mmr, peak_mmr, penalty_mmr, mmr, player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
+            temp = db.query('SELECT base_mmr, peak_mmr, mmr, player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
             if temp[0][0] is None:
                 base = 0
             else:
                 base = temp[0][0]
             peak = temp[0][1]
-            penalty = temp[0][2]
-            mmr = temp[0][3]
-            player_name = temp[0][4]
+            mmr = temp[0][2]
+            player_name = temp[0][3]
         with DBA.DBAccess() as db:
             temp = db.query('SELECT COUNT(*) FROM player WHERE mmr >= %s ORDER BY mmr DESC;', (mmr,))
             rank = temp[0][0]
