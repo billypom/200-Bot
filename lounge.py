@@ -801,12 +801,13 @@ async def table(
     # Create list
     score_string = str(scores) #.translate(remove_chars)
     score_list = score_string.split()
+    print(f'score list: {score_list}')
     player_list_check = []
     for i in range(0, len(score_list), 2):
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (score_list[i],))
-            score_list[i] = temp[0][0]
             player_list_check.append(score_list[i])
+            score_list[i] = temp[0][0]
 
     # Check for if mogi has started
     try:
@@ -939,11 +940,11 @@ async def table(
                 continue
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_name, country_code FROM player WHERE player_id = %s;', (player[0],))
-                player_name = score_list[player_count_for_feedback]
+                player_name = player_list_check[player_count_for_feedback]
                 country_code = temp[0][1]
                 score = player[1]
             lorenzi_query += f'{player_name} [{country_code}] {score}\n'
-            player_count_for_feedback += 2
+            player_count_for_feedback += 1
 
         # Assign previous values before leaving
         prev_team_placement = team_placement
