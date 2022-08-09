@@ -43,15 +43,6 @@ client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge'))
 # send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
 
 
-# guild = client.get_guild(Lounge[0])
-# current_role = guild.get_role(my_player_rank_id)
-# new_role = guild.get_role(rank_id)
-# member = await guild.fetch_member(player[0])
-# await member.remove_roles(current_role)
-# await member.add_roles(new_role)
-# with DBA.DBAccess() as db:
-
-
 # Initialize the TIER_ID_LIST
 with DBA.DBAccess() as db:
     get_tier_list = db.query('SELECT tier_id FROM tier WHERE tier_id > %s;', (0,))
@@ -86,14 +77,6 @@ class Confirm(View):
         await interaction.response.send_message("Denying...", ephemeral=True)
         self.value = False
         self.stop()
-
-
-
-
-
-
-
-
 
 
 
@@ -366,7 +349,6 @@ async def on_raw_reaction_add(payload):
         except Exception:
             pass
     return
-
 
 
 
@@ -909,7 +891,6 @@ async def table(
     if mogi_score == 984:
         pass
     else:
-        pass # TODO: DELETE LATER
         await ctx.respond(f'``Error 28:`` `Scores = {mogi_score} `Scores must add up to 984.')
         return
 
@@ -1611,6 +1592,31 @@ async def zrestrict(
     else:
         await user.add_roles(CHAT_RESTRICTED_ROLE)
         await ctx.respond(f'{player.mention} has been restricted')
+
+# /zloungeless
+@client.slash_command(
+    name='zloungeless',
+    description='Apply the loungeless role [Admin only]',
+    guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zloungeless(
+    ctx, 
+    player: discord.Option(discord.Member, description='Which player?', required=True)
+    ):
+    await ctx.defer()
+    x = await check_if_uid_exists(player.id)
+    if x:
+        pass
+    else:
+        await ctx.respond('Player not found')
+    user = await GUILD.fetch_member(player.id)
+    if LOUNGELESS_ROLE in user.roles:
+        await user.remove_roles(LOUNGELESS_ROLE)
+        await ctx.respond(f'Loungeless removed from {player.mention}')
+    else:
+        await user.add_roles(LOUNGELESS_ROLE)
+        await ctx.respond(f'Loungeless added to {player.mention}')
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
