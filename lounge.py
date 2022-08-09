@@ -1321,7 +1321,7 @@ async def stats(
     embed.add_field(name='Events Played', value=f'{events_played}', inline=True)
     embed.add_field(name='Largest Gain', value=f'{largest_gain}', inline=True)
     embed.add_field(name='Largest Loss', value=f'{largest_loss}', inline=True)
-    embed.add_field(name='Average MMR', value=f'{round(average_mmr,-1)}', inline=True)
+    embed.add_field(name='Average MMR', value=f'{round(average_mmr,0)}', inline=True)
     embed.add_field(name='Base MMR', value=f'{base}', inline=True)
     embed.set_image(url='attachment://stats.png')
     await channel.send(file=f, embed=embed)
