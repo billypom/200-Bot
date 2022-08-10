@@ -675,7 +675,8 @@ async def sub(
         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
         await send_to_debug_channel(ctx, e)
         return
-    unix_now = await get_unix_time_now()
+    with DBA.DBAccess() as db:
+        db.execute('INSERT INTO sub_leaver (player_id, tier_id) VALUES (%s, %s);', (leaving_player.id, ctx.author.id))
     await ctx.respond(f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}>')
     await send_to_sub_log(ctx, f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}> in {ctx.channel.mention}')
     return
