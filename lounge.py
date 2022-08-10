@@ -623,13 +623,9 @@ async def sub(
         await ctx.respond('<:bruh:1006883398607978537>')
         return
     # Player was already in lineup, got subbed out
-    print('outside')
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (subbing_player.id,))
-        print(type(temp))
-        print(temp)
         if temp:
-            print('inside')
             if temp[0][0] == subbing_player.id:
                 await ctx.respond('Player cannot sub into a mogi after being subbed out.')
                 return
@@ -670,11 +666,10 @@ async def sub(
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (subbing_player.id,))
-            if temp[0][0] is None:
-                pass
-            elif temp[0][0] == subbing_player.id:
-                await ctx.respond(f'{subbing_player.mention} is already in this mogi')
-                return
+            if temp:
+                if temp[0][0] == subbing_player.id:
+                    await ctx.respond(f'{subbing_player.mention} is already in this mogi')
+                    return
             db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
     except Exception as e:
         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
