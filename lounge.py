@@ -481,6 +481,14 @@ async def c(
     ctx,
     ):
     await ctx.defer(ephemeral=True)
+    # Player was already in lineup, got subbed out
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (ctx.author.id,))
+        if temp[0][0] == ctx.author.id:
+            await ctx.respond('Please wait for the mogi you left to finish')
+            return
+        else:
+            pass
     x = await check_if_uid_in_tier(ctx.author.id)
     if x:
         await ctx.respond('``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.')
@@ -531,6 +539,14 @@ async def d(
     ctx,
     ):
     await ctx.defer(ephemeral=True)
+    # Player was already in lineup, got subbed out
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (ctx.author.id,))
+        if temp[0][0] == ctx.author.id:
+            await ctx.respond('Please wait for the mogi you left to finish')
+            return
+        else:
+            pass
     x = await check_if_uid_in_tier(ctx.author.id)
     if x:
         y = await check_if_uid_can_drop(ctx.author.id)
@@ -600,9 +616,19 @@ async def sub(
     subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
     ):
     await ctx.defer()
+    # Same player
     if leaving_player.id == subbing_player.id:
         await ctx.respond('<:bruh:1006883398607978537>')
         return
+    # Player was already in lineup, got subbed out
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (subbing_player.id,))
+        if temp[0][0] == subbing_player.id:
+            await ctx.respond('Player cannot sub into a mogi after being subbed out.')
+            return
+        else:
+            pass
+    # Player exists
     a = await check_if_uid_exists(leaving_player.id)
     if a:
         pass
@@ -636,6 +662,10 @@ async def sub(
         return
     try:
         with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (subbing_player.id,))
+            if temp[0][0] == subbing_player.id:
+                await ctx.respond(f'{subbing_player.mention} is already in this mogi')
+                return
             db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
     except Exception as e:
         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
@@ -1093,17 +1123,16 @@ async def table(
                 try:
                     with DBA.DBAccess() as db:
                         # Get ID of the last inserted table
-
                         temp = db.query('SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
                         db_mogi_id = temp[0][0]
-
                         # Insert reference record
-                        db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))
-
+                        db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))\
                         # Update player record
                         db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
                         # Remove player from lineups
                         db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
+                        # Clear sub leaver table
+                        db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (ctx.channel.id,))
                 except Exception as e:
                     print(e)
                     pass
