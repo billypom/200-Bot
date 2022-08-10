@@ -600,7 +600,7 @@ async def sub(
     subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
     ):
     await ctx.defer()
-    if leaving_player.id = subbing_player.id:
+    if leaving_player.id == subbing_player.id:
         await ctx.respond('<:bruh:1006883398607978537>')
         return
     a = await check_if_uid_exists(leaving_player.id)
