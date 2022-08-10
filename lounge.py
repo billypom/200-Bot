@@ -484,11 +484,10 @@ async def c(
     # Player was already in lineup, got subbed out
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (ctx.author.id,))
-        if temp[0][0] is None:
-            pass
-        if temp[0][0] == ctx.author.id:
-            await ctx.respond('Please wait for the mogi you left to finish')
-            return
+        if temp:
+            if temp[0][0] == ctx.author.id:
+                await ctx.respond('Please wait for the mogi you left to finish')
+                return
         else:
             pass
     x = await check_if_uid_in_tier(ctx.author.id)
@@ -544,11 +543,10 @@ async def d(
     # Player was already in lineup, got subbed out
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (ctx.author.id,))
-        if temp[0][0] is None:
-            pass
-        if temp[0][0] == ctx.author.id:
-            await ctx.respond('Please wait for the mogi you left to finish')
-            return
+        if temp:
+            if temp[0][0] == ctx.author.id:
+                await ctx.respond('Please wait for the mogi you left to finish')
+                return
         else:
             pass
     x = await check_if_uid_in_tier(ctx.author.id)
@@ -627,11 +625,10 @@ async def sub(
     # Player was already in lineup, got subbed out
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (subbing_player.id,))
-        if temp[0][0] is None:
-            pass
-        if temp[0][0] == subbing_player.id:
-            await ctx.respond('Player cannot sub into a mogi after being subbed out.')
-            return
+        if temp:
+            if temp[0][0] == subbing_player.id:
+                await ctx.respond('Player cannot sub into a mogi after being subbed out.')
+                return
         else:
             pass
     # Player exists
