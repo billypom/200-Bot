@@ -623,9 +623,11 @@ async def sub(
         await ctx.respond('<:bruh:1006883398607978537>')
         return
     # Player was already in lineup, got subbed out
+    print('outside')
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (subbing_player.id,))
         if temp:
+            print('inside')
             if temp[0][0] == subbing_player.id:
                 await ctx.respond('Player cannot sub into a mogi after being subbed out.')
                 return
