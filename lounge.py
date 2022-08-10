@@ -1450,6 +1450,7 @@ async def zcancel_mogi(ctx):
         with DBA.DBAccess() as db:
             db.execute('DELETE FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
             db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (ctx.channel.id,))
+        await ctx.respond('The mogi has been cancelled')
     except Exception as e:
         await send_to_debug_channel(ctx, f'Cancel Error Deletion:{e}')
         return
