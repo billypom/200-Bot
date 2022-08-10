@@ -626,6 +626,8 @@ async def sub(
     print('outside')
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (subbing_player.id,))
+        print(type(temp))
+        print(temp)
         if temp:
             print('inside')
             if temp[0][0] == subbing_player.id:
