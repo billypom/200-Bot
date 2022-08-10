@@ -519,7 +519,7 @@ async def c(
         await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secretly.my_discord}.')
         await send_to_debug_channel(ctx, e)
         return
-    if count >= MAX_PLAYERS_IN_MOGI:
+    if count = MAX_PLAYERS_IN_MOGI:
         mogi_started_successfully = await start_mogi(ctx)
         if mogi_started_successfully:
             pass
