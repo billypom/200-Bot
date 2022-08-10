@@ -676,7 +676,7 @@ async def sub(
         await send_to_debug_channel(ctx, e)
         return
     with DBA.DBAccess() as db:
-        db.execute('INSERT INTO sub_leaver (player_id, tier_id) VALUES (%s, %s);', (leaving_player.id, ctx.author.id))
+        db.execute('INSERT INTO sub_leaver (player_id, tier_id) VALUES (%s, %s);', (leaving_player.id, ctx.channel.id))
     await ctx.respond(f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}>')
     await send_to_sub_log(ctx, f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}> in {ctx.channel.mention}')
     return
