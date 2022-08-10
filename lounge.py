@@ -1436,7 +1436,7 @@ async def zcancel_mogi(ctx):
     # Check for ongoing mogi in current channel
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel, 0, MAX_PLAYERS_IN_MOGI))
+            temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
         if len(temp) == 12:
             pass
         else:
