@@ -892,7 +892,7 @@ async def table(
     count = 0
     mogi_score = 0
     # print(f'length of chunked list: {len(chunked_list)}')
-    print(f'chunked list: {chunked_list}')
+    # print(f'chunked list: {chunked_list}')
     for team in chunked_list:
         temp_mmr = 0
         team_score = 0
@@ -1139,7 +1139,8 @@ async def table(
                         # Clear sub leaver table
                         db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (ctx.channel.id,))
                 except Exception as e:
-                    print(e)
+                    # print(e)
+                    await send_to_debug_channel(ctx, f'FATAL TABLE ERROR: {e}')
                     pass
 
                 # Check for rank changes
