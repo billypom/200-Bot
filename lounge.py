@@ -1424,7 +1424,40 @@ async def strikes(ctx):
         pass
     await ctx.respond('You have no strikes')
     return
-       
+
+@client.slash_command(
+    name='zcancel_mogi',
+    description='Cancel an ongoing mogi',
+    guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zcancel_mogi(ctx):
+    await ctx.defer()
+    # Check for ongoing mogi in current channel
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel, 0, MAX_PLAYERS_IN_MOGI))
+        if len(temp) == 12:
+            pass
+        else:
+            await ctx.respond('There is no mogi being played in this tier.')
+            return
+    except Exception as e:
+        await send_to_debug_channel(ctx, f'Cancel Error Check: {e}')
+        return
+    # Delete from lineups & sub_leaver
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('DELETE FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
+            db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (ctx.channel.id,))
+    except Exception as e:
+        await send_to_debug_channel(ctx, f'Cancel Error Deletion:{e}')
+        return
+
+
+
+
+
 # /zrevert
 @client.slash_command(
     name="zrevert",
