@@ -1425,6 +1425,7 @@ async def strikes(ctx):
     await ctx.respond('You have no strikes')
     return
 
+# /zcancel_mogi
 @client.slash_command(
     name='zcancel_mogi',
     description='Cancel an ongoing mogi',
@@ -1454,10 +1455,6 @@ async def zcancel_mogi(ctx):
     except Exception as e:
         await send_to_debug_channel(ctx, f'Cancel Error Deletion:{e}')
         return
-
-
-
-
 
 # /zrevert
 @client.slash_command(
@@ -2101,7 +2098,7 @@ async def send_to_verification_log(ctx, message, verify_color, verify_descriptio
 async def send_to_debug_channel(ctx, error):
     channel = client.get_channel(secretly.debug_channel)
     embed = discord.Embed(title='Error', description='>.<', color = discord.Color.blurple())
-    embed.add_field(name='Name: ', value=ctx.author.mention, inline=False)
+    embed.add_field(name='Issuer: ', value=ctx.author.mention, inline=False)
     embed.add_field(name='Error: ', value=str(error), inline=False)
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
     await channel.send(content=None, embed=embed)
@@ -2117,7 +2114,7 @@ async def send_to_sub_log(ctx, message):
     unix_now = await get_unix_time_now()
     channel = client.get_channel(secretly.sub_channel)
     embed = discord.Embed(title='Sub', description=f'<t:{str(int(unix_now))}:F>', color = discord.Color.blurple())
-    embed.add_field(name='Name: ', value=ctx.author.mention, inline=False)
+    embed.add_field(name='Issuer: ', value=ctx.author.mention, inline=False)
     embed.add_field(name='Message: ', value=str(message), inline=False)
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
     await channel.send(content=None, embed=embed)
@@ -2136,8 +2133,8 @@ async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
     channel = client.get_channel(secretly.ip_match_channel)
     embed = discord.Embed(title="Verification", description=f'IP Matches for <@{ctx.author.id}>', color=verify_color)
     try:
-        embed.add_field(name="Name: ", value=ctx.author, inline=False)
-        embed.add_field(name='Message: ', value=message, inline=False)
+        embed.add_field(name="Issuer: ", value=ctx.author, inline=False)
+        embed.add_field(name='Link sent: ', value=message, inline=False)
         for user in user_matches_list:
             ip_match_forum_link = f'https://www.mariokartcentral.com/forums/index.php?members/{user}'
             embed.add_field(name=f'{user}', value=ip_match_forum_link, inline=False)
