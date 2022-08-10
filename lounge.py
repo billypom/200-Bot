@@ -451,27 +451,24 @@ async def verify(
         await send_to_verification_log(ctx, message, verify_color, verify_description)
         return
     if user_matches_list:
-        await ctx.respond('``Error 8:`` Oops! Something went wrong. Check your link or try again later')
         verify_color = discord.Color.teal()
         await send_to_ip_match_log(ctx, message, verify_color, user_matches_list)
+    # All clear. Roll out.
+    verify_description = vlog_msg.success
+    verify_color = discord.Color.green()
+    # Check if someone has verified as this user before...
+    x = await check_if_mkc_player_id_used(mkc_player_id)
+    if x:
+        await ctx.respond(f'``Error 10: Duplicate player`` If you think this is a mistake, please contact {secretly.my_discord} immediately. ')
+        verify_description = vlog_msg.error4
+        verify_color = discord.Color.red()
+        await send_to_verification_log(ctx, message, verify_color, verify_description)
         return
     else:
-        # All clear. Roll out.
-        verify_description = vlog_msg.success
-        verify_color = discord.Color.green()
-        # Check if someone has verified as this user before...
-        x = await check_if_mkc_player_id_used(mkc_player_id)
-        if x:
-            await ctx.respond(f'``Error 10: Duplicate player`` If you think this is a mistake, please contact {secretly.my_discord} immediately. ')
-            verify_description = vlog_msg.error4
-            verify_color = discord.Color.red()
-            await send_to_verification_log(ctx, message, verify_color, verify_description)
-            return
-        else:
-            x = await create_player(ctx, mkc_user_id, country_code)
-            await ctx.respond(x)
-            await send_to_verification_log(ctx, message, verify_color, verify_description)
-            return
+        x = await create_player(ctx, mkc_user_id, country_code)
+        await ctx.respond(x)
+        await send_to_verification_log(ctx, message, verify_color, verify_description)
+        return
 
 # /c
 @client.slash_command(
@@ -603,6 +600,9 @@ async def sub(
     subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
     ):
     await ctx.defer()
+    if leaving_player.id = subbing_player.id:
+        await ctx.respond('<:bruh:1006883398607978537>')
+        return
     a = await check_if_uid_exists(leaving_player.id)
     if a:
         pass
