@@ -484,6 +484,8 @@ async def c(
     # Player was already in lineup, got subbed out
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (ctx.author.id,))
+        if temp[0][0] is None:
+            pass
         if temp[0][0] == ctx.author.id:
             await ctx.respond('Please wait for the mogi you left to finish')
             return
@@ -542,6 +544,8 @@ async def d(
     # Player was already in lineup, got subbed out
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (ctx.author.id,))
+        if temp[0][0] is None:
+            pass
         if temp[0][0] == ctx.author.id:
             await ctx.respond('Please wait for the mogi you left to finish')
             return
@@ -623,6 +627,8 @@ async def sub(
     # Player was already in lineup, got subbed out
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (subbing_player.id,))
+        if temp[0][0] is None:
+            pass
         if temp[0][0] == subbing_player.id:
             await ctx.respond('Player cannot sub into a mogi after being subbed out.')
             return
@@ -663,7 +669,9 @@ async def sub(
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (subbing_player.id,))
-            if temp[0][0] == subbing_player.id:
+            if temp[0][0] is None:
+                pass
+            elif temp[0][0] == subbing_player.id:
                 await ctx.respond(f'{subbing_player.mention} is already in this mogi')
                 return
             db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
