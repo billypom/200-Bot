@@ -830,12 +830,12 @@ async def table(
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
-            count = temp[0][0]
+            players_in_lineup_count = temp[0][0]
     except Exception as e:
         await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}. {e}')
         await send_to_debug_channel(ctx, e)
         return
-    if count < 12:
+    if players_in_lineup_count < 12:
         await ctx.respond('Mogi has not started. Cannot create a table now')
         return
 
@@ -889,13 +889,13 @@ async def table(
         chunked_list.append(player_score_chunked_list[i:i+mogi_format])
     
     # Get MMR data for each team, calculate team score, and determine team placement
-    count = 0
     mogi_score = 0
     # print(f'length of chunked list: {len(chunked_list)}')
     # print(f'chunked list: {chunked_list}')
     for team in chunked_list:
         temp_mmr = 0
         team_score = 0
+        count = 0
         for player in team:
             
             try:
@@ -906,6 +906,7 @@ async def table(
                         mmr = 0
                     else:
                         mmr = temp[0][0]
+                        count+=1
                     temp_mmr += mmr
                     try:
                         team_score += int(player[1])
@@ -918,7 +919,9 @@ async def table(
                 await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>')
                 return
         # print(team_score)
-        team_mmr = temp_mmr/len(team)
+        if count == 0:
+            count = 1
+        team_mmr = temp_mmr/count
         team.append(team_score)
         team.append(team_mmr)
         mogi_score += team_score
