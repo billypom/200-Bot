@@ -996,6 +996,7 @@ async def table(
             tier_name = temp[0][1]
 
         # Pre MMR table calculate
+        print('calculate pre: ')
         value_table = list()
         for idx, team_x in enumerate(sorted_list):
             working_list = list()
@@ -1017,13 +1018,11 @@ async def table(
                     else:
                         if team_x_placement > team_y_placement:
                             pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_x_mmr-team_y_mmr)/9998)**MULTIPLIER_SPECIAL)
-                            pass
                         else: #team_x_placement < team_y_placement
                             pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
                 working_list.append(pre_mmr)
+            print(working_list)
             value_table.append(working_list)
-        print('VALUE TABLE:')
-        print(value_table)
 
         # # DEBUG
         # print(f'\nprinting value table:\n')
