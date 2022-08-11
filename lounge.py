@@ -1177,6 +1177,7 @@ async def table(
                     # Rank up - assign roles - update DB
                     try:
                         if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr:
+                            print('ITS A RANKUP')
                             guild = client.get_guild(Lounge[0])
                             current_role = guild.get_role(my_player_rank_id)
                             new_role = guild.get_role(rank_id)
@@ -1188,6 +1189,7 @@ async def table(
                             my_player_new_rank += f'+ {new_role}'
                         # Rank down - assign roles - update DB
                         elif my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
+                            print('ITS A RANK DOWN')
                             guild = client.get_guild(Lounge[0])
                             current_role = guild.get_role(my_player_rank_id)
                             new_role = guild.get_role(rank_id)
@@ -2320,7 +2322,7 @@ def mt_lounge_request_mkc_user_id(ctx):
 
 # https://imagemagick.org/script/color.php
 async def new_rank_wrapper(input, mmr):
-    if input != "               ":
+    if input:
         if mmr < 1500:
             return await iron_wrapper(input)
         elif mmr >= 1500 and mmr < 3000:
