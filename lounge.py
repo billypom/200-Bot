@@ -1009,7 +1009,12 @@ async def table(
                     team_x_placement = team_x[len(team_x)-1]
                     team_y_mmr = team_y[len(team_y)-2]
                     team_y_placement = team_y[len(team_y)-1]
+                    print(f'team_x_mmr: {team_x_mmr}')
+                    print(f'team_x_placement: {team_x_placement}')
+                    print(f'team_y_mmr: {team_y_mmr}')
+                    print(f'team_y_placement: {team_y_placement}')
                     if team_x_placement == team_y_placement:
+                        print(f'PLACEMENT: same')
                         pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/9998)**2)**(1/3))**2)
                         if team_x_mmr >= team_y_mmr:
                             pre_mmr = pre_mmr * -1
@@ -1017,9 +1022,17 @@ async def table(
                             pass
                     else:
                         if team_x_placement > team_y_placement:
+                            print(f'PLACEMENT: x > y')
                             pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_x_mmr-team_y_mmr)/9998)**MULTIPLIER_SPECIAL)
                         else: #team_x_placement < team_y_placement
+                            print(f'PLACEMENT: x < y')
                             pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
+                    print(f'xmmr - ymmr: {(team_x_mmr - team_y_mmr)}')
+                    print(f'(team_x_mmr-team_y_mmr)/9998: {(team_x_mmr-team_y_mmr)/9998}')
+                    print(f'+ 1 : {1 + (team_x_mmr-team_y_mmr)/9998}')
+                    print(f'MULTIPLIER SPECIAL: {MULTIPLIER_SPECIAL}')
+                    print(f'(team_x_mmr-team_y_mmr)/9998)**MULTIPLIER_SPECIAL: {(1 + (team_x_mmr-team_y_mmr)/9998)**MULTIPLIER_SPECIAL}')
+                    print(f'pre_mmr: {pre_mmr}')
                 working_list.append(pre_mmr)
             print(working_list)
             value_table.append(working_list)
