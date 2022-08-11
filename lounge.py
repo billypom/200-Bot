@@ -1205,17 +1205,22 @@ async def table(
         embed2.add_field(name='Table ID', value=f'{str(db_mogi_id)}', inline=True)
         embed2.add_field(name='Tier', value=f'{tier_name.upper()}', inline=True)
         embed2.add_field(name='Submitted by', value=f'<@{ctx.author.id}>', inline=True)
-        embed2.add_field(name='View on website', value=f'https://peng2n.com/lounge/mogi/{db_mogi_id}', inline=False)
-        embed2.add_field(name='yup', value='yes the domain will be different. this is just a placeholder...', inline=False)
+        embed2.add_field(name='View on website', value=f'https://200-lounge.com/mogi/{db_mogi_id}', inline=False)
         embed2.set_image(url='attachment://table.jpg')
-        await results_channel.send(content=None, embed=embed2, file=sf)
+        table_message = await results_channel.send(content=None, embed=embed2, file=sf)
+        table_url = table_message.embeds[0].image.url
+        try:
+            with DBA.DBAccess() as db:
+                db.query('UPDATE mogi SET table_url = %s WHERE mogi_id = %s;', (table_url, db_mogi_id))
+        except Exception as e:
+            await send_to_debug_channel(ctx, f'Unable to get table url: {e}')
+            pass
 
         embed = discord.Embed(title=f'Tier {tier_name.upper()} MMR', color = discord.Color.blurple())
         embed.add_field(name='Table ID', value=f'{str(db_mogi_id)}', inline=True)
         embed.add_field(name='Tier', value=f'{tier_name.upper()}', inline=True)
         embed.add_field(name='Submitted by', value=f'<@{ctx.author.id}>', inline=True)
-        embed.add_field(name='View on website', value=f'https://peng2n.com/lounge/mogi/{db_mogi_id}', inline=False)
-        embed.add_field(name='yup', value='yes the domain will be different. this is just a placeholder...', inline=False)
+        embed.add_field(name='View on website', value=f'https://200-lounge.com/mogi/{db_mogi_id}', inline=False)
         embed.set_image(url='attachment://mmr.jpg')
         await results_channel.send(content=None, embed=embed, file=f)
         #  discord ansi coloring (doesn't work on mobile)
