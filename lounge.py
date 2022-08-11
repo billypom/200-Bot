@@ -999,10 +999,6 @@ async def table(
             tier_name = temp[0][1]
 
         # Pre MMR table calculate
-        print('-------------Sorted List------------')
-        print(sorted_list)
-        print('-------------Sorted List------------')
-        print('calculate pre: ')
         value_table = list()
         for idx, team_x in enumerate(sorted_list):
             working_list = list()
@@ -1015,36 +1011,18 @@ async def table(
                     team_x_placement = team_x[len(team_x)-1]
                     team_y_mmr = team_y[len(team_y)-2]
                     team_y_placement = team_y[len(team_y)-1]
-                    print(f'team_x_mmr: {team_x_mmr}')
-                    print(f'team_x_placement: {team_x_placement}')
-                    print(f'team_y_mmr: {team_y_mmr}')
-                    print(f'team_y_placement: {team_y_placement}')
-                    print(f'xmmr - ymmr: {(team_x_mmr - team_y_mmr)}')
-                    print(f'(team_x_mmr-team_y_mmr)/9998: {(team_x_mmr-team_y_mmr)/9998}')
                     if team_x_placement == team_y_placement:
-                        print(f'PLACEMENT: same')
                         pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/9998)**2)**(1/3))**2)
                         if team_x_mmr >= team_y_mmr:
                             pass
                         else: #team_x_mmr < team_y_mmr:
                             pre_mmr = pre_mmr * -1
-                        print(f'((team_x_mmr - team_y_mmr)/9998)**2: {((team_x_mmr - team_y_mmr)/9998)**2}')
-                        print(f'(((team_x_mmr - team_y_mmr)/9998)**2)**(1/3): {(((team_x_mmr - team_y_mmr)/9998)**2)**(1/3)}')
-                        print(f'((((team_x_mmr - team_y_mmr)/9998)**2)**(1/3))**2: {((((team_x_mmr - team_y_mmr)/9998)**2)**(1/3))**2}')
-                        print(f'pre_mmr: {pre_mmr}')
                     else:
                         if team_x_placement > team_y_placement:
-                            print(f'PLACEMENT: x > y')
                             pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_x_mmr-team_y_mmr)/9998)**MULTIPLIER_SPECIAL)
                         else: #team_x_placement < team_y_placement
-                            print(f'PLACEMENT: x < y')
                             pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
-                        print(f'+ 1 : {1 + (team_x_mmr-team_y_mmr)/9998}')
-                        print(f'MULTIPLIER SPECIAL: {MULTIPLIER_SPECIAL}')
-                        print(f'(team_x_mmr-team_y_mmr)/9998)**MULTIPLIER_SPECIAL: {(1 + (team_x_mmr-team_y_mmr)/9998)**MULTIPLIER_SPECIAL}')
-                        print(f'pre_mmr: {pre_mmr}')
                 working_list.append(pre_mmr)
-            print(working_list)
             value_table.append(working_list)
 
         # # DEBUG
@@ -1140,7 +1118,6 @@ async def table(
                 # Check for new peak
                 string_my_player_new_mmr = str(my_player_new_mmr).center(9)
                 if my_player_peak < (my_player_new_mmr):
-                    # print('its less than')
                     formatted_my_player_new_mmr = await peak_mmr_wrapper(string_my_player_new_mmr)
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET peak_mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
@@ -1177,7 +1154,6 @@ async def table(
                     # Rank up - assign roles - update DB
                     try:
                         if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr:
-                            print('ITS A RANKUP')
                             guild = client.get_guild(Lounge[0])
                             current_role = guild.get_role(my_player_rank_id)
                             new_role = guild.get_role(rank_id)
@@ -1187,10 +1163,8 @@ async def table(
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                             my_player_new_rank += f'+ {new_role}'
-                            print(my_player_new_rank)
                         # Rank down - assign roles - update DB
                         elif my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
-                            print('ITS A RANK DOWN')
                             guild = client.get_guild(Lounge[0])
                             current_role = guild.get_role(my_player_rank_id)
                             new_role = guild.get_role(rank_id)
@@ -1200,7 +1174,6 @@ async def table(
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                             my_player_new_rank += f'- {new_role}'
-                            print(my_player_new_rank)
                     except Exception as e:
                         print(e)
                         pass
