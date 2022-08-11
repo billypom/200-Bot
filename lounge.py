@@ -1187,6 +1187,7 @@ async def table(
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                             my_player_new_rank += f'+ {new_role}'
+                            print(my_player_new_rank)
                         # Rank down - assign roles - update DB
                         elif my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
                             print('ITS A RANK DOWN')
@@ -1199,7 +1200,9 @@ async def table(
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                             my_player_new_rank += f'- {new_role}'
+                            print(my_player_new_rank)
                     except Exception as e:
+                        print(e)
                         pass
                         # my_player_rank_id = role_id
                         # guild.get_role(role_id)
