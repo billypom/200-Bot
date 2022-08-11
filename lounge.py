@@ -996,6 +996,9 @@ async def table(
             tier_name = temp[0][1]
 
         # Pre MMR table calculate
+        print('-------------Sorted List------------')
+        print(sorted_list)
+        print('-------------Sorted List------------')
         print('calculate pre: ')
         value_table = list()
         for idx, team_x in enumerate(sorted_list):
