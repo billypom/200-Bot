@@ -897,7 +897,6 @@ async def table(
         team_score = 0
         count = 0
         for player in team:
-            
             try:
                 with DBA.DBAccess() as db:
                     # This part makes sure that only players in the current channel's lineup can have a table made for them
@@ -1948,12 +1947,16 @@ async def create_teams(ctx, poll_results):
     # For each divided team, get mmr for all players, average them, append to team
     for team in chunked_list:
         temp_mmr = 0
+        count = 0
         for player in team:
             if player[2] is None: # Account for placement ppls
                 pass
             else:
                 temp_mmr = temp_mmr + player[2]
-        team_mmr = temp_mmr/len(team)
+                count += 1
+        if count == 0:
+            count = 1
+        team_mmr = temp_mmr/count
         team.append(team_mmr)
 
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
