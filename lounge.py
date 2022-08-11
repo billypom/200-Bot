@@ -1022,6 +1022,8 @@ async def table(
                             pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
                 working_list.append(pre_mmr)
             value_table.append(working_list)
+        print('VALUE TABLE:')
+        print(value_table)
 
         # # DEBUG
         # print(f'\nprinting value table:\n')
