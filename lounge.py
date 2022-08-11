@@ -2322,6 +2322,8 @@ def mt_lounge_request_mkc_user_id(ctx):
 
 # https://imagemagick.org/script/color.php
 async def new_rank_wrapper(input, mmr):
+    print(f'input: {input}')
+    print(f'mmr: {mmr}')
     if input:
         if mmr < 1500:
             return await iron_wrapper(input)
