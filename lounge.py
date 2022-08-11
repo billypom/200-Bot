@@ -1025,9 +1025,9 @@ async def table(
                         print(f'PLACEMENT: same')
                         pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/9998)**2)**(1/3))**2)
                         if team_x_mmr >= team_y_mmr:
-                            pre_mmr = pre_mmr * -1
-                        else: #team_x_mmr < team_y_mmr:
                             pass
+                        else: #team_x_mmr < team_y_mmr:
+                            pre_mmr = pre_mmr * -1
                         print(f'((team_x_mmr - team_y_mmr)/9998)**2: {((team_x_mmr - team_y_mmr)/9998)**2}')
                         print(f'(((team_x_mmr - team_y_mmr)/9998)**2)**(1/3): {(((team_x_mmr - team_y_mmr)/9998)**2)**(1/3)}')
                         print(f'((((team_x_mmr - team_y_mmr)/9998)**2)**(1/3))**2: {((((team_x_mmr - team_y_mmr)/9998)**2)**(1/3))**2}')
