@@ -1116,7 +1116,7 @@ async def table(
 
                 # Check for new peak
                 string_my_player_new_mmr = str(my_player_new_mmr).center(9)
-                print(f'current peak: {my_player_peak} | new mmr value: {my_player_new_mmr}')
+                # print(f'current peak: {my_player_peak} | new mmr value: {my_player_new_mmr}')
                 if my_player_peak < (my_player_new_mmr):
                     formatted_my_player_new_mmr = await peak_mmr_wrapper(string_my_player_new_mmr)
                     with DBA.DBAccess() as db:
@@ -1175,7 +1175,7 @@ async def table(
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                             my_player_new_rank += f'- {new_role}'
                     except Exception as e:
-                        print(e)
+                        # print(e)
                         pass
                         # my_player_rank_id = role_id
                         # guild.get_role(role_id)
@@ -2302,8 +2302,8 @@ def mt_lounge_request_mkc_user_id(ctx):
 
 # https://imagemagick.org/script/color.php
 async def new_rank_wrapper(input, mmr):
-    print(f'input: {input}')
-    print(f'mmr: {mmr}')
+    # print(f'input: {input}')
+    # print(f'mmr: {mmr}')
     if input:
         if mmr < 1500:
             return await iron_wrapper(input)
