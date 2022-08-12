@@ -1116,6 +1116,7 @@ async def table(
 
                 # Check for new peak
                 string_my_player_new_mmr = str(my_player_new_mmr).center(9)
+                print(f'current peak: {my_player_peak} | new mmr value: {my_player_new_mmr}')
                 if my_player_peak < (my_player_new_mmr):
                     formatted_my_player_new_mmr = await peak_mmr_wrapper(string_my_player_new_mmr)
                     with DBA.DBAccess() as db:
