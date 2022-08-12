@@ -4,6 +4,7 @@ vlog_msg.py
 init.sql
 /magick_test
 /images
+/dont
 magicktest.py
 url_encode.py
 /__pycache__
