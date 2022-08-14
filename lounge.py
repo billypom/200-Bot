@@ -802,22 +802,25 @@ async def table(
     scores: discord.Option(str, '@player scores (i.e. popuko 12 JPGiviner 42 Technical 180...)', required=True)
     ):
     await ctx.defer()
-    naughty = await check_if_banned_characters(str(scores))
-    if naughty:
+    bad = await check_if_banned_characters(str(scores))
+    if bad:
         await send_to_verification_log(ctx, scores, discord.Color.blurple(), vlog_msg.error1)
-        return f'``Error 32:`` Invalid input. There must be 12 players and 12 scores.'
+        await ctx.respond(f'``Error 32:`` Invalid input. There must be 12 players and 12 scores.')
+        return
 
-    # remove_chars = {
-    #     60:None, #<
-    #     62:None, #>
-    #     33:None, #!
-    #     64:None, #@
-    # }
-    
-    # Replace playernames with playerids
     # Create list
     score_string = str(scores) #.translate(remove_chars)
     score_list = score_string.split()
+
+    # Check for 12 players
+    if len(score_list) == 24:
+        pass
+    else:
+        await ctx.respond(f'``Error 26:`` Invalid input. There must be 12 players and 12 scores.')
+        return
+    
+    # Replace playernames with playerids
+
     #print(f'score list: {score_list}')
     player_list_check = []
     for i in range(0, len(score_list), 2):
@@ -839,12 +842,7 @@ async def table(
         await ctx.respond('Mogi has not started. Cannot create a table now')
         return
 
-    # Check for 12 players
-    if len(score_list) == 24:
-        pass
-    else:
-        await ctx.respond(f'``Error 26:`` Invalid input. There must be 12 players and 12 scores.')
-        return
+    
     
     # Check for duplicate players
     has_dupes = await check_for_dupes_in_list(player_list_check)
@@ -1132,7 +1130,7 @@ async def table(
                         temp = db.query('SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
                         db_mogi_id = temp[0][0]
                         # Insert reference record
-                        db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))\
+                        db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))
                         # Update player record
                         db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
                         # Remove player from lineups
@@ -2369,11 +2367,5 @@ async def neg_mmr_wrapper(input):
 async def peak_mmr_wrapper(input):
     # return (f'[0;2m[0;41m[0;37m{input}[0m[0;41m[0m[0m')
     return (f'<span foreground="Yellow1"><i>{input}</i></span>')
-
-async def bold_wrapper(input):
-    return (f'[0;2m[1;2m{input}[0m[0m')
-
-async def underline_wrapper(input):
-    return (f'[0;2m[4;2m{input}[0m[0m')
 
 client.run(secretly.token)
