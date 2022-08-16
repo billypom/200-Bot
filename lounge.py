@@ -1293,6 +1293,7 @@ async def stats(
                     else:
                         last_10_losses += 1
         partner_average = await get_partner_avg(ctx.author.id)
+        print(f'PARTNER AVG = {partner_average}')
     elif tier.id in TIER_ID_LIST:
         try:
             with DBA.DBAccess() as db:
