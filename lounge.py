@@ -1311,6 +1311,7 @@ async def stats(
             await ctx.respond(f'You have not played in {tier.mention}')
             return
         partner_average = await get_partner_avg(ctx.author.id, tier.id)
+        print(f'PARTNER AVG = {partner_average}')
     else:
         await ctx.respond(f'``Error 30:`` {tier.mention} is not a valid tier')
         return
