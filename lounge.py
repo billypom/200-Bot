@@ -1293,7 +1293,6 @@ async def stats(
                     else:
                         last_10_losses += 1
         partner_average = await get_partner_avg(ctx.author.id)
-        print(f'PARTNER AVG = {partner_average}')
     elif tier.id in TIER_ID_LIST:
         try:
             with DBA.DBAccess() as db:
@@ -1312,7 +1311,6 @@ async def stats(
             await ctx.respond(f'You have not played in {tier.mention}')
             return
         partner_average = await get_partner_avg(ctx.author.id, tier.id)
-        print(f'PARTNER AVG = {partner_average}')
     else:
         await ctx.respond(f'``Error 30:`` {tier.mention} is not a valid tier')
         return
@@ -2075,9 +2073,8 @@ async def get_partner_avg(uid, *mogi_format):
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid, uid))
-            # print(temp)
             try:
-                return float(temp[0][0])
+                return round(float(temp[0][0]), 0)
             except Exception as e:
                 return 0
     except Exception as e:
