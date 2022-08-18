@@ -89,6 +89,7 @@ def get_live_streamers(temp):
             continue
         else:
             streamer_name = str(streamer_name).strip().lower()
+        print(streamer_name)
         body = {
             'client_id': secretly.twitch_client_id,
             'client_secret': secretly.twitch_client_secret,
