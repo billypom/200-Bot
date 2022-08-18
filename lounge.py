@@ -106,18 +106,23 @@ def get_live_streamers(temp):
         #print(headers)
         stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
         stream_data = stream.json()
-        if len(stream_data['data']) == 1:
-            is_live = True
-        else:
-            is_live = False
         try:
-            streamer_name = stream_data['data'][0]['user_name']
-            stream_title = stream_data['data'][0]['title']
-            stream_thumbnail_url = stream_data['data'][0]['thumbnail_url']
+            if len(stream_data['data']) == 1:
+                is_live = True
+                streamer_name = stream_data['data'][0]['user_name']
+                stream_title = stream_data['data'][0]['title']
+                stream_thumbnail_url = stream_data['data'][0]['thumbnail_url']
+                list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
+            else:
+                is_live = False
+                stream_title = ""
+                stream_thumbnail_url = ""
+                list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
         except Exception as e:
             continue
+
         # name, title, image, is_live, db_mogimediamessageid, db_player_id
-        list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
+        
     return list_of_streams
 
 
