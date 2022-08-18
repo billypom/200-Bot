@@ -167,7 +167,6 @@ def mogi_media_check():
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (member.id,))
         except Exception as e:
-            print(e)
             continue
 
 
