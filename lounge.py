@@ -1737,6 +1737,7 @@ async def zloungeless(
 )
 @commands.has_any_role(ADMIN_ROLE_ID)
 async def migrate(ctx):
+    await ctx.defer()
     count = 0
     mkc_user_id = 0
     async for message in ctx.channel.history(limit=20):
@@ -1766,8 +1767,9 @@ async def migrate(ctx):
         except Exception:
             mkc_user_id = 0
             pass
-        print(f'{count} | {message.author.display_name}: {mkc_user_id}')
+        print(f'{count} | {message.author.display_name}: {mkc_user_id}  |  {message.author.id}')
         count+=1
+    await ctx.respond('migration completed')
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
