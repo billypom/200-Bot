@@ -1,10 +1,13 @@
+# python files
 secrets.py
 secretly.py
 vlog_msg.py
-init.sql
+magicktest.py
+url_encode.py
+twitch_test.py
+
+# folders
+/__pycache__
 /magick_test
 /images
 /dont
-magicktest.py
-url_encode.py
-/__pycache__

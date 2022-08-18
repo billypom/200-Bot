@@ -275,8 +275,9 @@ async def on_message(ctx):
             pass
         else:
             await ctx.delete()
+    # I only care if messages are in a tier
     if ctx.channel.id in TIER_ID_LIST:
-        # Set player activity time, if in lineup
+        # If player in lineup, set player chat activity timer
         try:
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_id, tier_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
@@ -311,6 +312,11 @@ async def on_message(ctx):
 async def on_raw_reaction_add(payload):
     if int(payload.user_id) == int(secretly.bot_id):
         # Return if bot reaction
+        return
+    if payload.channel_id == secretly.name_change_channel:
+        pass
+    else:
+        # Return if this isnt a name change approval
         return
 
     # Stuff relating to the current embed
@@ -432,6 +438,7 @@ async def verify(
     # name.mkc_user_id
     user_matches_list = mkc_forum_data[1]
     
+    # Check if seen in last week
     if mkc_forum_data[0] != -1:
         dtobject_now = datetime.datetime.now()
         unix_now = time.mktime(dtobject_now.timetuple())
@@ -1433,7 +1440,7 @@ async def strikes(ctx):
 # /zcancel_mogi
 @client.slash_command(
     name='zcancel_mogi',
-    description='Cancel an ongoing mogi',
+    description='Cancel an ongoing mogi [Admin only]',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -1705,7 +1712,7 @@ async def set_player_roles(ctx):
         await send_to_debug_channel(ctx, e)
         return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'
 
-# Takes a ctx, returns a response
+# Cool&Create
 async def create_player(ctx, mkc_user_id, country_code):
     x = await check_if_player_exists(ctx)
     if x:
