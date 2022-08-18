@@ -1738,9 +1738,13 @@ async def zloungeless(
 @commands.has_any_role(ADMIN_ROLE_ID)
 async def migrate(ctx):
     await ctx.defer()
+    f = open('/home/lounge/200-Lounge-Mogi-Bot/200lounge.csv',encoding='utf-8-sig') # f is our filename as string
+    lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
+    csv_header = lines[0]
+    f.close()
     count = 0
     mkc_user_id = 0
-    async for message in ctx.channel.history(limit=20):
+    async for message in ctx.channel.history(limit=50):
         try:
             if 'registry' in message.content:
                 regex_pattern = 'players/\d*'
@@ -1767,7 +1771,12 @@ async def migrate(ctx):
         except Exception:
             mkc_user_id = 0
             pass
-        print(f'{count} | {message.author.display_name}: {mkc_user_id}  |  {message.author.id}')
+        for line in lines:
+            name = line[0]
+            if name.lower() == (message.author.display_name).lower():
+                peak = line[1]
+                mmr = line[2]
+                print(f'{count} | {message.author.display_name}: {mkc_user_id}  |  {message.author.id} | {mmr} | {peak}')
         count+=1
     await ctx.respond('migration completed')
 
