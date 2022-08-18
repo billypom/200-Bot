@@ -1738,7 +1738,7 @@ async def zloungeless(
 @commands.has_any_role(ADMIN_ROLE_ID)
 async def migrate(ctx):
     count = 0
-    async for message in ctx.channel.history():
+    async for message in ctx.channel.history(limit=None):
         print(f'{count} | {message.author.display_name}: {message.content}')
         count+=1
 
