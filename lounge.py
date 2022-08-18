@@ -1737,8 +1737,8 @@ async def zloungeless(
 )
 @commands.has_any_role(ADMIN_ROLE_ID)
 async def migrate(ctx):
-    async for message in ctx.channel.history():
-        print(f'{message.author.display_name}: {message.content}')
+    async for idx, message in enumerate(ctx.channel.history()):
+        print(f'{idx} | {message.author.display_name}: {message.content}')
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
