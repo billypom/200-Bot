@@ -148,7 +148,9 @@ def mogi_media_check():
                 # If no mogi media sent yet
                 if stream[4] is None:
                     print(f'\nNO MOGI MEDIA SENT\n')
-                    member = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
+                    member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
+                    print(f'member future: {member_future}')
+                    member = member_future.result()
                     print(f'member: {member}')
                     embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
                     print(f'embed: {embed}')
