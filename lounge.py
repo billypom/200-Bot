@@ -1740,28 +1740,28 @@ async def migrate(ctx):
     count = 0
     async for message in ctx.channel.history(limit=200):
         if 'registry' in message.content:
-        regex_pattern = 'players/\d*'
-        if re.search(regex_pattern, str(message.content)):
-            regex_group = re.search(regex_pattern, message.content)
-            x = regex_group.group()
-            reg_array = re.split('/', x)
-            mkc_player_id = reg_array[1]
-        else:
-            await ctx.respond('``Error 2:`` Oops! Something went wrong. Check your link or try again later')
-            return
-    # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
-    elif 'forums' in message.content:
-        regex_pattern = 'members/.*\.\d*'
-        if re.search(regex_pattern, str(message.content)):
-            regex_group = re.search(regex_pattern, message.content)
-            x = regex_group.group()
-            temp = re.split('\.|/', x)
-            mkc_forum_name = temp[1]
-            mkc_player_id = await mkc_request_mkc_player_id(temp[2])
-        else:
-            # player doesnt exist on forums
-            await ctx.respond('``Error 3:`` Oops! Something went wrong. Check your link or try again later')
-            return
+            regex_pattern = 'players/\d*'
+            if re.search(regex_pattern, str(message.content)):
+                regex_group = re.search(regex_pattern, message.content)
+                x = regex_group.group()
+                reg_array = re.split('/', x)
+                mkc_player_id = reg_array[1]
+            else:
+                await ctx.respond('``Error 2:`` Oops! Something went wrong. Check your link or try again later')
+                return
+        # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
+        elif 'forums' in message.content:
+            regex_pattern = 'members/.*\.\d*'
+            if re.search(regex_pattern, str(message.content)):
+                regex_group = re.search(regex_pattern, message.content)
+                x = regex_group.group()
+                temp = re.split('\.|/', x)
+                mkc_forum_name = temp[1]
+                mkc_player_id = await mkc_request_mkc_player_id(temp[2])
+            else:
+                # player doesnt exist on forums
+                await ctx.respond('``Error 3:`` Oops! Something went wrong. Check your link or try again later')
+                return
 
 
         print(f'{count} | {message.author.display_name}: {mkc_player_id}')
