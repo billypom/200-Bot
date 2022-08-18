@@ -1738,7 +1738,7 @@ async def zloungeless(
 @commands.has_any_role(ADMIN_ROLE_ID)
 async def migrate(ctx):
     count = 0
-    mkc_player_id = 0
+    mkc_user_id = 0
     async for message in ctx.channel.history(limit=20):
         try:
             if 'registry' in message.content:
@@ -1748,8 +1748,10 @@ async def migrate(ctx):
                     x = regex_group.group()
                     reg_array = re.split('/', x)
                     mkc_player_id = reg_array[1]
+                    mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
+                    mkc_user_id = mkc_registry_data[0]
                 else:
-                    mkc_player_id = 0
+                    mkc_user_id = 0
             # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
             elif 'forums' in message.content:
                 regex_pattern = 'members/.*\.\d*'
@@ -1758,13 +1760,13 @@ async def migrate(ctx):
                     x = regex_group.group()
                     temp = re.split('\.|/', x)
                     mkc_forum_name = temp[1]
-                    mkc_player_id = await mt_mkc_request_mkc_player_id(temp[2])
+                    mkc_user_id = await temp[2]
                 else:
-                    mkc_player_id = 0
+                    mkc_user_id = 0
         except Exception:
-            mkc_player_id = 0
+            mkc_user_id = 0
             pass
-        print(f'{count} | {message.author.display_name}: {mkc_player_id}')
+        print(f'{count} | {message.author.display_name}: {mkc_user_id}')
         count+=1
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
