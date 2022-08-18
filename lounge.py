@@ -106,25 +106,27 @@ def get_live_streamers(temp):
         stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
         stream_data = stream.json()
         if len(stream_data['data']) == 1:
-            is_live = True
-        else:
-            is_live = False
-        if is_live:
+        #     is_live = True
+        # else:
+        #     is_live = False
+        # if is_live:
             streamer_name = stream_data['data'][0]['user_name']
             stream_title = stream_data['data'][0]['title']
-            list_of_streams.append([streamer_name, stream_title])
-    embed_message = "No one is streaming"
-    if list_of_streams:
-        embed_message = ""
-        for stream in list_of_streams:
-            embed_message = embed_message + (f'[{stream[1]}](https://twitch.tv/{stream[0]})\n')
-    return embed_message
+            stream_thumbnail_url = stream_data['data'][0]['thumbnail_url']
+            # name, title, image, is_live, db_mogimediamessageid, db_player_id
+            list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
+        return list_of_streams
+
+    # if list_of_streams:
+    #     embed_message = ""
+    #     for stream in list_of_streams:
+    #         embed_message = embed_message + (f'[{stream[1]}](https://twitch.tv/{stream[0]})\n')
+    # return embed_message
 
 def mogi_media_check():
-    list_of_streams = list()
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT p.twitch_link FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
+            temp = db.query('SELECT p.twitch_link, p.mogi_media_message_id, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
     except Exception:
         pass
         # embed_message = 'No one is streaming'
@@ -132,16 +134,39 @@ def mogi_media_check():
         # embed_message = 'No one is streaming'
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(get_live_streamers, temp)
-        embed_message = future.result()
+        # embed_message = future.result()
+        streams = future.result()
+    
+    for stream in streams:
+        # If live
+        if stream[3]:
+            print(f'stream is live: {stream}')
+            # If no mogi media sent yet
+            if stream[4] is None:
+                member = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
+                embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
+                embed.set_image(url=stream[2])
+                embed.set_thumbnail(url=member.display_avatar)
+                mogi_media = client.get_channel(mogi_media_channel_id)
+                temp_val = asyncio.run_coroutine_threadsafe(mogi_media.send(embed=embed), client.loop)
+                print(f'temp val: {temp_val}')
+                mogi_media_message = temp_val.result()
+                print(f'mogi media message: {mogi_media_message}')
+        # If not live
+        else:
+            if stream[4] > 0:
+                mogi_media = client.get_channel(mogi_media_channel_id)
+                temp_val = asyncio.run_coroutine_threadsafe(mogi_media.delete(stream[4]), client.loop)
+
 
     # for i in range(0, len(list_of_streams)-1):
         # embed_message = "```" + str(list_of_match_names[i]) + "```" + "https://twitch.tv/" + str(list_of_streams[i])
-    embed = discord.Embed(title="Mogi Streams", description=embed_message, color=discord.Color.purple())
-    embed.set_thumbnail(url = twitch_thumbnail)
+    # embed = discord.Embed(title="Mogi Streams", description=embed_message, color=discord.Color.purple())
+    # embed.set_thumbnail(url = twitch_thumbnail)
 
     mogi_media = client.get_channel(mogi_media_channel_id)
     mogi_media_message = asyncio.run_coroutine_threadsafe(mogi_media.fetch_message(mogi_media_message_id), client.loop)
-    asyncio.run_coroutine_threadsafe(mogi_media_message.result().edit(embed=embed), client.loop)
+    # asyncio.run_coroutine_threadsafe(mogi_media_message.result().edit(embed=embed), client.loop)
 
     # await ctx.respond(content=None, embed=embed)
 
