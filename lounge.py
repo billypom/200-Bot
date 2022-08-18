@@ -26,7 +26,7 @@ lounge_id = 999835318104625252
 ml_channel_message_id = 1000138727621918872
 ml_lu_channel_message_id = 1000138727697424415
 mogi_media_channel_id = 1005091507604312074
-mogi_media_message_id = 1005205285817831455
+# mogi_media_message_id = 1005205285817831455
 TIER_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
@@ -148,34 +148,37 @@ def mogi_media_check():
     print(f'future.result from thread executor: {streams}')
     for stream in streams:
         try:
-            print(f'for stream in streams:\nstream: {stream}\n')
+            # print(f'for stream in streams:\nstream: {stream}\n')
             # If live
             if stream[3]:
-                print(f'stream is live: {stream}')
+                # print(f'stream is live: {stream}')
                 # If no mogi media sent yet
                 if stream[4] is None:
-                    print(f'\nNO MOGI MEDIA SENT\n')
+                    # print(f'\nNO MOGI MEDIA SENT\n')
                     member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
-                    print(f'member future: {member_future}')
+                    # print(f'member future: {member_future}')
                     member = member_future.result()
-                    print(f'member: {member}')
+                    # print(f'member: {member}')
                     embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
-                    print(f'embed: {embed}')
+                    # print(f'embed: {embed}')
                     embed.set_image(url=stream[2])
                     embed.set_thumbnail(url=member.display_avatar)
                     mogi_media = client.get_channel(mogi_media_channel_id)
-                    print(f'mogi_media: {mogi_media}')
+                    # print(f'mogi_media: {mogi_media}')
                     temp_val = asyncio.run_coroutine_threadsafe(mogi_media.send(embed=embed), client.loop)
-                    print(f'temp val: {temp_val}')
+                    # print(f'temp val: {temp_val}')
                     mogi_media_message = temp_val.result()
-                    print(f'mogi media message: {mogi_media_message}')
+                    # print(f'mogi media message: {mogi_media_message}')
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
             # If not live
             else:
                 if stream[4] > 0:
-                    mogi_media = client.get_channel(mogi_media_channel_id)
-                    temp_val = asyncio.run_coroutine_threadsafe(mogi_media.delete(stream[4]), client.loop)
+                    print('i became not live')                  
+                    channel = client.get_channel(mogi_media_channel_id)
+                    temp_message = asyncio.run_coroutine_threadsafe(channel.fetch_message(stream[4]), client.loop)
+                    message = temp_message.result()
+                    asyncio.run_coroutine_threadsafe(message.delete(), client.loop)
         except Exception as e:
             print(e)
             continue
@@ -1109,12 +1112,13 @@ async def table(
                 if idx > (mogi_format-1):
                     break
                 with DBA.DBAccess() as db:
-                    temp = db.query('SELECT p.player_name, p.mmr, p.peak_mmr, p.rank_id, l.is_sub FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE p.player_id = %s;', (player[0],))
+                    temp = db.query('SELECT p.player_name, p.mmr, p.peak_mmr, p.rank_id, l.is_sub, p.mogi_media_message_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE p.player_id = %s;', (player[0],))
                     my_player_name = temp[0][0]
                     my_player_mmr = temp[0][1]
                     my_player_peak = temp[0][2]
                     my_player_rank_id = temp[0][3]
                     is_sub = temp[0][4]
+                    mogi_media_message_id = temp[0][5]
                     if my_player_peak is None:
                         # print('its none...')
                         my_player_peak = 0
@@ -1195,6 +1199,15 @@ async def table(
                     # print(e)
                     await send_to_debug_channel(ctx, f'FATAL TABLE ERROR: {e}')
                     pass
+                
+                # Remove mogi media messages
+                if mogi_media_message_id is None:
+                    pass
+                else:
+                    channel = await client.get_channel(mogi_media_channel_id)
+                    message = await channel.fetch_message(mogi_media_message_id)
+                    await message.delete()
+
 
                 # Check for rank changes
                 with DBA.DBAccess() as db:
