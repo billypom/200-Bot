@@ -132,12 +132,15 @@ def mogi_media_check():
         # embed_message = 'No one is streaming'
     # if len(temp) == 0:
         # embed_message = 'No one is streaming'
+    print(f'temp: {temp}')
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(get_live_streamers, temp)
         # embed_message = future.result()
         streams = future.result()
+    print(f'future.result from thread executor: {streams}')
     try:
         for stream in streams:
+            print(f'for stream in streams:\nstream: {stream}\n')
             # If live
             if stream[3]:
                 print(f'stream is live: {stream}')
