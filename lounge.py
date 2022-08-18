@@ -1739,7 +1739,7 @@ async def zloungeless(
 async def migrate(ctx):
     count = 0
     mkc_player_id = 0
-    async for message in ctx.channel.history(limit=200):
+    async for message in ctx.channel.history(limit=20):
         try:
             if 'registry' in message.content:
                 regex_pattern = 'players/\d*'
@@ -1749,8 +1749,7 @@ async def migrate(ctx):
                     reg_array = re.split('/', x)
                     mkc_player_id = reg_array[1]
                 else:
-                    await ctx.respond('``Error 2:`` Oops! Something went wrong. Check your link or try again later')
-                    return
+                    mkc_player_id = 0
             # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
             elif 'forums' in message.content:
                 regex_pattern = 'members/.*\.\d*'
@@ -1759,11 +1758,9 @@ async def migrate(ctx):
                     x = regex_group.group()
                     temp = re.split('\.|/', x)
                     mkc_forum_name = temp[1]
-                    mkc_player_id = await mkc_request_mkc_player_id(temp[2])
+                    mkc_player_id = await mt_mkc_request_mkc_player_id(temp[2])
                 else:
-                    # player doesnt exist on forums
-                    await ctx.respond('``Error 3:`` Oops! Something went wrong. Check your link or try again later')
-                    return
+                    mkc_player_id = 0
         except Exception:
             mkc_player_id = 0
             pass
