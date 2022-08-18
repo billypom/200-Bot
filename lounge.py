@@ -82,6 +82,8 @@ class Confirm(View):
 
 # This should probably be async, but it worked in testing and i'm lazy and nobody has ever used the bot so i dont care go crazy aaaa go stupid aaa
 def get_live_streamers(temp):
+    print('\n\n')
+    print(f'get_live_streamers(temp): {temp}')
     list_of_streams = []
     for i in range(0, len(temp)-1):
         print('temp @ i')
