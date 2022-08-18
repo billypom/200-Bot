@@ -115,9 +115,12 @@ def get_live_streamers(temp):
             is_live = True
         else:
             is_live = False
-        streamer_name = stream_data['data'][0]['user_name']
-        stream_title = stream_data['data'][0]['title']
-        stream_thumbnail_url = stream_data['data'][0]['thumbnail_url']
+        try:
+            streamer_name = stream_data['data'][0]['user_name']
+            stream_title = stream_data['data'][0]['title']
+            stream_thumbnail_url = stream_data['data'][0]['thumbnail_url']
+        except Exception as e:
+            continue
         # name, title, image, is_live, db_mogimediamessageid, db_player_id
         list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
     return list_of_streams
