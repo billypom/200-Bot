@@ -1738,7 +1738,7 @@ async def zloungeless(
 @commands.has_any_role(ADMIN_ROLE_ID)
 async def migrate(ctx):
     count = 0
-    async for message in ctx.channel.history(limit=None):
+    async for message in ctx.channel.history(limit=200):
         if 'registry' in message.content:
         regex_pattern = 'players/\d*'
         if re.search(regex_pattern, str(message.content)):
