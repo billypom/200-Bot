@@ -1730,6 +1730,16 @@ async def zloungeless(
         await user.add_roles(LOUNGELESS_ROLE)
         await ctx.respond(f'Loungeless added to {player.mention}')
 
+@client.slash_command(
+    name='migrate',
+    description='popuko only',
+    guild_ids=Lounge
+)
+@commands.has_any_role(ADMIN_ROLE_ID)
+async def migrate(ctx):
+    for message in ctx.channel:
+        print(message)
+
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
     try:
