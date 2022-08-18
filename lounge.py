@@ -147,11 +147,15 @@ def mogi_media_check():
                 print(f'stream is live: {stream}')
                 # If no mogi media sent yet
                 if stream[4] is None:
+                    print(f'\nNO MOGI MEDIA SENT\n')
                     member = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
+                    print(f'member: {member}')
                     embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
+                    print(f'embed: {embed}')
                     embed.set_image(url=stream[2])
                     embed.set_thumbnail(url=member.display_avatar)
                     mogi_media = client.get_channel(mogi_media_channel_id)
+                    print(f'mogi_media: {mogi_media}')
                     temp_val = asyncio.run_coroutine_threadsafe(mogi_media.send(embed=embed), client.loop)
                     print(f'temp val: {temp_val}')
                     mogi_media_message = temp_val.result()
@@ -161,7 +165,8 @@ def mogi_media_check():
                 if stream[4] > 0:
                     mogi_media = client.get_channel(mogi_media_channel_id)
                     temp_val = asyncio.run_coroutine_threadsafe(mogi_media.delete(stream[4]), client.loop)
-    except Exception:
+    except Exception as e:
+        print(e)
         return
 
 
