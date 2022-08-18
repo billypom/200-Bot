@@ -136,7 +136,7 @@ def mogi_media_check():
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(get_live_streamers, temp)
         streams = future.result()
-    print(f'future.result from thread executor: {streams}')
+    # print(f'future.result from thread executor: {streams}')
     for stream in streams:
         try:
             # If live
@@ -1191,8 +1191,9 @@ async def table(
                     channel = client.get_channel(mogi_media_channel_id)
                     message = await channel.fetch_message(mogi_media_message_id)
                     await message.delete()
-                    with DBA.DBAccess() as db:
-                        db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (player[0],))
+                    
+                with DBA.DBAccess() as db:
+                    db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (player[0],))
 
 
                 # Check for rank changes
