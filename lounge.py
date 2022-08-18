@@ -36,7 +36,6 @@ ADMIN_ROLE_ID = 461388423572357130
 UPDATER_ROLE_ID = 461461018971996162
 CHAT_RESTRICTED_ROLE_ID = 845084987417559040
 LOUNGELESS_ROLE_ID = 463868896743522304
-PLACEMENT_ROLE_ID = 846497627508047872
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -1755,7 +1754,7 @@ async def create_player(ctx, mkc_user_id, country_code):
     else:
         try:
             with DBA.DBAccess() as db:
-                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code, PLACEMENT_ROLE_ID))
+                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code))
                 return 'Verified & registered successfully'
         except Exception as e:
             await send_to_debug_channel(ctx, e)
