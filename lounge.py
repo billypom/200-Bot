@@ -86,7 +86,7 @@ def get_live_streamers(temp):
     for i in range(0, len(temp)-1):
         streamer_name = temp[i][0]
         if streamer_name is None:
-            break
+            continue
         else:
             streamer_name = str(streamer_name).strip().lower()
         body = {
@@ -105,6 +105,8 @@ def get_live_streamers(temp):
         #print(headers)
         stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
         stream_data = stream.json()
+        print('\n\nSTREAM DATA\n\n')
+        print(stream_data)
         if len(stream_data['data']) == 1:
         #     is_live = True
         # else:
@@ -132,7 +134,7 @@ def mogi_media_check():
         # embed_message = 'No one is streaming'
     # if len(temp) == 0:
         # embed_message = 'No one is streaming'
-    print(f'temp: {temp}')
+    # print(f'temp: {temp}')
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(get_live_streamers, temp)
         # embed_message = future.result()
