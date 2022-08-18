@@ -156,11 +156,15 @@ def mogi_media_check():
             # If not live
             else:
                 if stream[4] > 0:
-                    print('i became not live')                  
+                    print('i became not live')   
+                    member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
+                    member = member_future.result()               
                     channel = client.get_channel(mogi_media_channel_id)
                     temp_message = asyncio.run_coroutine_threadsafe(channel.fetch_message(stream[4]), client.loop)
                     message = temp_message.result()
                     asyncio.run_coroutine_threadsafe(message.delete(), client.loop)
+                    with DBA.DBAccess() as db:
+                        db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (member.id,))
         except Exception as e:
             print(e)
             continue
