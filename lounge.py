@@ -89,7 +89,6 @@ def get_live_streamers(temp):
             continue
         else:
             streamer_name = str(streamer_name).strip().lower()
-        print(streamer_name)
         body = {
             'client_id': secretly.twitch_client_id,
             'client_secret': secretly.twitch_client_secret,
@@ -1191,7 +1190,7 @@ async def table(
                     channel = client.get_channel(mogi_media_channel_id)
                     message = await channel.fetch_message(mogi_media_message_id)
                     await message.delete()
-                    
+
                 with DBA.DBAccess() as db:
                     db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (player[0],))
 
