@@ -84,6 +84,8 @@ class Confirm(View):
 def get_live_streamers(temp):
     list_of_streams = []
     for i in range(0, len(temp)-1):
+        print('temp @ i')
+        print(temp[i])
         streamer_name = temp[i][0]
         if streamer_name is None:
             continue
