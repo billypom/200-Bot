@@ -139,8 +139,8 @@ def mogi_media_check():
         # embed_message = future.result()
         streams = future.result()
     print(f'future.result from thread executor: {streams}')
-    try:
-        for stream in streams:
+    for stream in streams:
+        try:
             print(f'for stream in streams:\nstream: {stream}\n')
             # If live
             if stream[3]:
@@ -169,9 +169,9 @@ def mogi_media_check():
                 if stream[4] > 0:
                     mogi_media = client.get_channel(mogi_media_channel_id)
                     temp_val = asyncio.run_coroutine_threadsafe(mogi_media.delete(stream[4]), client.loop)
-    except Exception as e:
-        print(e)
-        return
+        except Exception as e:
+            print(e)
+            continue
 
 
     # for i in range(0, len(list_of_streams)-1):
