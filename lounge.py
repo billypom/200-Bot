@@ -82,12 +82,8 @@ class Confirm(View):
 
 # This should probably be async, but it worked in testing and i'm lazy and nobody has ever used the bot so i dont care go crazy aaaa go stupid aaa
 def get_live_streamers(temp):
-    print('\n\n')
-    print(f'get_live_streamers(temp): {temp}')
     list_of_streams = []
     for i in range(0, len(temp)-1):
-        print('temp @ i')
-        print(temp[i])
         streamer_name = temp[i][0]
         if streamer_name is None:
             continue
@@ -109,8 +105,6 @@ def get_live_streamers(temp):
         #print(headers)
         stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
         stream_data = stream.json()
-        print('\n\nSTREAM DATA\n\n')
-        print(stream_data)
         if len(stream_data['data']) == 1:
             is_live = True
         else:
@@ -125,11 +119,6 @@ def get_live_streamers(temp):
         list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
     return list_of_streams
 
-    # if list_of_streams:
-    #     embed_message = ""
-    #     for stream in list_of_streams:
-    #         embed_message = embed_message + (f'[{stream[1]}](https://twitch.tv/{stream[0]})\n')
-    # return embed_message
 
 def mogi_media_check():
     try:
@@ -137,38 +126,25 @@ def mogi_media_check():
             temp = db.query('SELECT p.twitch_link, p.mogi_media_message_id, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
     except Exception:
         pass
-        # embed_message = 'No one is streaming'
-    # if len(temp) == 0:
-        # embed_message = 'No one is streaming'
-    # print(f'temp: {temp}')
+
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(get_live_streamers, temp)
-        # embed_message = future.result()
         streams = future.result()
     print(f'future.result from thread executor: {streams}')
     for stream in streams:
         try:
-            # print(f'for stream in streams:\nstream: {stream}\n')
             # If live
             if stream[3]:
-                # print(f'stream is live: {stream}')
                 # If no mogi media sent yet
                 if stream[4] is None:
-                    # print(f'\nNO MOGI MEDIA SENT\n')
                     member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
-                    # print(f'member future: {member_future}')
                     member = member_future.result()
-                    # print(f'member: {member}')
                     embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
-                    # print(f'embed: {embed}')
                     embed.set_image(url=stream[2])
                     embed.set_thumbnail(url=member.display_avatar)
                     mogi_media = client.get_channel(mogi_media_channel_id)
-                    # print(f'mogi_media: {mogi_media}')
                     temp_val = asyncio.run_coroutine_threadsafe(mogi_media.send(embed=embed), client.loop)
-                    # print(f'temp val: {temp_val}')
                     mogi_media_message = temp_val.result()
-                    # print(f'mogi media message: {mogi_media_message}')
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
             # If not live
