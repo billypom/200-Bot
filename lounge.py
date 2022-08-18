@@ -155,6 +155,7 @@ def mogi_media_check():
                         db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
             # If not live
             else:
+                print(f'stream[4] > 0 | {stream[4]} > 0')
                 if stream[4] > 0:
                     print('i became not live')   
                     member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
