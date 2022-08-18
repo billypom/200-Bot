@@ -155,9 +155,7 @@ def mogi_media_check():
                         db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
             # If not live
             else:
-                print(f'stream[4] > 0 | {stream[4]} > 0 | {stream}')
-                if stream[4] > 0:
-                    print('i became not live')   
+                if stream[4] > 0: 
                     member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
                     member = member_future.result()               
                     channel = client.get_channel(mogi_media_channel_id)
@@ -1190,9 +1188,11 @@ async def table(
                 if mogi_media_message_id is None:
                     pass
                 else:
-                    channel = await client.get_channel(mogi_media_channel_id)
+                    channel = client.get_channel(mogi_media_channel_id)
                     message = await channel.fetch_message(mogi_media_message_id)
                     await message.delete()
+                    with DBA.DBAccess() as db:
+                        db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (player[0],))
 
 
                 # Check for rank changes
