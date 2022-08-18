@@ -162,6 +162,8 @@ def mogi_media_check():
                     print(f'temp val: {temp_val}')
                     mogi_media_message = temp_val.result()
                     print(f'mogi media message: {mogi_media_message}')
+                    with DBA.DBAccess() as db:
+                        db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
             # If not live
             else:
                 if stream[4] > 0:
