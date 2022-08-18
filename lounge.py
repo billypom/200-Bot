@@ -120,7 +120,7 @@ def get_live_streamers(temp):
         stream_thumbnail_url = stream_data['data'][0]['thumbnail_url']
         # name, title, image, is_live, db_mogimediamessageid, db_player_id
         list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
-        return list_of_streams
+    return list_of_streams
 
     # if list_of_streams:
     #     embed_message = ""
