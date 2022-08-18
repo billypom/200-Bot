@@ -36,6 +36,7 @@ ADMIN_ROLE_ID = 461388423572357130
 UPDATER_ROLE_ID = 461461018971996162
 CHAT_RESTRICTED_ROLE_ID = 845084987417559040
 LOUNGELESS_ROLE_ID = 463868896743522304
+PLACEMENT_ROLE_ID = 846497627508047872
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -165,18 +166,6 @@ def mogi_media_check():
                         db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (member.id,))
         except Exception as e:
             continue
-
-
-    # for i in range(0, len(list_of_streams)-1):
-        # embed_message = "```" + str(list_of_match_names[i]) + "```" + "https://twitch.tv/" + str(list_of_streams[i])
-    # embed = discord.Embed(title="Mogi Streams", description=embed_message, color=discord.Color.purple())
-    # embed.set_thumbnail(url = twitch_thumbnail)
-
-    # mogi_media = client.get_channel(mogi_media_channel_id)
-    # mogi_media_message = asyncio.run_coroutine_threadsafe(mogi_media.fetch_message(mogi_media_message_id), client.loop)
-    # asyncio.run_coroutine_threadsafe(mogi_media_message.result().edit(embed=embed), client.loop)
-
-    # await ctx.respond(content=None, embed=embed)
 
 def update_mogilist():
     MOGILIST = {}
@@ -1766,7 +1755,7 @@ async def create_player(ctx, mkc_user_id, country_code):
     else:
         try:
             with DBA.DBAccess() as db:
-                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code))
+                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code, PLACEMENT_ROLE_ID))
                 return 'Verified & registered successfully'
         except Exception as e:
             await send_to_debug_channel(ctx, e)
@@ -2081,7 +2070,7 @@ async def check_if_mkc_player_id_used(mkc_player_id):
             else:
                 return False
     except Exception as e:
-        await send_raw_to_debug_channel(mkc_player_id, e)
+        # await send_raw_to_debug_channel(mkc_player_id, e)
         return False
 
 async def check_if_player_exists(ctx):
