@@ -4,7 +4,7 @@ Automated mogi bot for MK8DX 200cc Lounge. Enter mogis, submit tables, update mm
 
 # Commands
 
-`/verify` +1 REQUIRED `http:// Mario Kart Central Forum Link`
+# `/verify` +1 REQUIRED `http:// Mario Kart Central Forum Link`
 
 The MK8DX competitive scene is tied to Mario Kart Central. Verify your MKC identity with this command to participate in mogis.
 
