@@ -4,43 +4,43 @@ Automated mogi bot for MK8DX 200cc Lounge. Enter mogis, submit tables, update mm
 
 # Commands
 
-# `/verify` +1 REQUIRED `http:// Mario Kart Central Forum Link`
+# `/verify` +1 REQUIRED `http://mariokartcentral.com/`
 
-The MK8DX competitive scene is tied to Mario Kart Central. Verify your MKC identity with this command to participate in mogis.
+The MK8DX competitive scene is tied to Mario Kart Central. Verify your MKC identity (registry or forum link) with this command to participate in mogis.
 
-`/c`
+# `/c`
 
 "Can up" for a mogi. (Join the queue)
 
-`/d`
+# `/d`
 
 Drop from a mogi (Leave the queue)
 
-`/l`
+# `/l`
 
 List players in the mogi (See the queue)
 
-`/sub` +2 REQUIRED `@leaving_player` & `@subbing_player`
+# `/sub` +2 REQUIRED `@leaving_player` & `@subbing_player`
 
 Substitute a player during a mogi.
 
-`/fc` +1 (optional) `XXXX-XXXX-XXXX`
+# `/fc` +1 (optional) `XXXX-XXXX-XXXX`
 
 Upload your Friend Code. | Submitting your FC means you are willing and able to host. If FCs are available - the bot will choose a player at random to host a mogi, once the room reaches 12 players.
 
 
-`/table` +2 REQUIRED `format` `scores`
+# `/table` +2 REQUIRED `format` `scores`
 
 Submit a table. Provide a format (1, 2, 3, 4, 6) and a list of 12 players & 12 scores (brandon 180 popuko 12 jpgiviner 42 etc...). The best way to ensure that the table is submitted properly is to copy the example from the MOGI STARTED message. All players on a team MUST be grouped together in the submission.
 
-`/stats` +1 (optional) `#tier-channel`
+# `/stats` +1 (optional) `#tier-channel`
 
 Displays player statistics. You can also filter by tier by selecting the appropriate channel (#tier-a, #tier-b, etc...)
 
-`/name` +1 REQUIRED `new name`
+# `/name` +1 REQUIRED `new name`
 
 Submit a name-change request to staff.
 
-`/twitch` +1 REQUIRED `username`
+# `/twitch` +1 REQUIRED `username`
 
 Upload your twitch username to be added to the automated #mogi-media channel. If you are in an ongoing mogi, and streaming, the bot will recognize that and post your stream in #mogi-media
