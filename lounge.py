@@ -1844,12 +1844,12 @@ async def zmigrate(ctx):
                     print(f'{count} | BANNED: {altered_name}')
                     break
                 if mkc_user_id != 0:
-                    if mkc_user_id in mkc_user_id_list:
-                        print(f'{count} | DUPLICATE MKC USER ID: {altered_name} MKC ID:{mkc_user_id} {country_code} {mmr}\n')
-                        await ctx.respond('wtf')
-                        return
-                    else:
-                        mkc_user_id_list.append(mkc_user_id)
+                    # if mkc_user_id in mkc_user_id_list:
+                    #     print(f'{count} | DUPLICATE MKC USER ID: {altered_name} MKC ID:{mkc_user_id} {country_code} {mmr}\n')
+                    #     await ctx.respond('wtf')
+                    #     break
+                    # else:
+                    #     mkc_user_id_list.append(mkc_user_id)
                     try:
                         with DBA.DBAccess() as db:
                             db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s);', (message.author.id, altered_name, mkc_user_id, country_code, mmr, mmr))
