@@ -1064,7 +1064,7 @@ async def table(
                         temp_value += value
                     else:
                         pass
-            team.append(math.ceil(temp_value))
+            team.append(math.floor(temp_value))
 
         # Create mmr table string
         if mogi_format == 1:
