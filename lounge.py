@@ -1807,11 +1807,13 @@ async def remove_all_ranks(ctx):
         for i in range(len(RANK_ID_LIST)):
             try:
                 test_role = ctx.guild.get_role(RANK_ID_LIST[i])
-                await member.remove_roles(test_role)
-                await member.add_roles(placement_role)
-                print(f'removed {test_role}. added {placement_role}')
+                if test_role in member.roles:
+                    await member.remove_roles(test_role)
+                    print(f'removed {test_role} from {member}')
             except Exception:
                 continue
+            await member.add_roles(placement_role)
+            print(f'added placement')
     await ctx.respond('All player rank roles have been removed')
 
 @client.slash_command(
