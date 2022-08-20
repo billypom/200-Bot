@@ -38,6 +38,7 @@ ADMIN_ROLE_ID = 461388423572357130
 UPDATER_ROLE_ID = 461461018971996162
 CHAT_RESTRICTED_ROLE_ID = 845084987417559040
 LOUNGELESS_ROLE_ID = 463868896743522304
+PLACEMENT_ROLE_ID = 846497627508047872
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -138,7 +139,7 @@ def mogi_media_check():
         with DBA.DBAccess() as db:
             temp = db.query('SELECT p.twitch_link, p.mogi_media_message_id, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
     except Exception:
-        pass
+        return
 
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(get_live_streamers, temp)
@@ -1903,7 +1904,10 @@ async def create_player(ctx, mkc_user_id, country_code):
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code))
-                return 'Verified & registered successfully'
+            member = await ctx.guild.fetch_member(ctx.author.id)
+            role = ctx.guild.get_role(PLACEMENT_ROLE_ID)
+            await member.add_roles(role)
+            return 'Verified & registered successfully'
         except Exception as e:
             await send_to_debug_channel(ctx, e)
             return f'``Error 14:`` Oops! An unlikely error occured. Contact {secretly.my_discord} if you think this is a mistake.'
@@ -2008,7 +2012,7 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
     dtobject_now = datetime.datetime.now()
     unix_now = time.mktime(dtobject_now.timetuple())
     format_list = [0,0,0,0,0]
-    while (unix_now - last_joiner_unix_timestamp) < 20:
+    while (unix_now - last_joiner_unix_timestamp) < 120:
         # Votes are updated in the on_message event, if mogi is running and player is in tier
         await asyncio.sleep(0.5)
         with DBA.DBAccess() as db:
