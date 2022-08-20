@@ -1801,20 +1801,21 @@ async def zmigrate(ctx):
                 mmr = line[2]
                 try:
                     if 'registry' in message.content:
-                        print(f'{count} | reg in')
+                        # print(f'{count} | reg in')
                         regex_pattern = 'players/\d*'
                         if re.search(regex_pattern, str(message.content)):
                             regex_group = re.search(regex_pattern, message.content)
                             x = regex_group.group()
                             reg_array = re.split('/', x)
                             mkc_player_id = reg_array[1]
-                            print(f'registry mkc player id: {reg_array[len(reg_array)-1]}')
+                            # print(f'registry mkc player id: {reg_array[len(reg_array)-1]}')
                         else:
                             mkc_user_id = 0
                     # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
                     elif 'forums' in message.content:
-                        print(f'{count} | forum in')
+                        # print(f'{count} | forum in')
                         regex_pattern = 'members/.*\.\d*'
+                        regex_pattern2 = 'members/\d*'
                         if re.search(regex_pattern, str(message.content)):
                             regex_group = re.search(regex_pattern, message.content)
                             x = regex_group.group()
@@ -1822,11 +1823,16 @@ async def zmigrate(ctx):
                             # print(f'forums temp: {temp}')
                             mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
                             # print(f'forums mkc player_id {temp[1]} & {temp[2]}')
+                        elif re.search(regex_pattern2, str(message.content))
+                            regex_group = re.search(regex_pattern2, message.content)
+                            x = regex_group.group()
+                            temp = re.split('\.|/', x)
+                            mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
                         else:
-                            mkc_user_id = 0
+                            break
                     else:
                         break
-                    print(f'{count} | Getting user_id for {name} - {mkc_player_id}')
+                    # print(f'{count} | Getting user_id for {name} - {mkc_player_id}')
                     mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
                     mkc_user_id = mkc_registry_data[0]
                     country_code = mkc_registry_data[1]
