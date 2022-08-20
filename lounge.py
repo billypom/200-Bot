@@ -1813,7 +1813,7 @@ async def remove_all_ranks(ctx):
 
 @client.slash_command(
     name='assign_ranks',
-    description='popuko only'
+    description='popuko only',
     guild_ids=Lounge
 )
 async def assign_ranks(ctx):
