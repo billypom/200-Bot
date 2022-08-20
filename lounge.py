@@ -243,7 +243,7 @@ def inactivity_check():
         # asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('inactivity check error',message), client.loop)
 
 def lounge_threads():
-    time.sleep(10)
+    time.sleep(30)
     while(True):
         update_mogilist()
         inactivity_check()
@@ -252,6 +252,7 @@ def lounge_threads():
 
 
 poll_thread = threading.Thread(target=lounge_threads)
+poll_thread.start()
 
 
 @client.event
@@ -262,7 +263,6 @@ async def on_ready():
     GUILD = client.get_guild(Lounge[0])
     CHAT_RESTRICTED_ROLE = GUILD.get_role(CHAT_RESTRICTED_ROLE_ID)
     LOUNGELESS_ROLE = GUILD.get_role(LOUNGELESS_ROLE_ID)
-    poll_thread.start()
 
 @client.event
 async def on_application_command_error(ctx, error):
@@ -1792,6 +1792,9 @@ async def zmigrate(ctx):
     is_banned = "na"
     channel = client.get_channel(ctx.channel.id)
     async for message in ctx.channel.history(limit=None):
+        mkc_user_id = 0
+        country_code = "na"
+        is_banned = "na"
         for line in lines:
             name = line[0]
             if name.lower() == (message.author.display_name).lower():
@@ -1819,6 +1822,8 @@ async def zmigrate(ctx):
                             mkc_player_id = await mkc_request_mkc_player_id(temp[2])
                         else:
                             mkc_user_id = 0
+                    else:
+                        continue
                     mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
                     mkc_user_id = mkc_registry_data[0]
                     country_code = mkc_registry_data[1]
@@ -1826,11 +1831,13 @@ async def zmigrate(ctx):
                 except Exception:
                     mkc_user_id = 0
                     pass
+                if is_banned:
+                    print(f'BANNED: {altered_name}')
                 if mkc_user_id != 0:
                     try:
                         with DBA.DBAccess() as db:
-                            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s);', (message.author.id, message.author.display_name, mkc_user_id, country_code, mmr, mmr))
-                            print(f'Imported player: {message.author.display_name} MKC ID:{mkc_user_id} {country_code} {mmr}')
+                            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s);', (message.author.id, altered_name, mkc_user_id, country_code, mmr, mmr))
+                            print(f'Imported player: {altered_name} MKC ID:{mkc_user_id} {country_code} {mmr}\n')
                     except Exception as e:
                         print(f'{count} | {e} \n {count} | {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n')
                 else:
