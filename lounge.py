@@ -1817,6 +1817,7 @@ async def zmigrate(ctx):
                             regex_group = re.search(regex_pattern, message.content)
                             x = regex_group.group()
                             temp = re.split('\.|/', x)
+                            print(f'forums temp: {temp}')
                             mkc_forum_name = temp[1]
                             mkc_player_id = await mkc_request_mkc_player_id(temp[2])
                             print(f'forums mkc player_id {temp[1]} & {temp[2]}')
