@@ -1760,21 +1760,27 @@ async def zmmr_penalty(
     else:
         await ctx.respond('Player not found')
         return
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
-        new_mmr = temp[0][0] - mmr_penalty
-        if new_mmr < 0:
-            new_mmr = 0
-        db.execute('UPDATE player SET mmr = %s WEHRE player_id = %s;', (new_mmr,))
-    await ctx.respond(f'{player.mention} has been given a {mmr_penalty} mmr penalty')
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
+            new_mmr = temp[0][0] - mmr_penalty
+            if new_mmr < 0:
+                new_mmr = 0
+            db.execute('UPDATE player SET mmr = %s WEHRE player_id = %s;', (new_mmr,))
+        await ctx.respond(f'{player.mention} has been given a {mmr_penalty} mmr penalty')
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
+        await ctx.respond('`Error 38:` Could not apply penalty')
+
+
 
 @client.slash_command(
-    name='migrate',
+    name='zmigrate',
     description='popuko only',
     guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID)
-async def migrate(ctx):
+async def zmigrate(ctx):
     await ctx.defer()
     f = open('/home/lounge/200-Lounge-Mogi-Bot/200lounge.csv',encoding='utf-8-sig') # f is our filename as string
     lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
@@ -1824,19 +1830,22 @@ async def migrate(ctx):
                     try:
                         with DBA.DBAccess() as db:
                             db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s);', (message.author.id, message.author.display_name, mkc_user_id, country_code, mmr, mmr))
-                            print(f'Imported player: {message.author.display_name}')
+                            print(f'Imported player: {message.author.display_name} MKC ID:{mkc_user_id} {country_code} {mmr}')
                     except Exception as e:
-                        print(f'{count} | {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n{e}')
+                        print(f'{count} | {e} \n {count} | {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n')
+                else:
+                    print(f'{count} | INVALID MKC ID: {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n')
+                
         count+=1
     await ctx.respond('migration completed')
 
 @client.slash_command(
-    name='remove_all_ranks',
+    name='zremove_all_ranks',
     description='popuko only',
     guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID)
-async def remove_all_ranks(ctx):
+async def zremove_all_ranks(ctx):
     await ctx.defer()
     placement_role = GUILD.get_role(846497627508047872) # placement
     for member in GUILD.members:
@@ -1851,12 +1860,12 @@ async def remove_all_ranks(ctx):
     await ctx.respond('All player rank roles have been removed')
 
 @client.slash_command(
-    name='assign_ranks',
+    name='zassign_ranks',
     description='popuko only',
     guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID)
-async def assign_ranks(ctx):
+async def zassign_ranks(ctx):
     await ctx.defer()
     with DBA.DBAccess() as db:
         players = db.query('SELECT player_id, mmr FROM player',())
@@ -1884,15 +1893,17 @@ async def assign_ranks(ctx):
                 break
 
 @client.slash_command(
-    name='sendmsg',
+    name='zsendmsg',
     description='bot send message here',
     guild_ids=Lounge
 )
-async def sendmsg(ctx):
+@commands.has_any_role(ADMIN_ROLE_ID)
+async def zsendmsg(ctx):
     await ctx.defer()
     channel = client.get_channel(ctx.channel.id)
     await channel.send('a')
     await ctx.respond('message sent')
+
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
     try:
