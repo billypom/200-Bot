@@ -1227,9 +1227,6 @@ async def table(
                 string_my_player_place = ''
 
         # Create imagemagick image
-        # print('_______')
-        # print(mmr_table_string)
-        # print('_______')
         # https://imagemagick.org/script/color.php
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
         mmr_filename = f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}mmr.jpg'
@@ -1744,6 +1741,7 @@ async def migrate(ctx):
     f.close()
     count = 0
     mkc_user_id = 0
+    channel = client.get_channel(ctx.channel.id)
     async for message in ctx.channel.history(limit=None):
         for line in lines:
             name = line[0]
@@ -1758,8 +1756,6 @@ async def migrate(ctx):
                             x = regex_group.group()
                             reg_array = re.split('/', x)
                             mkc_player_id = reg_array[1]
-                            mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
-                            mkc_user_id = mkc_registry_data[0]
                         else:
                             mkc_user_id = 0
                     # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
@@ -1770,13 +1766,22 @@ async def migrate(ctx):
                             x = regex_group.group()
                             temp = re.split('\.|/', x)
                             mkc_forum_name = temp[1]
-                            mkc_user_id = await temp[2]
+                            mkc_player_id = await mkc_request_mkc_player_id(temp[2])
                         else:
                             mkc_user_id = 0
+                    mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
+                    mkc_user_id = mkc_registry_data[0]
+                    country_code = mkc_registry_data[1]
+                    is_banned = mkc_registry_data[2]
                 except Exception:
                     mkc_user_id = 0
                     pass
-                print(f'{count} | {message.author.display_name}: {mkc_user_id}  |  {message.author.id} | {mmr} | {peak}')
+                # if mkc_user_id != 0:
+                #     try:
+                #         with DBA.DBAccess() as db:
+                            
+
+                print(f'{count} | {message.author.display_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}')
         count+=1
     await ctx.respond('migration completed')
 
