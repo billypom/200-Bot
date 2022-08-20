@@ -1125,6 +1125,9 @@ async def table(
                         temp = db.query('SELECT rank_id FROM ranks WHERE placement_mmr = %s;', (my_player_mmr,))
                         init_rank = temp[0][0]
                         db.execute('UPDATE player SET base_mmr = %s, rank_id = %s WHERE player_id = %s;', (my_player_mmr, init_rank, player[0]))
+                    discord_member = await ctx.guild.fetch_member(player[0])
+                    init_role = await.ctx.guild.get_role(init_rank)
+                    await discord_member.add_roles(init_role)
                     await channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
 
                 if is_sub: # Subs only gain on winning team
@@ -1737,6 +1740,26 @@ async def zloungeless(
     else:
         await user.add_roles(LOUNGELESS_ROLE)
         await ctx.respond(f'Loungeless added to {player.mention}')
+
+@client.slash_command( # TODO
+    name='zmmr_penalty',
+    description='Give a player an MMR penalty, with no strike [Admin only]'
+    guild_ids=Lounge
+)
+async def zmmr_penalty(
+    ctx,
+    player: discord.Option(discord.Member, description='Which player?', required=True)):
+    await ctx.defer()
+    x = await check_if_uid_exists(player.id)
+    if x:
+        pass
+    else:
+        await ctx.respond('Player not found')
+        return
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
+
+        db.execute('UPDATE player SET mmr = %s WEHRE player_id = %s;', (temp[0][0]))
 
 @client.slash_command(
     name='migrate',
