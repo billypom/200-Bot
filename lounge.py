@@ -1625,6 +1625,7 @@ async def zstrike(
     else:
         pass
     # Send info to strikes table
+    mmr_penalty = abs(mmr_penalty)
     # Update player MMR
     current_time = datetime.datetime.now()
     expiration_date = current_time + datetime.timedelta(days=30)
