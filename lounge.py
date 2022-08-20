@@ -81,7 +81,7 @@ class Confirm(View):
 
 
 
-# This should probably be async, but it worked in testing and i'm lazy and nobody has ever used the bot so i dont care go crazy aaaa go stupid aaa
+# Not async because of concurrent futures
 def get_live_streamers(temp):
     list_of_streams = []
     for i in range(0, len(temp)):
@@ -962,7 +962,6 @@ async def table(
     # [[players players players], team_score, team_mmr]
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-2]))
     sorted_list.reverse() 
-    # print(f'sorted list: {sorted_list}')
 
     # Create hlorenzi string
     lorenzi_query=''
@@ -971,14 +970,14 @@ async def table(
     prev_team_score = 0
     prev_team_placement = 1
     team_placement = 0
+    count_teams = 1
     for team in sorted_list:
         # If team score = prev team score, use prev team placement, else increase placement and use placement
-        # print('if team score == prev team score')
-        # print(f'if {team[len(team)-2]} == {prev_team_score}')
         if team[len(team)-2] == prev_team_score:
             team_placement = prev_team_placement
         else:
-            team_placement+=1
+            team_placement = count_teams
+        count_teams += 1
         team.append(team_placement)
         if mogi_format != 1:
             lorenzi_query += f'{team_placement} #AAC8F4 \n'
@@ -992,7 +991,7 @@ async def table(
                 score = player[1]
             lorenzi_query += f'{player_name} [{country_code}] {score}\n'
 
-        # Assign previous values before leaving
+        # Assign previous values before looping
         prev_team_placement = team_placement
         prev_team_score = team[len(team)-3]
 
