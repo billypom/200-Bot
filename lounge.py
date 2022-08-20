@@ -1778,12 +1778,13 @@ async def migrate(ctx):
                 except Exception:
                     mkc_user_id = 0
                     pass
-                # if mkc_user_id != 0:
-                #     try:
-                #         with DBA.DBAccess() as db:
-                            
-
-                print(f'{count} | {message.author.display_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}')
+                if mkc_user_id != 0:
+                    try:
+                        with DBA.DBAccess() as db:
+                            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s);', (message.author.id, message.author.display_name, mkc_user_id, country_code, mmr, mmr))
+                            print(f'Imported player: {message.author.display_name}')
+                    except Exception as e:
+                        print(f'{count} | {message.author.display_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n{e}')
         count+=1
     await ctx.respond('migration completed')
 
