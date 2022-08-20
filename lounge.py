@@ -1787,11 +1787,9 @@ async def zmigrate(ctx):
     csv_header = lines[0]
     f.close()
     count = 0
-    mkc_user_id = 0
-    country_code = "na"
-    is_banned = "na"
     channel = client.get_channel(ctx.channel.id)
-    async for message in ctx.channel.history(limit=None):
+    mkc_user_id_list = []
+    for message in ctx.channel.history(limit=None):
         mkc_user_id = 0
         country_code = "na"
         is_banned = "na"
@@ -1824,27 +1822,32 @@ async def zmigrate(ctx):
                             mkc_user_id = 0
                     else:
                         break
+                    print(f'{count} | Getting user_id for {name} - {mkc_player_id}')
                     mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
                     mkc_user_id = mkc_registry_data[0]
                     country_code = mkc_registry_data[1]
                     is_banned = mkc_registry_data[2]
                 except Exception:
                     mkc_user_id = 0
-                    pass
+                    break
                 if is_banned:
-                    print(f'BANNED: {altered_name}')
+                    print(f'{count} | BANNED: {altered_name}')
                     break
                 if mkc_user_id != 0:
+                    if mkc_user_id in mkc_user_id_list:
+                        print(f'{count} | DUPLICATE MKC USER ID: {altered_name} MKC ID:{mkc_user_id} {country_code} {mmr}\n')
+                    else:
+                        mkc_user_id_list.append(mkc_user_id)
                     try:
                         with DBA.DBAccess() as db:
                             db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s);', (message.author.id, altered_name, mkc_user_id, country_code, mmr, mmr))
                             print(f'{count} | Imported player: {altered_name} MKC ID:{mkc_user_id} {country_code} {mmr}\n')
                         break
                     except Exception as e:
-                        print(f'{count} | {e} \n {count} | {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n')
+                        print(f'{count} | {e} \n {count} | {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}')
                         break
                 else:
-                    print(f'{count} | INVALID MKC ID: {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n')
+                    print(f'{count} | INVALID MKC ID: {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}')
                 
         count+=1
     await ctx.respond('migration completed')
