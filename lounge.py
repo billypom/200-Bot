@@ -1755,6 +1755,7 @@ async def migrate(ctx):
         for line in lines:
             name = line[0]
             if name.lower() == (message.author.display_name).lower():
+                altered_name = str(message.author.display_name).replace(" ", "-")
                 peak = line[1]
                 mmr = line[2]
                 try:
@@ -1791,7 +1792,7 @@ async def migrate(ctx):
                             db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s);', (message.author.id, message.author.display_name, mkc_user_id, country_code, mmr, mmr))
                             print(f'Imported player: {message.author.display_name}')
                     except Exception as e:
-                        print(f'{count} | {message.author.display_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n{e}')
+                        print(f'{count} | {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n{e}')
         count+=1
     await ctx.respond('migration completed')
 
@@ -1800,6 +1801,7 @@ async def migrate(ctx):
     description='popuko only',
     guild_ids=Lounge
 )
+@commands.has_any_role(ADMIN_ROLE_ID)
 async def remove_all_ranks(ctx):
     await ctx.defer()
     placement_role = ctx.guild.get_role(846497627508047872) # placement
@@ -1819,6 +1821,7 @@ async def remove_all_ranks(ctx):
     description='popuko only',
     guild_ids=Lounge
 )
+@commands.has_any_role(ADMIN_ROLE_ID)
 async def assign_ranks(ctx):
     await ctx.defer()
     with DBA.DBAccess() as db:
@@ -1845,7 +1848,6 @@ async def assign_ranks(ctx):
             except Exception as e:
                 print(e)
                 break
-
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
