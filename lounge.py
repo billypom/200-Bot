@@ -1809,6 +1809,7 @@ async def remove_all_ranks(ctx):
                 test_role = ctx.guild.get_role(RANK_ID_LIST[i])
                 await member.remove_roles(test_role)
                 await member.add_roles(placement_role)
+                print(f'removed {test_role}. added {placement_role}')
             except Exception:
                 continue
     await ctx.respond('All player rank roles have been removed')
