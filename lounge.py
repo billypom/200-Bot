@@ -1801,7 +1801,7 @@ async def migrate(ctx):
     guild_ids=Lounge
 )
 async def remove_all_ranks(ctx):
-    await ctx.defer()\
+    await ctx.defer()
     for member in ctx.guild.members:
         for i in range(len(RANK_ID_LIST)):
             try:
