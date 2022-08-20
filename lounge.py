@@ -835,7 +835,7 @@ async def name(
 async def table(
     ctx,
     mogi_format: discord.Option(int, '1=FFA, 2=2v2, 3=3v3, 4=4v4, 6=6v6', required=True),
-    scores: discord.Option(str, '@player scores (i.e. popuko 12 JPGiviner 42 Technical 180...)', required=True)
+    scores: discord.Option(str, 'player scores (i.e. popuko 12 JPGiviner 42 Technical 180...)', required=True)
     ):
     await ctx.defer()
     bad = await check_if_banned_characters(str(scores))
@@ -971,7 +971,10 @@ async def table(
     sorted_list.reverse() 
 
     # Create hlorenzi string
-    lorenzi_query=''
+    if mogi_format == 1:
+        lorenzi_query='-\n'
+    else:
+        lorenzi_query=''
 
     # Initialize score and placement values
     prev_team_score = 0
@@ -1853,13 +1856,15 @@ async def assign_ranks(ctx):
 async def set_player_roles(ctx):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT p.rank_id, r.rank_name FROM player p JOIN ranks r ON p.rank_id = r.rank_id WHERE p.player_id = %s;', (ctx.author.id,))
+            temp = db.query('SELECT p.rank_id, r.rank_name, p.player_name FROM player p JOIN ranks r ON p.rank_id = r.rank_id WHERE p.player_id = %s;', (ctx.author.id,))
             rank_id = temp[0][0]
             rank_name = temp[0][1]
+            player_name = temp[0][2]
         guild = client.get_guild(Lounge[0])
         role = guild.get_role(rank_id)
         member = await guild.fetch_member(ctx.author.id)
         await member.add_roles(role)
+        await member.edit(nick=player_name) #TODO TEST
         return f'Welcome back to 200cc Lounge. You have been given the role: `{rank_name}`'
     except Exception as e:
         await send_to_debug_channel(ctx, e)
