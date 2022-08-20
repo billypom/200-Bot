@@ -1823,7 +1823,7 @@ async def assign_ranks(ctx):
     with DBA.DBAccess() as db:
         temp = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
     for i in range(len(players)):
-        for j in range(len(temp))
+        for j in range(len(temp)):
             # If MMR > min & MMR < max, assign role
             if players[i][1] > temp[j][1]:pass else:continue
             if players[i][1] < temp[j][2]:pass else:continue
