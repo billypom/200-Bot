@@ -1807,6 +1807,7 @@ async def zmigrate(ctx):
                             x = regex_group.group()
                             reg_array = re.split('/', x)
                             mkc_player_id = reg_array[1]
+                            print(f'registry mkc player id: {reg_array[1]}')
                         else:
                             mkc_user_id = 0
                     # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
@@ -1818,6 +1819,7 @@ async def zmigrate(ctx):
                             temp = re.split('\.|/', x)
                             mkc_forum_name = temp[1]
                             mkc_player_id = await mkc_request_mkc_player_id(temp[2])
+                            print(f'forums mkc player_id {temp[1]} & {temp[2]}')
                         else:
                             mkc_user_id = 0
                     else:
