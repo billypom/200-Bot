@@ -1126,7 +1126,7 @@ async def table(
                         init_rank = temp[0][0]
                         db.execute('UPDATE player SET base_mmr = %s, rank_id = %s WHERE player_id = %s;', (my_player_mmr, init_rank, player[0]))
                     discord_member = await ctx.guild.fetch_member(player[0])
-                    init_role = await ctx.guild.get_role(init_rank)
+                    init_role = ctx.guild.get_role(init_rank)
                     await discord_member.add_roles(init_role)
                     await channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
 
