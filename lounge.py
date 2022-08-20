@@ -29,7 +29,7 @@ ml_lu_channel_message_id = 1000138727697424415
 mogi_media_channel_id = 1005091507604312074
 # mogi_media_message_id = 1005205285817831455
 TIER_ID_LIST = list()
-RANK_ID_LIST = list()
+RANK_ID_LIST = [791874714434797589, 794262638518730772, 794262898423627857, 794262916627038258, 794262925098745858, 794262959084797984, 794263467581374524, 970028275789365368]
 MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
 NAME_CHANGE_DELTA_LIMIT = 5184000
@@ -51,11 +51,11 @@ with DBA.DBAccess() as db:
     for i in range(len(get_tier_list)):
         TIER_ID_LIST.append(get_tier_list[i][0])
 
-# Initialize the RANK_ID_LIST
-with DBA.DBAccess() as db:
-    temp = db.query('SELECT rank_id FROM ranks WHERE rank_id > %s;', (0,))
-    for i in range(len(temp)):
-        RANK_ID_LIST.append(temp[i][0])
+# # Initialize the RANK_ID_LIST
+# with DBA.DBAccess() as db:
+#     temp = db.query('SELECT rank_id FROM ranks WHERE rank_id > %s;', (0,))
+#     for i in range(len(temp)):
+#         RANK_ID_LIST.append(temp[i][0])
 
 # Discord UI button - Confirmation button
 class Confirm(View):
@@ -1802,11 +1802,13 @@ async def migrate(ctx):
 )
 async def remove_all_ranks(ctx):
     await ctx.defer()
+    placement_role = ctx.guild.get_role(846497627508047872) # placement
     for member in ctx.guild.members:
         for i in range(len(RANK_ID_LIST)):
             try:
                 test_role = ctx.guild.get_role(RANK_ID_LIST[i])
                 await member.remove_roles(test_role)
+                await member.add_roles(placement_role)
             except Exception:
                 continue
     await ctx.respond('All player rank roles have been removed')
