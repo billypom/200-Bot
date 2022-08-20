@@ -24,8 +24,8 @@ from bs4 import BeautifulSoup as Soup
 
 Lounge = [461383953937596416]
 lounge_id = 999835318104625252
-ml_channel_message_id = 1000138727621918872
-ml_lu_channel_message_id = 1000138727697424415
+ml_channel_message_id = 1010644370954924052
+ml_lu_channel_message_id = 1010644338499403937
 mogi_media_channel_id = 1005091507604312074
 # mogi_media_message_id = 1005205285817831455
 TIER_ID_LIST = list()
