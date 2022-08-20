@@ -1827,8 +1827,14 @@ async def assign_ranks(ctx):
     for i in range(len(players)):
         for j in range(len(temp)):
             # If MMR > min & MMR < max, assign role
-            if players[i][1] > temp[j][1]:pass else:continue
-            if players[i][1] < temp[j][2]:pass else:continue
+            if players[i][1] > temp[j][1]:
+                pass 
+            else:
+                continue
+            if players[i][1] < temp[j][2]:
+                pass
+            else:
+                continue
             try:
                 member = ctx.guild.get_member(players[i][0])
                 role = ctx.guild.get_role(temp[j][0])
