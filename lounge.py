@@ -23,7 +23,6 @@ import concurrent.futures
 from bs4 import BeautifulSoup as Soup
 
 Lounge = [461383953937596416]
-lounge_id = 999835318104625252
 ml_channel_message_id = 1010644370954924052
 ml_lu_channel_message_id = 1010644338499403937
 mogi_media_channel_id = 1005091507604312074
@@ -297,7 +296,7 @@ async def on_application_command_error(ctx, error):
 
 @client.event
 async def on_message(ctx):
-    if ctx.author.id == lounge_id: # ignore self messages
+    if ctx.author.id == secretly.bot_id: # ignore self messages
         return
     user = await GUILD.fetch_member(ctx.author.id)
     if CHAT_RESTRICTED_ROLE in user.roles:
