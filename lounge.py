@@ -1819,8 +1819,23 @@ async def remove_all_ranks(ctx):
 async def assign_ranks(ctx):
     await ctx.defer()
     with DBA.DBAccess() as db:
-        temp = db.query('SELECT player_id FROM player',())
-    print(temp)
+        players = db.query('SELECT player_id, mmr FROM player',())
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
+    for i in range(len(players)):
+        for j in range(len(temp))
+            # If MMR > min & MMR < max, assign role
+            if players[i][1] > temp[j][1]:pass else:continue
+            if players[i][1] < temp[j][2]:pass else:continue
+            try:
+                member = ctx.guild.get_member(players[i][0])
+                role = ctx.guild.get_role(temp[j][0])
+                await member.add_roles(role)
+                print(f'assigned {role} to {member}')
+                break
+            except Exception as e:
+                print(e)
+                break
 
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
