@@ -1823,7 +1823,7 @@ async def zmigrate(ctx):
                         else:
                             mkc_user_id = 0
                     else:
-                        continue
+                        break
                     mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
                     mkc_user_id = mkc_registry_data[0]
                     country_code = mkc_registry_data[1]
@@ -1833,14 +1833,16 @@ async def zmigrate(ctx):
                     pass
                 if is_banned:
                     print(f'BANNED: {altered_name}')
-                    continue
+                    break
                 if mkc_user_id != 0:
                     try:
                         with DBA.DBAccess() as db:
                             db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s);', (message.author.id, altered_name, mkc_user_id, country_code, mmr, mmr))
                             print(f'Imported player: {altered_name} MKC ID:{mkc_user_id} {country_code} {mmr}\n')
+                        break
                     except Exception as e:
                         print(f'{count} | {e} \n {count} | {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n')
+                        break
                 else:
                     print(f'{count} | INVALID MKC ID: {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n')
                 
