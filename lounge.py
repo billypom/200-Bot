@@ -1888,7 +1888,7 @@ async def update_friend_code(ctx, message):
     if re.search(fc_pattern, message):
         try:
             with DBA.DBAccess() as db:
-                db.execute('UPDATE player SET friend_code = %s WHERE player_id = %s;', (message, ctx.author.id))
+                db.execute('UPDATE player SET fc = %s WHERE player_id = %s;', (message, ctx.author.id))
                 return 'Friend Code updated'
         except Exception as e:
             await send_to_debug_channel(ctx, e)
