@@ -298,6 +298,8 @@ async def on_application_command_error(ctx, error):
 async def on_message(ctx):
     if ctx.author.id == secretly.bot_id: # ignore self messages
         return
+    if ctx.channel.id == 558096949337915413:
+        return # ignore carl bot logging
     user = await GUILD.fetch_member(ctx.author.id)
     if CHAT_RESTRICTED_ROLE in user.roles:
         if ctx.content in secretly.chat_restricted_words:
