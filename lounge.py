@@ -1833,6 +1833,7 @@ async def zmigrate(ctx):
                     pass
                 if is_banned:
                     print(f'BANNED: {altered_name}')
+                    continue
                 if mkc_user_id != 0:
                     try:
                         with DBA.DBAccess() as db:
