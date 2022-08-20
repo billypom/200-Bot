@@ -1838,7 +1838,7 @@ async def zmigrate(ctx):
                     try:
                         with DBA.DBAccess() as db:
                             db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s);', (message.author.id, altered_name, mkc_user_id, country_code, mmr, mmr))
-                            print(f'Imported player: {altered_name} MKC ID:{mkc_user_id} {country_code} {mmr}\n')
+                            print(f'{count} | Imported player: {altered_name} MKC ID:{mkc_user_id} {country_code} {mmr}\n')
                         break
                     except Exception as e:
                         print(f'{count} | {e} \n {count} | {altered_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n')
