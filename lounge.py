@@ -1741,6 +1741,8 @@ async def migrate(ctx):
     f.close()
     count = 0
     mkc_user_id = 0
+    country_code = "na"
+    is_banned = "na"
     channel = client.get_channel(ctx.channel.id)
     async for message in ctx.channel.history(limit=None):
         for line in lines:
