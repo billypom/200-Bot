@@ -253,7 +253,6 @@ def lounge_threads():
 
 
 poll_thread = threading.Thread(target=lounge_threads)
-poll_thread.start()
 
 
 @client.event
@@ -264,6 +263,7 @@ async def on_ready():
     GUILD = client.get_guild(Lounge[0])
     CHAT_RESTRICTED_ROLE = GUILD.get_role(CHAT_RESTRICTED_ROLE_ID)
     LOUNGELESS_ROLE = GUILD.get_role(LOUNGELESS_ROLE_ID)
+    poll_thread.start()
 
 @client.event
 async def on_application_command_error(ctx, error):
