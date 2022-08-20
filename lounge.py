@@ -1033,6 +1033,7 @@ async def table(
             temp = db.query('SELECT results_id, tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
             db_results_channel = temp[0][0]
             tier_name = temp[0][1]
+        results_channel = client.get_channel(db_results_channel)
 
         # Pre MMR table calculate
         value_table = list()
@@ -1129,7 +1130,7 @@ async def table(
                     discord_member = await ctx.guild.fetch_member(player[0])
                     init_role = ctx.guild.get_role(init_rank)
                     await discord_member.add_roles(init_role)
-                    await channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
+                    await results_channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
 
                 if is_sub: # Subs only gain on winning team
                     if team[len(team)-1] < 0:
@@ -1213,6 +1214,7 @@ async def table(
                             member = await guild.fetch_member(player[0])
                             await member.remove_roles(current_role)
                             await member.add_roles(new_role)
+                            await results_channel.send(f'{my_player_name} has been promoted to {new_role}')
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                             my_player_new_rank += f'+ {new_role}'
@@ -1224,6 +1226,7 @@ async def table(
                             member = await guild.fetch_member(player[0])
                             await member.remove_roles(current_role)
                             await member.add_roles(new_role)
+                            await results_channel.send(f'{my_player_name} has been demoted to {new_role}')
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                             my_player_new_rank += f'- {new_role}'
@@ -1252,7 +1255,6 @@ async def table(
         sf=discord.File(f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}table.png', filename='table.jpg')
 
         # Create embed
-        results_channel = client.get_channel(db_results_channel)
         embed2 = discord.Embed(title=f'Tier {tier_name.upper()} Results', color = discord.Color.blurple())
         embed2.add_field(name='Table ID', value=f'{str(db_mogi_id)}', inline=True)
         embed2.add_field(name='Tier', value=f'{tier_name.upper()}', inline=True)
@@ -1281,8 +1283,6 @@ async def table(
         await ctx.respond('`Table Accepted.`', delete_after=300)
     else:
         await ctx.respond('`Table Denied.`', delete_after=300)
-
-# https://github.com/Pycord-Development/pycord/blob/master/examples/app_commands/slash_options.py
 
 # /stats
 @client.slash_command(
@@ -1742,25 +1742,30 @@ async def zloungeless(
         await user.add_roles(LOUNGELESS_ROLE)
         await ctx.respond(f'Loungeless added to {player.mention}')
 
-# @client.slash_command( # TODO
-#     name='zmmr_penalty',
-#     description='Give a player an MMR penalty, with no strike [Admin only]'
-#     guild_ids=Lounge
-# )
-# async def zmmr_penalty(
-#     ctx,
-#     player: discord.Option(discord.Member, description='Which player?', required=True)):
-#     await ctx.defer()
-#     x = await check_if_uid_exists(player.id)
-#     if x:
-#         pass
-#     else:
-#         await ctx.respond('Player not found')
-#         return
-#     with DBA.DBAccess() as db:
-#         temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
-
-#         db.execute('UPDATE player SET mmr = %s WEHRE player_id = %s;', (temp[0][0]))
+@client.slash_command(
+    name='zmmr_penalty',
+    description='Give a player an MMR penalty, with no strike [Admin only]',
+    guild_ids=Lounge
+)
+async def zmmr_penalty(
+    ctx,
+    player: discord.Option(discord.Member, description='Which player?', required=True),
+    mmr_penalty: discord.Option(int, description='How much penalty to apply?', required=True)):
+    await ctx.defer()
+    mmr_penalty = abs(mmr_penalty)
+    x = await check_if_uid_exists(player.id)
+    if x:
+        pass
+    else:
+        await ctx.respond('Player not found')
+        return
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
+        new_mmr = temp[0][0] - mmr_penalty
+        if new_mmr < 0:
+            new_mmr = 0
+        db.execute('UPDATE player SET mmr = %s WEHRE player_id = %s;', (new_mmr,))
+    await ctx.respond(f'{player.mention} has been given a {mmr_penalty} mmr penalty')
 
 @client.slash_command(
     name='migrate',
@@ -1877,6 +1882,16 @@ async def assign_ranks(ctx):
                 print(e)
                 break
 
+@client.slash_command(
+    name='sendmsg',
+    description='bot send message here',
+    guild_ids=Lounge
+)
+async def sendmsg(ctx):
+    await ctx.defer()
+    channel = client.get_channel(ctx.channel.id)
+    await channel.send('a')
+    await ctx.respond('message sent')
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
     try:
