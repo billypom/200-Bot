@@ -1823,7 +1823,7 @@ async def zmigrate(ctx):
                             # print(f'forums temp: {temp}')
                             mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
                             # print(f'forums mkc player_id {temp[1]} & {temp[2]}')
-                        elif re.search(regex_pattern2, str(message.content))
+                        elif re.search(regex_pattern2, str(message.content)):
                             regex_group = re.search(regex_pattern2, message.content)
                             x = regex_group.group()
                             temp = re.split('\.|/', x)
