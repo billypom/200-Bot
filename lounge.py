@@ -29,7 +29,7 @@ ml_lu_channel_message_id = 1000138727697424415
 mogi_media_channel_id = 1005091507604312074
 # mogi_media_message_id = 1005205285817831455
 TIER_ID_LIST = list()
-RANK_ID_LIST = [791874714434797589, 794262638518730772, 794262898423627857, 794262916627038258, 794262925098745858, 794262959084797984, 794263467581374524, 970028275789365368]
+RANK_ID_LIST = [791874714434797589, 794262638518730772, 794262898423627857, 794262916627038258, 794262925098745858, 794262959084797984, 794263467581374524, 970028275789365368, 846497627508047872]
 MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
 NAME_CHANGE_DELTA_LIMIT = 5184000
@@ -1810,10 +1810,8 @@ async def remove_all_ranks(ctx):
                 if test_role in member.roles:
                     await member.remove_roles(test_role)
                     print(f'removed {test_role} from {member}')
-            except Exception:
-                continue
-            await member.add_roles(placement_role)
-            print(f'added placement')
+            except Exception as e:
+                print(e)
     await ctx.respond('All player rank roles have been removed')
 
 @client.slash_command(
