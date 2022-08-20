@@ -1127,8 +1127,8 @@ async def table(
                         temp = db.query('SELECT rank_id FROM ranks WHERE placement_mmr = %s;', (my_player_mmr,))
                         init_rank = temp[0][0]
                         db.execute('UPDATE player SET base_mmr = %s, rank_id = %s WHERE player_id = %s;', (my_player_mmr, init_rank, player[0]))
-                    discord_member = await ctx.guild.fetch_member(player[0])
-                    init_role = ctx.guild.get_role(init_rank)
+                    discord_member = await GUILD.fetch_member(player[0])
+                    init_role = GUILD.get_role(init_rank)
                     await discord_member.add_roles(init_role)
                     await results_channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
 
@@ -1837,11 +1837,11 @@ async def migrate(ctx):
 @commands.has_any_role(ADMIN_ROLE_ID)
 async def remove_all_ranks(ctx):
     await ctx.defer()
-    placement_role = ctx.guild.get_role(846497627508047872) # placement
-    for member in ctx.guild.members:
+    placement_role = GUILD.get_role(846497627508047872) # placement
+    for member in GUILD.members:
         for i in range(len(RANK_ID_LIST)):
             try:
-                test_role = ctx.guild.get_role(RANK_ID_LIST[i])
+                test_role = GUILD.get_role(RANK_ID_LIST[i])
                 if test_role in member.roles:
                     await member.remove_roles(test_role)
                     print(f'removed {test_role} from {member}')
@@ -1873,8 +1873,8 @@ async def assign_ranks(ctx):
             else:
                 continue
             try:
-                member = ctx.guild.get_member(players[i][0])
-                role = ctx.guild.get_role(temp[j][0])
+                member = GUILD.get_member(players[i][0])
+                role = GUILD.get_role(temp[j][0])
                 await member.add_roles(role)
                 print(f'assigned {role} to {member}')
                 break
@@ -1919,8 +1919,8 @@ async def create_player(ctx, mkc_user_id, country_code):
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code))
-            member = await ctx.guild.fetch_member(ctx.author.id)
-            role = ctx.guild.get_role(PLACEMENT_ROLE_ID)
+            member = await GUILD.fetch_member(ctx.author.id)
+            role = GUILD.get_role(PLACEMENT_ROLE_ID)
             await member.add_roles(role)
             return 'Verified & registered successfully'
         except Exception as e:
