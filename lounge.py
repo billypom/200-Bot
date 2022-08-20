@@ -1741,25 +1741,25 @@ async def zloungeless(
         await user.add_roles(LOUNGELESS_ROLE)
         await ctx.respond(f'Loungeless added to {player.mention}')
 
-@client.slash_command( # TODO
-    name='zmmr_penalty',
-    description='Give a player an MMR penalty, with no strike [Admin only]'
-    guild_ids=Lounge
-)
-async def zmmr_penalty(
-    ctx,
-    player: discord.Option(discord.Member, description='Which player?', required=True)):
-    await ctx.defer()
-    x = await check_if_uid_exists(player.id)
-    if x:
-        pass
-    else:
-        await ctx.respond('Player not found')
-        return
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
+# @client.slash_command( # TODO
+#     name='zmmr_penalty',
+#     description='Give a player an MMR penalty, with no strike [Admin only]'
+#     guild_ids=Lounge
+# )
+# async def zmmr_penalty(
+#     ctx,
+#     player: discord.Option(discord.Member, description='Which player?', required=True)):
+#     await ctx.defer()
+#     x = await check_if_uid_exists(player.id)
+#     if x:
+#         pass
+#     else:
+#         await ctx.respond('Player not found')
+#         return
+#     with DBA.DBAccess() as db:
+#         temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
 
-        db.execute('UPDATE player SET mmr = %s WEHRE player_id = %s;', (temp[0][0]))
+#         db.execute('UPDATE player SET mmr = %s WEHRE player_id = %s;', (temp[0][0]))
 
 @client.slash_command(
     name='migrate',
