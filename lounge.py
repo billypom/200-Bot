@@ -1789,7 +1789,7 @@ async def zmigrate(ctx):
     count = 0
     channel = client.get_channel(ctx.channel.id)
     mkc_user_id_list = []
-    for message in ctx.channel.history(limit=None):
+    async for message in ctx.channel.history(limit=None):
         mkc_user_id = 0
         country_code = "na"
         is_banned = "na"
@@ -1836,6 +1836,8 @@ async def zmigrate(ctx):
                 if mkc_user_id != 0:
                     if mkc_user_id in mkc_user_id_list:
                         print(f'{count} | DUPLICATE MKC USER ID: {altered_name} MKC ID:{mkc_user_id} {country_code} {mmr}\n')
+                        await ctx.respond('wtf')
+                        return
                     else:
                         mkc_user_id_list.append(mkc_user_id)
                     try:
