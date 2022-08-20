@@ -29,6 +29,7 @@ ml_lu_channel_message_id = 1000138727697424415
 mogi_media_channel_id = 1005091507604312074
 # mogi_media_message_id = 1005205285817831455
 TIER_ID_LIST = list()
+RANK_ID_LIST = list()
 MAX_PLAYERS_IN_MOGI = 12
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
 NAME_CHANGE_DELTA_LIMIT = 5184000
@@ -49,6 +50,12 @@ with DBA.DBAccess() as db:
     get_tier_list = db.query('SELECT tier_id FROM tier WHERE tier_id > %s;', (0,))
     for i in range(len(get_tier_list)):
         TIER_ID_LIST.append(get_tier_list[i][0])
+
+# Initialize the RANK_ID_LIST
+with DBA.DBAccess() as db:
+    temp = db.query('SELECT rank_id FROM ranks WHERE rank_id > %s;', (0,))
+    for i in range(len(temp)):
+        RANK_ID_LIST.append(temp[i][0])
 
 # Discord UI button - Confirmation button
 class Confirm(View):
@@ -1787,6 +1794,34 @@ async def migrate(ctx):
                         print(f'{count} | {message.author.display_name}: {mkc_user_id}, {country_code}, {is_banned} | {message.author.id} | {mmr} | {peak}\n{e}')
         count+=1
     await ctx.respond('migration completed')
+
+@client.slash_command(
+    name='remove_all_ranks',
+    description='popuko only',
+    guild_ids=Lounge
+)
+async def remove_all_ranks(ctx):
+    await ctx.defer()\
+    for member in ctx.guild.members:
+        for i in range(len(RANK_ID_LIST)):
+            try:
+                test_role = ctx.guild.get_role(RANK_ID_LIST[i])
+                await member.remove_roles(test_role)
+            except Exception:
+                continue
+    await ctx.respond('All player rank roles have been removed')
+
+@client.slash_command(
+    name='assign_ranks',
+    description='popuko only'
+    guild_ids=Lounge
+)
+async def assign_ranks(ctx):
+    await ctx.defer()
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT player_id FROM player',())
+    print(temp)
+
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
