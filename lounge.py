@@ -229,19 +229,22 @@ def inactivity_check():
                             db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0]))
                     continue
                 elif unix_difference > 720:
+                    # try:
                     with DBA.DBAccess() as db:
                         db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
                     channel = client.get_channel(temp[i][2])
                     message = f'<@{temp[i][0]}> has been removed from the mogi due to inactivity'
                     asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=30), client.loop)
                     continue
+                    # except Exception as e:
+                        # send_raw_to_debug_channel('', e)
                     # remove player from lineup
                 else:
                     continue
     except Exception as e:
         return
-        # message = e
-        # asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('inactivity check error',message), client.loop)
+        message = e
+        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('inactivity check error',message), client.loop)
 
 def lounge_threads():
     time.sleep(30)
