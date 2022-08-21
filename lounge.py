@@ -1554,6 +1554,7 @@ async def zrevert(
     mogi_id: discord.Option(int, 'Mogi ID / Table ID', required=True)
     ):
     await ctx.defer()
+    flag = 0
     # Make sure mogi exists
     try:
         with DBA.DBAccess() as db:
@@ -1604,10 +1605,18 @@ async def zrevert(
                     await results_channel.send(f'<@{my_player_id}> has been demoted to {new_role}')
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, my_player_id))
+            except Exception as e:
+                await send_to_debug_channel(ctx, e)
+                flag = 1
+                pass
     with DBA.DBAccess() as db:
         db.execute('DELETE FROM player_mogi WHERE mogi_id = %s;', (mogi_id,))
         db.execute('DELETE FROM mogi WHERE mogi_id = %s;', (mogi_id,))
-    await ctx.respond(f'Mogi ID `{mogi_id}` has been removed.')
+    if flag == 1:
+        fatal_error = f"FATAL ERROR WHILE UPDATING ROLES. CONTACT {secretly.my_discord}"
+    else:
+        fatal_error = ""
+    await ctx.respond(f'Mogi ID `{mogi_id}` has been removed. {fatal_error}')
     return
 
 # /zswapscore
