@@ -729,7 +729,11 @@ async def sub(
                 if temp[0][0] == subbing_player.id:
                     await ctx.respond(f'{subbing_player.mention} is already in this mogi')
                     return
-            db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
+            try:
+                db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
+            except Exception:
+                db.execute('DELETE FROM lineups WHERE player_id = %s;', (subbing_player.id,))
+                db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
     except Exception as e:
         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
         await send_to_debug_channel(ctx, e)
@@ -1181,7 +1185,7 @@ async def table(
                 # Check for new peak
                 string_my_player_new_mmr = str(my_player_new_mmr).center(9)
                 # print(f'current peak: {my_player_peak} | new mmr value: {my_player_new_mmr}')
-                if my_player_peak < (my_player_new_mmr):
+                if my_player_peak < my_player_new_mmr:
                     formatted_my_player_new_mmr = await peak_mmr_wrapper(string_my_player_new_mmr)
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET peak_mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
@@ -1511,6 +1515,11 @@ async def strikes(ctx):
 )
 async def teams(ctx):
     await ctx.defer()
+    x = await check_if_mogi_is_ongoing(ctx)
+    if x:
+        pass
+    else:
+        await ctx.respond('There is no ongoing mogi')
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT teams_string FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
@@ -2345,6 +2354,11 @@ async def create_teams(ctx, poll_results):
                 response_string += f'(MMR: {math.ceil(player)})\n'
 
     response_string+=f'\n{player_score_string}'
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE tier SET teams_string = %s WHERE tier_id = %s;', (response_string, ctx.channel.id))
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
     # choose a host
     host_string = '    '
     try:
@@ -2355,11 +2369,6 @@ async def create_teams(ctx, poll_results):
         host_string = '    `No FC found` - Choose amongst yourselves'
     # create a return string
     response_string+=f'\n\n{host_string}'
-    try:
-        with DBA.DBAccess() as db:
-            db.execute('UPDATE tier SET teams_string = %s WHERE tier_id = %s;', (response_string, ctx.channel.id))
-    except Exception as e:
-        await send_to_debug_channel(ctx, e)
     return response_string
 
 async def check_if_mogi_is_ongoing(ctx):
