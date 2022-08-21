@@ -365,22 +365,24 @@ async def on_raw_reaction_add(payload):
         if int(payload.message_id) == int(message_ids[i][0]):
             # Join
             if str(payload.emoji) == '✅':
+                print('check')
                 with DBA.DBAccess() as db:
                     # Set record to accepted
                     db.execute('UPDATE player_name_request SET was_accepted = %s WHERE embed_message_id = %s;', (1, int(payload.message_id)))
                     # Change the db username
                     db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[i][2], message_ids[i][1]))
                     # Change the discord username
-                    member = guild.get_member(message_ids[i][1])
-                    await member.edit(nick=str(message_ids[i][2]))
-                    # Delete the embed message
-                    await message.delete()
+                member = guild.get_member(message_ids[i][1])
+                await member.edit(nick=str(message_ids[i][2]))
+                # Delete the embed message
+                await message.delete()
             if str(payload.emoji) == '❌':
+                print('x')
                 with DBA.DBAccess() as db:
                     # Remove the db record
                     db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
                     # Delete the embed message
-                    await message.delete()
+                await message.delete()
         try:
             await message.remove_reaction(payload.emoji, member)
         except Exception:
