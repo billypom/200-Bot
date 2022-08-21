@@ -365,7 +365,6 @@ async def on_raw_reaction_add(payload):
         if int(payload.message_id) == int(message_ids[i][0]):
             # Join
             if str(payload.emoji) == '✅':
-                print('check')
                 with DBA.DBAccess() as db:
                     # Set record to accepted
                     db.execute('UPDATE player_name_request SET was_accepted = %s WHERE embed_message_id = %s;', (1, int(payload.message_id)))
@@ -378,7 +377,6 @@ async def on_raw_reaction_add(payload):
                 # Delete the embed message
                 await message.delete()
             if str(payload.emoji) == '❌':
-                print('x')
                 with DBA.DBAccess() as db:
                     # Remove the db record
                     db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
@@ -2251,6 +2249,11 @@ async def create_teams(ctx, poll_results):
         host_string = '    `No FC found` - Choose amongst yourselves'
     # create a return string
     response_string+=f'\n\n{host_string}'
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE tier SET teams_string = %s WHERE tier_id = %s;', (response_string, ctx.channel.id))
+    except Exception as e:
+        await send_to_debug_channel(ctx, e)
     return response_string
 
 async def check_if_mogi_is_ongoing(ctx):
