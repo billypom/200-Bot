@@ -383,6 +383,7 @@ async def on_raw_reaction_add(payload):
                     # Remove the db record
                     db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
                     # Delete the embed message
+                member = guild.get_member(message_ids[i][1])
                 await member.send(f'Your name change has been denied.')
                 await message.delete()
         try:
