@@ -2063,7 +2063,7 @@ async def create_player(ctx, mkc_user_id, country_code):
         channel = client.get_channel(ctx.channel.id)
         for line in lines:
             name = line[0]
-            if name.lower() == (insert_name).lower():
+            if name.lower() == (ctx.author.display_name).lower():
                 altered_name = str(insert_name).replace(" ", "-")
                 mmr = int(line[2])
                 with DBA.DBAccess() as db:
