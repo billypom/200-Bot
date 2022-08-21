@@ -586,7 +586,7 @@ async def c(
         # start the mogi, vote on format, create teams
     elif count == 6 or count == 11:
         channel = client.get_channel(ctx.channel.id)
-        await channel.send(f'@here +{12-count}')
+        await channel.send(f'<@&748961970564366347> +{12-count}')
     return
 
 # /d
@@ -1861,8 +1861,8 @@ async def zmmr_penalty(
             temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
             new_mmr = temp[0][0] - mmr_penalty
             if new_mmr < 0:
-                new_mmr = 0
-            db.execute('UPDATE player SET mmr = %s WEHRE player_id = %s;', (new_mmr,))
+                new_mmr = 1
+            db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (new_mmr, player.id))
         await ctx.respond(f'{player.mention} has been given a {mmr_penalty} mmr penalty')
     except Exception as e:
         await send_to_debug_channel(ctx, e)
