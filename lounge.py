@@ -2001,7 +2001,7 @@ async def zassign_ranks(ctx):
                 print(f'assigned {role} to {member}')
                 break
             except Exception as e:
-                print(f'{player_id} | {e}')
+                print(f'{players[i][0]} | {e}')
                 break
 
 @client.slash_command(
