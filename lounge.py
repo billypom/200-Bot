@@ -220,25 +220,24 @@ def inactivity_check():
             temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id, wait_for_activity FROM lineups WHERE can_drop = %s AND wait_for_activity = %s;', (1,0))
             for i in range(len(temp)):
                 unix_difference = unix_now - temp[i][1]
-                if (unix_difference) < 720 and (unix_difference) > 600:
-                    channel = client.get_channel(temp[i][2])
-                    if temp[0][3] == 0:
-                        message = f'<@{temp[i][0]}> Type anything in the chat in the next 2 minutes to keep your spot in the mogi.'
-                        asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=120), client.loop)
-                        with DBA.DBAccess() as db:
-                            db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0]))
-                    continue
+                if temp[i][3] == 0:
+                    if (unix_difference) < 720 and (unix_difference) > 600:
+                        channel = client.get_channel(temp[i][2])
+                        if temp[0][3] == 0:
+                            message = f'<@{temp[i][0]}> Type anything in the chat in the next 2 minutes to keep your spot in the mogi.'
+                            asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=120), client.loop)
+                            with DBA.DBAccess() as db:
+                                db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0]))
+                        continue
                 elif unix_difference > 720:
+                    if temp[i][3] == 1:
                     # try:
-                    with DBA.DBAccess() as db:
-                        db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
-                    channel = client.get_channel(temp[i][2])
-                    message = f'<@{temp[i][0]}> has been removed from the mogi due to inactivity'
-                    asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=30), client.loop)
-                    continue
-                    # except Exception as e:
-                        # send_raw_to_debug_channel('', e)
-                    # remove player from lineup
+                        with DBA.DBAccess() as db:
+                            db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
+                        channel = client.get_channel(temp[i][2])
+                        message = f'<@{temp[i][0]}> has been removed from the mogi due to inactivity'
+                        asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=30), client.loop)
+                        continue
                 else:
                     continue
     except Exception as e:
@@ -1158,7 +1157,9 @@ async def table(
                         db.execute('UPDATE player SET base_mmr = %s, rank_id = %s WHERE player_id = %s;', (my_player_mmr, init_rank, player[0]))
                     discord_member = await GUILD.fetch_member(player[0])
                     init_role = GUILD.get_role(init_rank)
+                    placement_role = GUILD.get_role(PLACEMENT_ROLE_ID)
                     await discord_member.add_roles(init_role)
+                    await discord_member.remove_roles(placement_role)
                     await results_channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
 
                 if is_sub: # Subs only gain on winning team
