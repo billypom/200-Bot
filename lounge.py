@@ -217,7 +217,7 @@ def inactivity_check():
     unix_now = time.mktime(dtobject_now.timetuple())
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id, wait_for_activity FROM lineups WHERE can_drop = %s;', (1,))
+            temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id, wait_for_activity FROM lineups WHERE can_drop = %s AND wait_for_activity = %s;', (1,0))
             for i in range(len(temp)):
                 unix_difference = unix_now - temp[i][1]
                 if (unix_difference) < 720 and (unix_difference) > 600:
