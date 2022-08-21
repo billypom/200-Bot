@@ -582,7 +582,7 @@ async def c(
             return
         # start the mogi, vote on format, create teams
     elif count == 6 or count == 11:
-        channel = await client.get_channel(ctx.channel.id)
+        channel = client.get_channel(ctx.channel.id)
         await channel.send(f'<@748961970564366347> +{12-count}')
     return
 
@@ -1589,7 +1589,7 @@ async def zrevert(
             my_player_mmr = int(players_mogi[i][1])
             my_player_new_mmr = my_player_mmr + int(players_mogi[i][2])
             results_channel_id = players_mogi[i][3]
-            results_channel = await client.get_channel(results_channel_id)
+            results_channel = client.get_channel(results_channel_id)
             # Rank up - assign roles - update DB
             try:
                 if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr:
