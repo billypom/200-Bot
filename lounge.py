@@ -2056,7 +2056,27 @@ async def create_player(ctx, mkc_user_id, country_code):
             count +=1
             if count == 20:
                 return f'``Error 39:`` Oops! An unlikely error occured. Contact {secretly.my_discord} if you think this is a mistake.'
-                
+        
+        f = open('/home/lounge/200-Lounge-Mogi-Bot/200lounge.csv',encoding='utf-8-sig') # f is our filename as string
+        lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
+        f.close()
+        channel = client.get_channel(ctx.channel.id)
+        for line in lines:
+            name = line[0]
+            if name.lower() == (insert_name).lower():
+                altered_name = str(insert_name).replace(" ", "-")
+                mmr = line[2]
+                with DBA.DBAccess() as db:
+                    ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
+                for i in range(len(ranks)):
+                    if mmr > ranks[i][1] and mmr < ranks[i][2]:
+                        member = GUILD.get_member(ctx.author.id)
+                        role = GUILD.get_role(ranks[i][0])
+                        await member.add_roles(role)
+                    with DBA.DBAccess() as db:
+                        db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (ctx.author.id, altered_name, mkc_user_id, country_code, ranks[i][0]))
+                    return f'Verified & registered successfully - Assigned {role}'
+
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, insert_name, mkc_user_id, country_code))
