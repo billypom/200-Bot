@@ -724,9 +724,15 @@ async def sub(
             temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (subbing_player.id,))
             if temp:
                 if temp[0][0] == subbing_player.id:
-                    await ctx.respond(f'{subbing_player.mention} is already in this mogi')
-                    return
-            db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
+                    with DBA.DBAccess() as db:
+                        temp2 = db.query('SELECT count(*) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
+                        if temp2[0][0] > 12: # if 13th player is trying to sub in?? idk...
+                            db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
+                        else:
+                            await ctx.respond(f'{subbing_player.mention} is already in this mogi')
+                            return
+            else:
+                db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
     except Exception as e:
         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
         await send_to_debug_channel(ctx, e)
