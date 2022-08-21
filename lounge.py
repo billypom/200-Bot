@@ -1369,8 +1369,8 @@ async def stats(
                 mmr_history.append(temp[i][0])
                 score_history.append(temp[i][1])
                 if i <= 9:
-                    last_10_change += score_history[i]
-                    if score_history[i] > 0:
+                    last_10_change += mmr_history[i]
+                    if mmr_history[i] > 0:
                         last_10_wins += 1
                     else:
                         last_10_losses += 1
