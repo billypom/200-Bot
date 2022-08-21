@@ -153,6 +153,7 @@ def mogi_media_check():
                     member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
                     member = member_future.result()
                     embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
+                    embed.add_field(name='Link', value=f'https://twitch.tv/{stream[0]}', inline=False)
                     embed.set_image(url=stream[2])
                     embed.set_thumbnail(url=member.display_avatar)
                     mogi_media = client.get_channel(mogi_media_channel_id)
