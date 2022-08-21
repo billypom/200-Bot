@@ -513,7 +513,7 @@ async def verify(
     verify_description = vlog_msg.success
     verify_color = discord.Color.green()
     # Check if someone has verified as this user before...
-    x = await check_if_mkc_player_id_used(mkc_player_id)
+    x = await check_if_mkc_user_id_used(mkc_user_id)
     if x:
         await ctx.respond(f'``Error 10: Duplicate player`` If you think this is a mistake, please contact {secretly.my_discord} immediately. ')
         verify_description = vlog_msg.error4
@@ -2404,11 +2404,11 @@ async def check_if_uid_in_tier(uid):
     except Exception:
         return False
 
-async def check_if_mkc_player_id_used(mkc_player_id):
+async def check_if_mkc_user_id_used(mkc_user_id):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mkc_id from player WHERE mkc_id = %s;', (mkc_player_id,))
-            if int(temp[0][0]) == int(mkc_player_id):
+            temp = db.query('SELECT mkc_id from player WHERE mkc_id = %s;', (mkc_user_id,))
+            if int(temp[0][0]) == int(mkc_user_id):
                 return True
             else:
                 return False
