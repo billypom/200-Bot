@@ -2065,11 +2065,11 @@ async def create_player(ctx, mkc_user_id, country_code):
             name = line[0]
             if name.lower() == (insert_name).lower():
                 altered_name = str(insert_name).replace(" ", "-")
-                mmr = line[2]
+                mmr = int(line[2])
                 with DBA.DBAccess() as db:
                     ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
                 for i in range(len(ranks)):
-                    if mmr > ranks[i][1] and mmr < ranks[i][2]:
+                    if mmr > int(ranks[i][1]) and mmr < int(ranks[i][2]):
                         member = GUILD.get_member(ctx.author.id)
                         role = GUILD.get_role(ranks[i][0])
                         await member.add_roles(role)
