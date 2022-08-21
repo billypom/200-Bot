@@ -29,7 +29,7 @@ Substitute a player during a mogi.
 Upload your Friend Code. | Submitting your FC means you are willing and able to host. If FCs are available - the bot will choose a player at random to host a mogi, once the room reaches 12 players.
 
 
-# `/table` +2 REQUIRED `format` `scores`
+# `/table` +2 REQUIRED `format` & `scores`
 
 Submit a table. Provide a format (1, 2, 3, 4, 6) and a list of 12 players & 12 scores (brandon 180 popuko 12 jpgiviner 42 etc...). The best way to ensure that the table is submitted properly is to copy the example from the MOGI STARTED message. All players on a team MUST be grouped together in the submission.
 
