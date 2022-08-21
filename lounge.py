@@ -477,7 +477,7 @@ async def verify(
         return
     elif is_banned == -1:
         # Wrong link probably?
-        await ctx.respond('``Error 7:`` Oops! Something went wrong. Check your link or try again later')
+        await ctx.respond('``Error 8:`` Oops! Something went wrong. Check your link or try again later')
         return
     else:
         pass
@@ -503,7 +503,7 @@ async def verify(
         else:
             pass
     else:
-        verify_description = vlog_msg.error6
+        verify_description = vlog_msg.error7
         verify_color = discord.Color.red()
         await ctx.respond('``Error 6:`` Oops! Something went wrong. Check your link or try again later')
         await send_to_verification_log(ctx, message, verify_color, verify_description)
