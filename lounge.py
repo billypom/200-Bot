@@ -365,26 +365,29 @@ async def on_raw_reaction_add(payload):
     for i in range(0, len(message_ids)):
         if int(payload.message_id) == int(message_ids[i][0]):
             # Join
-            if str(payload.emoji) == '✅':
-                with DBA.DBAccess() as db:
-                    # Set record to accepted
-                    db.execute('UPDATE player_name_request SET was_accepted = %s WHERE embed_message_id = %s;', (1, int(payload.message_id)))
-                    # Change the db username
-                    db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[i][2], message_ids[i][1]))
-                    # Change the discord username
-                member = guild.get_member(message_ids[i][1])
-                await member.edit(nick=str(message_ids[i][2]))
-                await member.send(f'Your name change has been approved.')
-                # Delete the embed message
-                await message.delete()
-            if str(payload.emoji) == '❌':
-                with DBA.DBAccess() as db:
-                    # Remove the db record
-                    db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
+            try:
+                if str(payload.emoji) == '✅':
+                    with DBA.DBAccess() as db:
+                        # Set record to accepted
+                        db.execute('UPDATE player_name_request SET was_accepted = %s WHERE embed_message_id = %s;', (1, int(payload.message_id)))
+                        # Change the db username
+                        db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[i][2], message_ids[i][1]))
+                        # Change the discord username
+                    member = guild.get_member(message_ids[i][1])
+                    await member.edit(nick=str(message_ids[i][2]))
+                    await member.send(f'Your name change has been approved.')
                     # Delete the embed message
-                member = guild.get_member(message_ids[i][1])
-                await member.send(f'Your name change has been denied.')
-                await message.delete()
+                    await message.delete()
+                if str(payload.emoji) == '❌':
+                    with DBA.DBAccess() as db:
+                        # Remove the db record
+                        db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
+                        # Delete the embed message
+                    member = guild.get_member(message_ids[i][1])
+                    await member.send(f'Your name change has been denied.')
+                    await message.delete()
+            except Exception:
+                pass
         try:
             await message.remove_reaction(payload.emoji, member)
         except Exception:
@@ -721,18 +724,12 @@ async def sub(
         return
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (subbing_player.id,))
+            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s LIMIT 12 ORDER BY create_date ASC;', (subbing_player.id,))
             if temp:
                 if temp[0][0] == subbing_player.id:
-                    with DBA.DBAccess() as db:
-                        temp2 = db.query('SELECT count(*) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
-                        if temp2[0][0] > 12: # if 13th player is trying to sub in?? idk...
-                            db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
-                        else:
-                            await ctx.respond(f'{subbing_player.mention} is already in this mogi')
-                            return
-            else:
-                db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
+                    await ctx.respond(f'{subbing_player.mention} is already in this mogi')
+                    return
+            db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
     except Exception as e:
         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
         await send_to_debug_channel(ctx, e)
