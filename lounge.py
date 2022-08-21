@@ -1998,6 +1998,8 @@ async def zassign_ranks(ctx):
                 member = GUILD.get_member(players[i][0])
                 role = GUILD.get_role(temp[j][0])
                 await member.add_roles(role)
+                with DBA.DBAccess() as db:
+                    db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (temp[j][0], players[i][0]))
                 print(f'assigned {role} to {member}')
                 break
             except Exception as e:
