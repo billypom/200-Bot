@@ -586,7 +586,7 @@ async def c(
         # start the mogi, vote on format, create teams
     elif count == 6 or count == 11:
         channel = client.get_channel(ctx.channel.id)
-        await channel.send(f'<@748961970564366347> +{12-count}')
+        await channel.send(f'@here +{12-count}')
     return
 
 # /d
