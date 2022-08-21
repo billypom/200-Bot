@@ -1831,6 +1831,7 @@ async def zloungeless(
     description='Give a player an MMR penalty, with no strike [Admin only]',
     guild_ids=Lounge
 )
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zmmr_penalty(
     ctx,
     player: discord.Option(discord.Member, description='Which player?', required=True),
