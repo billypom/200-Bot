@@ -2039,9 +2039,18 @@ async def create_player(ctx, mkc_user_id, country_code):
     if x:
         return 'Player already registered'
     else:
+        insert_name = str(ctx.author.display_name)
+        name_still_exists = True
+        while(name_still_exists):
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (ctx.author.display_name,))
+                if temp:
+                    insert_name += "_"
+                else:
+                    name_still_exists = False
         try:
             with DBA.DBAccess() as db:
-                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, ctx.author.display_name, mkc_user_id, country_code))
+                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, insert_name, mkc_user_id, country_code))
             member = await GUILD.fetch_member(ctx.author.id)
             role = GUILD.get_role(PLACEMENT_ROLE_ID)
             await member.add_roles(role)
