@@ -374,6 +374,7 @@ async def on_raw_reaction_add(payload):
                     # Change the discord username
                 member = guild.get_member(message_ids[i][1])
                 await member.edit(nick=str(message_ids[i][2]))
+                await member.send(f'Your name change has been approved.')
                 # Delete the embed message
                 await message.delete()
             if str(payload.emoji) == '❌':
@@ -382,6 +383,7 @@ async def on_raw_reaction_add(payload):
                     # Remove the db record
                     db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
                     # Delete the embed message
+                await member.send(f'Your name change has been denied.')
                 await message.delete()
         try:
             await message.remove_reaction(payload.emoji, member)
