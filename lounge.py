@@ -2073,9 +2073,9 @@ async def create_player(ctx, mkc_user_id, country_code):
                         member = GUILD.get_member(ctx.author.id)
                         role = GUILD.get_role(ranks[i][0])
                         await member.add_roles(role)
-                    with DBA.DBAccess() as db:
-                        db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (ctx.author.id, altered_name, mkc_user_id, country_code, ranks[i][0]))
-                    return f'Verified & registered successfully - Assigned {role}'
+                        with DBA.DBAccess() as db:
+                            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (ctx.author.id, altered_name, mkc_user_id, country_code, ranks[i][0]))
+                        return f'Verified & registered successfully - Assigned {role}'
 
         try:
             with DBA.DBAccess() as db:
