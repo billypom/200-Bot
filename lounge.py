@@ -580,6 +580,9 @@ async def c(
         else:
             return
         # start the mogi, vote on format, create teams
+    elif count == 6 or count == 11:
+        channel = await client.get_channel(ctx.channel.id)
+        await channel.send(f'<@748961970564366347> +{12-count}')
     return
 
 # /d
@@ -1497,6 +1500,17 @@ async def strikes(ctx):
     await ctx.respond('You have no strikes')
     return
 
+@client.slash_command(
+    name='teams',
+    description='See the teams in the ongoing mogi',
+    guild_ids=Lounge
+)
+async def teams(ctx):
+    await ctx.defer()
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT teams_string FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+    await ctx.respond(temp[0][0])
+
 # /zcancel_mogi
 @client.slash_command(
     name='zcancel_mogi',
@@ -1540,7 +1554,6 @@ async def zrevert(
     mogi_id: discord.Option(int, 'Mogi ID / Table ID', required=True)
     ):
     await ctx.defer()
-    x = await check_if_player_exists(ctx)
     # Make sure mogi exists
     try:
         with DBA.DBAccess() as db:
@@ -1552,6 +1565,45 @@ async def zrevert(
         await send_to_debug_channel(ctx, e)
         await ctx.respond('``Error 35:`` Mogi could not be found')
         return
+
+    # Check for rank changes
+    with DBA.DBAccess() as db:
+        players_mogi = db.query('select p.player_id, p.player_name, p.mmr, pm.mmr_change, t.results_id FROM player p JOIN player_mogi pm ON p.player_id = pm.player_id JOIN mogi m on pm.mogi_id = m.mogi_id JOIN tier t on t.tier_id = m.tier_id WHERE m.mogi_id = %s', (mogi_id,))
+    with DBA.DBAccess() as db:
+        db_ranks_table = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks WHERE rank_id > %s;', (1,))
+    for i in range(len(players_mogi)):
+        for i in range(len(db_ranks_table)):
+            rank_id = db_ranks_table[i][0]
+            min_mmr = db_ranks_table[i][1]
+            max_mmr = db_ranks_table[i][2]
+            my_player_id = players_mogi[i][0]
+            my_player_mmr = int(players_mogi[i][1])
+            my_player_new_mmr = my_player_mmr + int(players_mogi[i][2])
+            results_channel_id = players_mogi[i][3]
+            results_channel = await client.get_channel(results_channel_id)
+            # Rank up - assign roles - update DB
+            try:
+                if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr:
+                    guild = client.get_guild(Lounge[0])
+                    current_role = guild.get_role(my_player_rank_id)
+                    new_role = guild.get_role(rank_id)
+                    member = await guild.fetch_member(my_player_id)
+                    await member.remove_roles(current_role)
+                    await member.add_roles(new_role)
+                    await results_channel.send(f'<@{my_player_id}> has been promoted to {new_role}')
+                    with DBA.DBAccess() as db:
+                        db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, my_player_id))
+                # Rank down - assign roles - update DB
+                elif my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
+                    guild = client.get_guild(Lounge[0])
+                    current_role = guild.get_role(my_player_rank_id)
+                    new_role = guild.get_role(rank_id)
+                    member = await guild.fetch_member(my_player_id)
+                    await member.remove_roles(current_role)
+                    await member.add_roles(new_role)
+                    await results_channel.send(f'<@{my_player_id}> has been demoted to {new_role}')
+                    with DBA.DBAccess() as db:
+                        db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, my_player_id))
     with DBA.DBAccess() as db:
         db.execute('DELETE FROM player_mogi WHERE mogi_id = %s;', (mogi_id,))
         db.execute('DELETE FROM mogi WHERE mogi_id = %s;', (mogi_id,))
@@ -1785,8 +1837,6 @@ async def zmmr_penalty(
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         await ctx.respond('`Error 38:` Could not apply penalty')
-
-
 
 @client.slash_command(
     name='zmigrate',
