@@ -2060,7 +2060,6 @@ async def create_player(ctx, mkc_user_id, country_code):
         f = open('/home/lounge/200-Lounge-Mogi-Bot/200lounge.csv',encoding='utf-8-sig') # f is our filename as string
         lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
         f.close()
-        channel = client.get_channel(ctx.channel.id)
         for line in lines:
             name = line[0]
             if name.lower() == (ctx.author.display_name).lower():
@@ -2074,7 +2073,7 @@ async def create_player(ctx, mkc_user_id, country_code):
                         role = GUILD.get_role(ranks[i][0])
                         await member.add_roles(role)
                         with DBA.DBAccess() as db:
-                            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (ctx.author.id, altered_name, mkc_user_id, country_code, ranks[i][0]))
+                            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (ctx.author.id, altered_name, mkc_user_id, country_code, ranks[i][0], mmr, mmr))
                         return f'Verified & registered successfully - Assigned {role}'
 
         try:
