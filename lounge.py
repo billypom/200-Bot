@@ -1507,9 +1507,16 @@ async def strikes(ctx):
 )
 async def teams(ctx):
     await ctx.defer()
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT teams_string FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
-    await ctx.respond(temp[0][0])
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT teams_string FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+            if temp:
+                response = temp[0][0]
+            else:
+                response = "Use `/teams` in a tier channel"
+    except Exception as e:
+        response = "Use `/teams` in a tier channel"
+    await ctx.respond(response)
 
 # /zcancel_mogi
 @client.slash_command(

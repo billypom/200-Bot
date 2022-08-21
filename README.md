@@ -33,6 +33,10 @@ Upload your Friend Code. | Submitting your FC means you are willing and able to 
 
 Submit a table. Provide a format (1, 2, 3, 4, 6) and a list of 12 players & 12 scores (brandon 180 popuko 12 jpgiviner 42 etc...). The best way to ensure that the table is submitted properly is to copy the example from the MOGI STARTED message. All players on a team MUST be grouped together in the submission.
 
+# `/teams`
+
+See the teams in the ongoing mogi (must be sent from a tier channel)
+
 # `/stats` +1 (optional) `#tier-channel`
 
 Displays player statistics. You can also filter by tier by selecting the appropriate channel (#tier-a, #tier-b, etc...)
