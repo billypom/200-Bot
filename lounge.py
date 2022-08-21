@@ -412,23 +412,34 @@ async def verify(
     # Regex on https://www.mariokartcentral.com/mkc/registry/players/930
     if 'registry' in message:
         regex_pattern = 'players/\d*'
+        regex_pattern2 = 'users/\d*'
         if re.search(regex_pattern, str(message)):
             regex_group = re.search(regex_pattern, message)
             x = regex_group.group()
             reg_array = re.split('/', x)
-            mkc_player_id = reg_array[1]
+            mkc_player_id = reg_array[len(reg_array)-1]
+        elif re.search(regex_pattern2, str(message.content)):
+            regex_group = re.search(regex_pattern2, message.content)
+            x = regex_group.group()
+            reg_array = re.split('/', x)
+            mkc_player_id = reg_array[len(reg_array)-1]
         else:
             await ctx.respond('``Error 2:`` Oops! Something went wrong. Check your link or try again later')
             return
     # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
     elif 'forums' in message:
         regex_pattern = 'members/.*\.\d*'
+        regex_pattern2 = 'members/\d*'
         if re.search(regex_pattern, str(message)):
             regex_group = re.search(regex_pattern, message)
             x = regex_group.group()
             temp = re.split('\.|/', x)
-            mkc_forum_name = temp[1]
-            mkc_player_id = await mkc_request_mkc_player_id(temp[2])
+            mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
+        elif re.search(regex_pattern2, str(message.content)):
+            regex_group = re.search(regex_pattern2, message.content)
+            x = regex_group.group()
+            temp = re.split('\.|/', x)
+            mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
         else:
             # player doesnt exist on forums
             await ctx.respond('``Error 3:`` Oops! Something went wrong. Check your link or try again later')
@@ -1803,12 +1814,18 @@ async def zmigrate(ctx):
                     if 'registry' in message.content:
                         # print(f'{count} | reg in')
                         regex_pattern = 'players/\d*'
+                        regex_pattern2 = 'users/\d*'
                         if re.search(regex_pattern, str(message.content)):
                             regex_group = re.search(regex_pattern, message.content)
                             x = regex_group.group()
                             reg_array = re.split('/', x)
-                            mkc_player_id = reg_array[1]
+                            mkc_player_id = reg_array[len(reg_array)-1]
                             # print(f'registry mkc player id: {reg_array[len(reg_array)-1]}')
+                        elif re.search(regex_pattern2, str(message.content)):
+                            regex_group = re.search(regex_pattern2, message.content)
+                            x = regex_group.group()
+                            reg_array = re.split('/', x)
+                            mkc_player_id = reg_array[len(reg_array)-1]
                         else:
                             mkc_user_id = 0
                     # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
