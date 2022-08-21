@@ -724,7 +724,7 @@ async def sub(
         return
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s LIMIT 12 ORDER BY create_date ASC;', (subbing_player.id,))
+            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s ORDER BY create_date ASC LIMIT 12;', (subbing_player.id,))
             if temp:
                 if temp[0][0] == subbing_player.id:
                     await ctx.respond(f'{subbing_player.mention} is already in this mogi')
