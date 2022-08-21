@@ -2041,13 +2041,19 @@ async def create_player(ctx, mkc_user_id, country_code):
     else:
         insert_name = str(ctx.author.display_name)
         name_still_exists = True
+        count = 0
         while(name_still_exists):
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (ctx.author.display_name,))
-                if temp:
-                    insert_name += "_"
-                else:
-                    name_still_exists = False
+            if temp[0][0] == None:
+                print('NONE')
+                insert_name += "_"
+            else:
+                name_still_exists = False
+            count +=1
+            if count == 20:
+                return 'fuck u'
+                
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, insert_name, mkc_user_id, country_code))
