@@ -2044,7 +2044,7 @@ async def create_player(ctx, mkc_user_id, country_code):
         count = 0
         while(name_still_exists):
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (ctx.author.display_name,))
+                temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (insert_name,))
             if temp[0][0] == None:
                 name_still_exists = False
             else:
