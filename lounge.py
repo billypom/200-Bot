@@ -2035,6 +2035,64 @@ async def zsendmsg(ctx):
     await channel.send('a')
     await ctx.respond('message sent')
 
+@client.slash_command(
+    name='zreduce_loss',
+    description='Reduce the loss for 1 player in 1 mogi',
+    # guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zreduce_loss(ctx,
+    player: discord.Option(discord.Member, description='Which player?', required=True),
+    mogi_id: discord.Option(int, description='Which mogi?', required=True),
+    reduction: discord.Option(str, description='Reduction value', required=True)):
+    await ctx.defer()
+    x = await check_if_uid_exists(player.id)
+    if x:
+        pass
+    else:
+        await ctx.respond('Player not found')
+        return
+    y = await check_if_mogi_exists(mogi_id)
+    if y:
+        pass
+    else:
+        await ctx.respond('Mogi ID not found')
+        return
+    z = await check_if_banned_characters(reduction)
+    if z:
+        await ctx.respond("Bad input")
+        return
+    else:
+        pass
+    # Get the mmr change
+    reduce = str(reduction).split("/")
+    multipler = reduce[0]/reduce[1]
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT mmr_change FROM player_mogi WHERE player_id = %s AND mogi_id = %s;', (player.id, mogi_id))
+            temp2 = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
+            mmr_change = temp[0][0]
+            mmr = temp2[0][0]
+    except Exception:
+        await ctx.respond('``Error 40:`` tell popuko or try again later')
+        return
+    reverse_mmr_change = mmr_change * -1
+    reverted_player_mmr = mmr + reverse_mmr_change
+    adjusted_mmr_change = mmr_change * multiplier
+    adjusted_mmr = reverted_player_mmr + adjusted_mmr_change
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE player_mogi SET mmr_change = %s WHERE player_id = %s AND mogi_id = %s;', (adjusted_mmr_change, player.id, mogi_id))
+            db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (adjusted_mmr, player.id))
+    except Exception as e:
+        await send_to_debug_channel(ctx, f'player: {player} | mogi id: {mogi_id} | reduction: {reduction} | {e}')
+        await ctx.respond('``Error 41:`` FATAL ERROR uh oh uh oh uh oh')
+        return
+    await ctx.respond(f'Loss was reduced for {player}.\nChange: {mmr_change} -> {adjusted_mmr_change}\nMMR: {mmr} -> {adjusted_mmr}')
+    return
+    
+
+
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
     try:
@@ -2439,7 +2497,18 @@ async def check_if_uid_exists(uid):
                 return True
             else:
                 return False
-    except Exception as e:
+    except Exception:
+        return False
+
+async def check_if_mogi_exists(mogi_id):
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT mogi_id FROM mogi WHERE mogi_id = %s;', (mogi_id,))
+        if temp[0][0] == mogi_id:
+                return True
+            else:
+                return False
+    except Exception:
         return False
 
 async def check_if_banned_characters(message):
