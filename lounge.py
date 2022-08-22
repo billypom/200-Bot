@@ -2066,7 +2066,7 @@ async def zreduce_loss(ctx,
         pass
     # Get the mmr change
     reduce = str(reduction).split("/")
-    multipler = int(reduce[0])/int(reduce[1])
+    multiplier = int(reduce[0])/int(reduce[1])
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT mmr_change FROM player_mogi WHERE player_id = %s AND mogi_id = %s;', (player.id, mogi_id))
