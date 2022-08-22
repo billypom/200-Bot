@@ -2066,7 +2066,7 @@ async def zreduce_loss(ctx,
         pass
     # Get the mmr change
     reduce = str(reduction).split("/")
-    multipler = reduce[0]/reduce[1]
+    multipler = int(reduce[0])/(reduce[1])
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT mmr_change FROM player_mogi WHERE player_id = %s AND mogi_id = %s;', (player.id, mogi_id))
@@ -2078,8 +2078,8 @@ async def zreduce_loss(ctx,
         return
     reverse_mmr_change = mmr_change * -1
     reverted_player_mmr = mmr + reverse_mmr_change
-    adjusted_mmr_change = mmr_change * multiplier
-    adjusted_mmr = reverted_player_mmr + adjusted_mmr_change
+    adjusted_mmr_change = int(math.floor(mmr_change * multiplier))
+    adjusted_mmr = int(math.floor(reverted_player_mmr + adjusted_mmr_change))
     try:
         with DBA.DBAccess() as db:
             db.execute('UPDATE player_mogi SET mmr_change = %s WHERE player_id = %s AND mogi_id = %s;', (adjusted_mmr_change, player.id, mogi_id))
