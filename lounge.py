@@ -1601,7 +1601,7 @@ async def zrevert(
 
     # Check for rank changes
     with DBA.DBAccess() as db:
-        players_mogi = db.query('select p.player_id, p.player_name, p.mmr, pm.mmr_change, t.results_id FROM player p JOIN player_mogi pm ON p.player_id = pm.player_id JOIN mogi m on pm.mogi_id = m.mogi_id JOIN tier t on t.tier_id = m.tier_id WHERE m.mogi_id = %s', (mogi_id,))
+        players_mogi = db.query('select p.player_id, p.player_name, p.mmr, pm.mmr_change, p.rank_id, t.results_id FROM player p JOIN player_mogi pm ON p.player_id = pm.player_id JOIN mogi m on pm.mogi_id = m.mogi_id JOIN tier t on t.tier_id = m.tier_id WHERE m.mogi_id = %s', (mogi_id,))
     with DBA.DBAccess() as db:
         db_ranks_table = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks WHERE rank_id > %s ORDER BY mmr_min DESC LIMIT 8;', (1,))
     for i in range(len(players_mogi)):
@@ -1613,7 +1613,8 @@ async def zrevert(
             my_player_name = players_mogi[i][1]
             my_player_mmr = int(players_mogi[i][2])
             my_player_new_mmr = my_player_mmr + (int(players_mogi[i][3])* -1)
-            results_channel_id = players_mogi[i][3]
+            my_player_rank_id = players_mogi[i][4]
+            results_channel_id = players_mogi[i][5]
             results_channel = client.get_channel(results_channel_id)
             # Rank back up
             print(f'{min_mmr} - {max_mmr} | {my_player_name} {my_player_mmr} + {players_mogi[i][3] * -1} = {my_player_new_mmr}')
