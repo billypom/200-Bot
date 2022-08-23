@@ -1612,11 +1612,11 @@ async def zrevert(
             my_player_id = players_mogi[i][0]
             my_player_name = players_mogi[i][1]
             my_player_mmr = int(players_mogi[i][2])
-            my_player_new_mmr = my_player_mmr + int(players_mogi[i][3])
+            my_player_new_mmr = my_player_mmr + (int(players_mogi[i][3])* -1)
             results_channel_id = players_mogi[i][3]
             results_channel = client.get_channel(results_channel_id)
             # Rank back up
-            print(f'{min_mmr} - {max_mmr} | {my_player_name} {my_player_mmr} + {players_mogi[i][3]} = {my_player_new_mmr}')
+            print(f'{min_mmr} - {max_mmr} | {my_player_name} {my_player_mmr} + {players_mogi[i][3] * -1} = {my_player_new_mmr}')
             try:
                 if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr and my_player_new_mmr < max_mmr:
                     guild = client.get_guild(Lounge[0])
