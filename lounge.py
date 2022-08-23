@@ -1610,8 +1610,8 @@ async def zrevert(
             min_mmr = db_ranks_table[i][1]
             max_mmr = db_ranks_table[i][2]
             my_player_id = players_mogi[i][0]
-            my_player_mmr = int(players_mogi[i][1])
-            my_player_new_mmr = my_player_mmr + int(players_mogi[i][2])
+            my_player_mmr = int(players_mogi[i][2])
+            my_player_new_mmr = my_player_mmr + int(players_mogi[i][3])
             results_channel_id = players_mogi[i][3]
             results_channel = client.get_channel(results_channel_id)
             # Rank up - assign roles - update DB
