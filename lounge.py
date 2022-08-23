@@ -1617,7 +1617,7 @@ async def zrevert(
             results_channel_id = players_mogi[i][5]
             results_channel = client.get_channel(results_channel_id)
             # Rank back up
-            print(f'{min_mmr} - {max_mmr} | {my_player_name} {my_player_mmr} + {players_mogi[i][3] * -1} = {my_player_new_mmr}')
+            #print(f'{min_mmr} - {max_mmr} | {my_player_name} {my_player_mmr} + {players_mogi[i][3] * -1} = {my_player_new_mmr}')
             try:
                 if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr and my_player_new_mmr < max_mmr:
                     guild = client.get_guild(Lounge[0])
@@ -1628,7 +1628,7 @@ async def zrevert(
                     await member.add_roles(new_role)
                     await results_channel.send(f'<@{my_player_id}> has been promoted to {new_role}')
                     with DBA.DBAccess() as db:
-                        db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, my_player_id))
+                        db.execute('UPDATE player SET rank_id = %s, mmr = %s WHERE player_id = %s;', (rank_id, my_player_new_mmr, my_player_id))
                 # Rank back down
                 elif my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr and my_player_new_mmr > min_mmr:
                     guild = client.get_guild(Lounge[0])
@@ -1639,7 +1639,7 @@ async def zrevert(
                     await member.add_roles(new_role)
                     await results_channel.send(f'<@{my_player_id}> has been demoted to {new_role}')
                     with DBA.DBAccess() as db:
-                        db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, my_player_id))
+                        db.execute('UPDATE player SET rank_id = %s, mmr = %s WHERE player_id = %s;', (rank_id, my_player_new_mmr, my_player_id))
             except Exception as e:
                 await send_to_debug_channel(ctx, e)
                 flag = 1
