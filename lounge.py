@@ -1604,11 +1604,11 @@ async def zrevert(
         players_mogi = db.query('select p.player_id, p.player_name, p.mmr, pm.mmr_change, p.rank_id, t.results_id FROM player p JOIN player_mogi pm ON p.player_id = pm.player_id JOIN mogi m on pm.mogi_id = m.mogi_id JOIN tier t on t.tier_id = m.tier_id WHERE m.mogi_id = %s', (mogi_id,))
     with DBA.DBAccess() as db:
         db_ranks_table = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks WHERE rank_id > %s ORDER BY mmr_min DESC LIMIT 8;', (1,))
-    for i in range(len(players_mogi)):
-        for i in range(len(db_ranks_table)):
-            rank_id = db_ranks_table[i][0]
-            min_mmr = db_ranks_table[i][1]
-            max_mmr = db_ranks_table[i][2]
+    for j in range(len(db_ranks_table)):
+        for i in range(len(players_mogi)):
+            rank_id = db_ranks_table[j][0]
+            min_mmr = db_ranks_table[j][1]
+            max_mmr = db_ranks_table[j][2]
             my_player_id = players_mogi[i][0]
             my_player_name = players_mogi[i][1]
             my_player_mmr = int(players_mogi[i][2])
