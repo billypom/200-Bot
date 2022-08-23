@@ -21,6 +21,8 @@ import shutil
 import subprocess
 import concurrent.futures
 from bs4 import BeautifulSoup as Soup
+import pykakasi
+from korean_romanizer.romanizer import Romanizer
 
 Lounge = [461383953937596416]
 ml_channel_message_id = 1010644370954924052
@@ -548,7 +550,7 @@ async def c(
                 return
         else:
             pass
-    x = await check_if_uid_in_tier(ctx.author.id)
+    x = await check_if_uid_in_any_tier(ctx.author.id)
     if x:
         await ctx.respond('``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.')
         return
@@ -610,7 +612,7 @@ async def d(
                 return
         else:
             pass
-    x = await check_if_uid_in_tier(ctx.author.id)
+    x = await check_if_uid_in_any_tier(ctx.author.id)
     if x:
         y = await check_if_uid_can_drop(ctx.author.id)
         if y:
@@ -712,13 +714,13 @@ async def sub(
         await ctx.respond('Mogi has not started')
         return
     # Only players in the mogi can sub out others
-    y = await check_if_uid_in_tier(ctx.author.id)
+    y = await check_if_uid_in_first_12_of_tier(ctx.author.id, ctx.channel.id)
     if y:
         pass
     else:
         await ctx.respond('You are not in the mogi. You cannot sub out another player')
         return
-    z = await check_if_uid_in_tier(leaving_player.id)
+    z = await check_if_uid_in_specific_tier(leaving_player.id, ctx.channel.id)
     if z:
         pass
     else:
@@ -726,16 +728,19 @@ async def sub(
         return
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s ORDER BY create_date ASC LIMIT 12;', (subbing_player.id,))
-            if temp:
-                if temp[0][0] == subbing_player.id:
+            first_12 = db.query('SELECT player_id FROM (SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12) as l WHERE player_id = %s;', (ctx.channel.id, subbing_player.id))
+            if first_12: # if there are players in lineup (first 12)
+                if first_12[0][0] == subbing_player.id: # if subbing is already in lineup (first 12)
                     await ctx.respond(f'{subbing_player.mention} is already in this mogi')
                     return
+                else:
+                    pass
             try:
-                db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
-            except Exception:
                 db.execute('DELETE FROM lineups WHERE player_id = %s;', (subbing_player.id,))
                 db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
+            except Exception:
+                await ctx.respond('``Error 42:`` FATAL ERROR - contact popuko')
+                return
     except Exception as e:
         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
         await send_to_debug_channel(ctx, e)
@@ -795,7 +800,7 @@ async def name(
     else:
         await ctx.respond('Use `/verify <mkc link>` to register with Lounge')
         return
-    z = await check_if_uid_in_tier(ctx.author.id)
+    z = await check_if_uid_in_any_tier(ctx.author.id)
     if z:
         await ctx.respond('You cannot change your name while playing/waiting for a Mogi.')
         return
@@ -808,6 +813,9 @@ async def name(
         return
     else:
         pass
+    name = await jp_kr_romanize(name)
+    if len(name) > 16:
+        await ctx.respond('Name is too long. 16 characters max')
     is_name_taken = True
     try:
         with DBA.DBAccess() as db:
@@ -963,7 +971,7 @@ async def table(
             try:
                 with DBA.DBAccess() as db:
                     # This part makes sure that only players in the current channel's lineup can have a table made for them
-                    temp = db.query('SELECT p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.player_id = %s AND l.tier_id = %s;', (player[0], ctx.channel.id))
+                    temp = db.query('SELECT mmr FROM (SELECT p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY create_date ASC LIMIT 12) as m JOIN player p on p.player_id = m.player_id WHERE p.player_id = %s;', (ctx.channel.id, player[0]))
                     if temp[0][0] is None:
                         mmr = 0
                     else:
@@ -978,7 +986,7 @@ async def table(
             except Exception as e:
                 # check for all 12 players exist
                 await send_to_debug_channel(ctx, e)
-                await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>')
+                await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>. If this is a sub, you must first use the `/sub` command')
                 return
         # print(team_score)
         if count == 0:
@@ -2117,9 +2125,11 @@ async def create_player(ctx, mkc_user_id, country_code):
     if x:
         return 'Player already registered'
     else:
-        insert_name = str(ctx.author.display_name)
+        insert_name = await jp_kr_romanize(str(ctx.author.display_name))
+        # if insert name contains non alphanumerics, return error
         name_still_exists = True
         count = 0
+        # Handle duplicate names
         while(name_still_exists):
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (insert_name,))
@@ -2128,9 +2138,18 @@ async def create_player(ctx, mkc_user_id, country_code):
             else:
                 name_still_exists = False
             count +=1
-            if count == 20:
+            if count == 16:
                 return f'``Error 39:`` Oops! An unlikely error occured. Contact {secretly.my_discord} if you think this is a mistake.'
-        
+        # Handle name too long
+        temp_name = ""
+        if len(insert_name) > 16:
+            count = 0
+            for char in insert_name:
+                if count == 15:
+                    break
+                temp_name+=char
+                count+=1
+
         f = open('/home/lounge/200-Lounge-Mogi-Bot/200lounge.csv',encoding='utf-8-sig') # f is our filename as string
         lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
         f.close()
@@ -2455,11 +2474,33 @@ async def check_if_uid_can_drop(uid):
     except Exception:
         return False
 
-async def check_if_uid_in_tier(uid):
+async def check_if_uid_in_any_tier(uid):
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s;', (uid,))
             if temp[0][0] == uid:
+                return True
+            else:
+                return False
+    except Exception:
+        return False
+
+async def check_if_uid_in_specific_tier(uid, tier):
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (uid, tier))
+            if temp[0][0] == uid:
+                return True
+            else:
+                return False
+    except Exception:
+        return False
+
+async def check_if_uid_in_first_12_of_tier(uid, tier):
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id FROM (SELECT player_id FROM lineups WHERE tier_id = %s) WHERE player_id = %s;', (tier, uid))
+            if temp[0][1] == uid:
                 return True
             else:
                 return False
@@ -2758,6 +2799,17 @@ def mt_lounge_request_mkc_user_id(ctx):
     except Exception:
         return -1
     return mkc_user_id
+
+# romanizes japanese and korean strings
+async def jp_kr_romanize(input):
+    r = Romanizer(input)
+    kr_result = r.romanize()
+    kks = pykakasi.kakasi()
+    result = kks.convert(kr_result)
+    my_string = ""
+    for item in result:
+        my_string+=item['hepburn']
+    return my_string
 
 # https://imagemagick.org/script/color.php
 async def new_rank_wrapper(input, mmr):
