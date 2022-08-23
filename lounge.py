@@ -1603,7 +1603,7 @@ async def zrevert(
     with DBA.DBAccess() as db:
         players_mogi = db.query('select p.player_id, p.player_name, p.mmr, pm.mmr_change, t.results_id FROM player p JOIN player_mogi pm ON p.player_id = pm.player_id JOIN mogi m on pm.mogi_id = m.mogi_id JOIN tier t on t.tier_id = m.tier_id WHERE m.mogi_id = %s', (mogi_id,))
     with DBA.DBAccess() as db:
-        db_ranks_table = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks WHERE rank_id > %s;', (1,))
+        db_ranks_table = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks WHERE rank_id > %s ORDER BY mmr_min DESC LIMIT 8;', (1,))
     for i in range(len(players_mogi)):
         for i in range(len(db_ranks_table)):
             rank_id = db_ranks_table[i][0]
@@ -1614,9 +1614,9 @@ async def zrevert(
             my_player_new_mmr = my_player_mmr + int(players_mogi[i][3])
             results_channel_id = players_mogi[i][3]
             results_channel = client.get_channel(results_channel_id)
-            # Rank up - assign roles - update DB
+            # Rank back up
             try:
-                if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr:
+                if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr and my_player_new_mmr < max_mmr:
                     guild = client.get_guild(Lounge[0])
                     current_role = guild.get_role(my_player_rank_id)
                     new_role = guild.get_role(rank_id)
@@ -1626,8 +1626,8 @@ async def zrevert(
                     await results_channel.send(f'<@{my_player_id}> has been promoted to {new_role}')
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, my_player_id))
-                # Rank down - assign roles - update DB
-                elif my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr:
+                # Rank back down
+                elif my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr and my_player_new_mmr > min_mmr:
                     guild = client.get_guild(Lounge[0])
                     current_role = guild.get_role(my_player_rank_id)
                     new_role = guild.get_role(rank_id)
