@@ -2133,26 +2133,45 @@ async def zreduce_loss(ctx,
 async def set_player_roles(ctx):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT p.rank_id, r.rank_name, p.player_name FROM player p JOIN ranks r ON p.rank_id = r.rank_id WHERE p.player_id = %s;', (ctx.author.id,))
-            rank_id = temp[0][0]
-            rank_name = temp[0][1]
-            player_name = temp[0][2]
+            temp = db.query('SELECT player_name, mmr FROM player WHERE player_id = %s;', (ctx.author.id,))
+            rank_name = temp[0][0]
+            player_name = temp[0][1]
+            mmr = temp[0][2]
         guild = client.get_guild(Lounge[0])
-        role = guild.get_role(rank_id)
         member = await guild.fetch_member(ctx.author.id)
+        if mmr is None:
+            role = guild.get_role(846497627508047872)
+            with DBA.DBAccess() as db:
+                    temp = db.query('SELECT rank_id FROM ranks;', ())
+                # Remove all potential ranks first
+                for rank in temp: 
+                    remove_rank = guild.get_role(rank[0])
+                    await member.remove_roles(remove_rank)
+            await member.add_roles(role)
+            return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`. Please check your role and use `/mmr` to make sure you have your MMR from Season 4'
+            
+
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT rank_id FROM ranks;', ())
-        for rank in temp:
-            remove_rank = guild.get_role(rank[0])
-            await member.remove_roles(remove_rank)
-        await member.add_roles(role)
+            ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
+        for i in range(len(ranks)):
+            if mmr > int(ranks[i][1]) and mmr < int(ranks[i][2]):
+                # Found your rank
+                with DBA.DBAccess() as db:
+                    temp = db.query('SELECT rank_id FROM ranks;', ())
+                # Remove all potential ranks first
+                for rank in temp: 
+                    remove_rank = guild.get_role(rank[0])
+                    await member.remove_roles(remove_rank)
+                role = guild.get_role(ranks[i][0])
+                await member.add_roles(role)
+                break
         player_name = player_name.replace("-", " ")
         try:
             await member.edit(nick=player_name)
         except Exception as e:
             await send_to_debug_channel(ctx, f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')
             pass
-        return f'Welcome back to 200cc Lounge. You have been given the role: `{rank_name}`. Please check your role and use `/mmr` to make sure you have your MMR from Season 4'
+        return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`. Please check your role and use `/mmr` to make sure you have your MMR from Season 4'
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'
