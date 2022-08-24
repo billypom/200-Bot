@@ -2149,7 +2149,7 @@ async def set_player_roles(ctx):
         player_name = player_name.replace("-", " ")
         try:
             await member.edit(nick=player_name)
-        except Exception:
+        except Exception as e:
             await send_to_debug_channel(ctx, f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')
             pass
         return f'Welcome back to 200cc Lounge. You have been given the role: `{rank_name}`. Please check your role and use `/mmr` to make sure you have your MMR from Season 4'
