@@ -2134,9 +2134,8 @@ async def set_player_roles(ctx):
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_name, mmr FROM player WHERE player_id = %s;', (ctx.author.id,))
-            rank_name = temp[0][0]
-            player_name = temp[0][1]
-            mmr = temp[0][2]
+            player_name = temp[0][0]
+            mmr = temp[0][1]
         guild = client.get_guild(Lounge[0])
         member = await guild.fetch_member(ctx.author.id)
         if mmr is None:
@@ -2144,7 +2143,7 @@ async def set_player_roles(ctx):
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT rank_id FROM ranks;', ())
                 # Remove all potential ranks first
-                for rank in temp: 
+                for rank in temp:
                     remove_rank = guild.get_role(rank[0])
                     await member.remove_roles(remove_rank)
             await member.add_roles(role)
