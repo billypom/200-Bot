@@ -2142,7 +2142,7 @@ async def set_player_roles(ctx):
         if mmr is None:
             role = guild.get_role(846497627508047872)
             with DBA.DBAccess() as db:
-                    temp = db.query('SELECT rank_id FROM ranks;', ())
+                temp = db.query('SELECT rank_id FROM ranks;', ())
                 # Remove all potential ranks first
                 for rank in temp: 
                     remove_rank = guild.get_role(rank[0])
