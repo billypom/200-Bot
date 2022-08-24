@@ -2142,8 +2142,9 @@ async def set_player_roles(ctx):
         member = await guild.fetch_member(ctx.author.id)
         with DBA.DBAccess() as db:
             temp = db.query('SELECT rank_id FROM ranks;', ())
-            for rank in temp:
-                await member.remove_roles(rank[0])
+        for rank in temp:
+            remove_rank = guild.get_role(rank[0])
+            await member.remove_roles(remove_rank)
         await member.add_roles(role)
         player_name = player_name.replace("-", " ")
         await member.edit(nick=player_name)
