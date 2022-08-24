@@ -1330,7 +1330,8 @@ async def table(
 )
 async def stats(
     ctx,
-    tier: discord.Option(discord.TextChannel, description='Choose a channel', required=False)
+    tier: discord.Option(discord.TextChannel, description='Which tier?', required=False),
+    player: discord.Option(discord.Member, description='Which player?', required=False)
     ):
     await ctx.defer()
     mmr_history = [] #
@@ -1346,10 +1347,14 @@ async def stats(
     largest_loss = 0 #
     rank = 0
     count_of_wins = 0
+    if player is None:
+        my_player_id = ctx.author.id
+    else:
+        my_player_id = player.id
     # Create matplotlib MMR history graph
     try: # Checks for valid player
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT base_mmr, peak_mmr, mmr, player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
+            temp = db.query('SELECT base_mmr, peak_mmr, mmr, player_name FROM player WHERE player_id = %s;', (my_player_id,))
             if temp[0][0] is None:
                 base = 0
             else:
@@ -1364,10 +1369,9 @@ async def stats(
         await send_raw_to_debug_channel(ctx, e)
         await ctx.respond('``Error 31:`` Player not found.')
         return
-
     if tier is None:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date ASC;', (ctx.author.id,))
+            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date ASC;', (my_player_id,))
             try:
                 did_u_play_yet = temp[0][0]
             except Exception:
@@ -1382,11 +1386,11 @@ async def stats(
                         last_10_wins += 1
                     else:
                         last_10_losses += 1
-        partner_average = await get_partner_avg(ctx.author.id)
+        partner_average = await get_partner_avg(my_player_id)
     elif tier.id in TIER_ID_LIST:
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT pm.mmr_change, pm.score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s ORDER BY m.create_date ASC;', (ctx.author.id, tier.id))
+                temp = db.query('SELECT pm.mmr_change, pm.score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s ORDER BY m.create_date ASC;', (my_player_id, tier.id))
                 for i in range(len(temp)):
                     mmr_history.append(temp[i][0])
                     score_history.append(temp[i][1])
@@ -1400,7 +1404,7 @@ async def stats(
             await send_to_debug_channel(ctx, e)
             await ctx.respond(f'You have not played in {tier.mention}')
             return
-        partner_average = await get_partner_avg(ctx.author.id, tier.id)
+        partner_average = await get_partner_avg(my_player_id, tier.id)
     else:
         await ctx.respond(f'``Error 30:`` {tier.mention} is not a valid tier')
         return
@@ -1456,6 +1460,27 @@ async def stats(
     embed.set_image(url='attachment://stats.png')
     await channel.send(file=f, embed=embed)
     await ctx.respond(':coin:', delete_after=1)
+    return
+
+@client.slash_command(
+    name='mmr',
+    description='Your mmr',
+    # guild_ids=Lounge
+)
+async def mmr(ctx):
+    await ctx.defer(ephemeral=True)
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT p.mmr, r.rank_name FROM player as p JOIN ranks as r ON p.rank_id = r.rank_id WHERE p.player_id = %s;', (ctx.author.id,))
+        mmr = temp[0][0]
+        rank_name = temp[0][1]
+    if temp:
+        pass
+    else:
+        await ctx.respond('``Error 43:`` Player not found')
+        return
+    if mmr is None:
+        mmr = "n/a"
+    await ctx.respond(f'`MMR:` {mmr} | `Rank:` {rank_name}. If this looks wrong, try the `/verify` command.')
     return
 
 # /twitch
@@ -2115,9 +2140,14 @@ async def set_player_roles(ctx):
         guild = client.get_guild(Lounge[0])
         role = guild.get_role(rank_id)
         member = await guild.fetch_member(ctx.author.id)
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT rank_id FROM ranks;', ())
+            for rank in temp:
+                await member.remove_roles(rank[0])
         await member.add_roles(role)
-        await member.edit(nick=player_name) #TODO TEST
-        return f'Welcome back to 200cc Lounge. You have been given the role: `{rank_name}`'
+        player_name = player_name.replace("-", " ")
+        await member.edit(nick=player_name)
+        return f'Welcome back to 200cc Lounge. You have been given the role: `{rank_name}`. Please check your role and use `/mmr` to make sure you have your MMR from Season 4'
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'

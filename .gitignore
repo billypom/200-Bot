@@ -5,6 +5,7 @@ vlog_msg.py
 magicktest.py
 url_encode.py
 twitch_test.py
+unit_test.py
 
 # folders
 /__pycache__
