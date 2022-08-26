@@ -2570,6 +2570,9 @@ async def check_if_uid_is_lounge_banned(uid):
             return False
         else:
             return temp[0][0]
+    except Exception as e:
+        await send_raw_to_debug_channel('banned idk', e)
+        return True
 
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
