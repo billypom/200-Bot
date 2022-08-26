@@ -306,6 +306,7 @@ async def on_message(ctx):
     if ctx.channel.id == 558096949337915413:
         return # ignore carl bot logging
     user = await GUILD.fetch_member(ctx.author.id)
+    # restricted players
     if CHAT_RESTRICTED_ROLE in user.roles:
         if ctx.content in secretly.chat_restricted_words:
             pass
@@ -847,18 +848,23 @@ async def name(
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player_name_request (player_id, requested_name) VALUES (%s, %s);', (ctx.author.id, name))
-                temp = db.query('SELECT id FROM player_name_request WHERE player_id = %s AND requested_name = %s ORDER BY create_date DESC;', (ctx.author.id, name))
+                temp = db.query('SELECT id FROM player_name_request WHERE player_id = %s AND requested_name = %s ORDER BY create_date DESC LIMIT 1;', (ctx.author.id, name))
                 player_name_request_id = temp[0][0]
             request_message = await send_to_name_change_log(ctx, player_name_request_id, name)
             request_message_id = request_message.id
             await request_message.add_reaction('✅')
             await request_message.add_reaction('❌')
+        except Exception as e:
+            await send_to_debug_channel(ctx, f'Tried name: {name} |\n{e}')
+            await ctx.respond(f'``Error 44:`` Oops! Something went wrong. Please try again or contact {secretly.my_discord}')
+            return
+        try:
             with DBA.DBAccess() as db:
                 db.execute('UPDATE player_name_request SET embed_message_id = %s WHERE id = %s;', (request_message_id, player_name_request_id))
             await ctx.respond('Your name change request was submitted to the staff team for review.')
             return
         except Exception as e:
-            await send_to_debug_channel(ctx, e)
+            await send_to_debug_channel(ctx, f'Tried name: {name} |\n{e}')
             await ctx.respond(f'``Error 35:`` Oops! Something went wrong. Please try again or contact {secretly.my_discord}')
             return
 
@@ -2139,7 +2145,7 @@ async def set_player_roles(ctx):
         guild = client.get_guild(Lounge[0])
         member = await guild.fetch_member(ctx.author.id)
         if mmr is None:
-            role = guild.get_role(846497627508047872)
+            role = guild.get_role(PLACEMENT_ROLE_ID)
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT rank_id FROM ranks;', ())
                 # Remove all potential ranks first
