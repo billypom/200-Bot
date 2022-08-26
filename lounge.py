@@ -863,7 +863,7 @@ async def name(
         try:
             with DBA.DBAccess() as db:
                 db.execute('UPDATE player_name_request SET embed_message_id = %s WHERE id = %s;', (request_message_id, player_name_request_id))
-            await ctx.respond('Your name change request was submitted to the staff team for review.')
+            await ctx.respond(f'Your request: {input_name} -> Conversion: {name} | Your name change request was submitted to the staff team for review.')
             return
         except Exception as e:
             await send_to_debug_channel(ctx, f'Tried name: {name} |\n{e}')
