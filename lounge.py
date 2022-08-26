@@ -814,9 +814,11 @@ async def name(
         return
     else:
         pass
+    input_name = name
     name = await jp_kr_romanize(name)
     if len(name) > 16:
-        await ctx.respond('Name is too long. 16 characters max')
+        await ctx.respond(f'Your request: {input_name} -> Conversion: {name} | Name is too long. 16 characters max')
+        return
     is_name_taken = True
     try:
         with DBA.DBAccess() as db:
