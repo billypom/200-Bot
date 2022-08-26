@@ -2,6 +2,8 @@
 
 Automated mogi bot for MK8DX 200cc Lounge. Enter mogis, submit tables, update mmr, see stats, and more.
 
+Big shoutout to Cynda for the open source matplotlib MMR over time graphs!
+
 # Commands
 
 # `/verify` +1 REQUIRED `http://mariokartcentral.com/`
