@@ -416,6 +416,12 @@ async def verify(
     await ctx.defer(ephemeral=True)
     x = await check_if_player_exists(ctx)
     if x:
+        lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+        if lounge_ban:
+            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+            return
+        else:
+            pass
         response = await set_player_roles(ctx)
         await ctx.respond(response)
         return
@@ -542,6 +548,12 @@ async def c(
     ctx,
     ):
     await ctx.defer(ephemeral=True)
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        return
+    else:
+        pass
     # Player was already in lineup, got subbed out
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (ctx.author.id,))
@@ -604,6 +616,12 @@ async def d(
     ctx,
     ):
     await ctx.defer(ephemeral=True)
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        return
+    else:
+        pass
     # Player was already in lineup, got subbed out
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (ctx.author.id,))
@@ -657,6 +675,12 @@ async def l(
     ctx
     ):
     await ctx.defer()
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        return
+    else:
+        pass
     try:
         with DBA.DBAccess() as db:
             temp = db.query("SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC;", (ctx.channel.id,))
@@ -682,6 +706,12 @@ async def sub(
     subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
     ):
     await ctx.defer()
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        return
+    else:
+        pass
     # Same player
     if leaving_player.id == subbing_player.id:
         await ctx.respond('<:bruh:1006883398607978537>')
@@ -762,7 +792,13 @@ async def fc(
     ctx,
     fc: discord.Option(str, 'XXXX-XXXX-XXXX', required=False)):
     if fc == None:
-        await ctx.defer(ephemeral=True)
+        await ctx.defer()
+        lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+        if lounge_ban:
+            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+            return
+        else:
+            pass
         try:
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT fc FROM player WHERE player_id = %s;', (ctx.author.id, ))
@@ -772,6 +808,12 @@ async def fc(
             await send_to_debug_channel(ctx, e)
     else:
         await ctx.defer(ephemeral=True)
+        lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+        if lounge_ban:
+            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+            return
+        else:
+            pass
         y = await check_if_banned_characters(fc)
         if y:
             await send_to_verification_log(ctx, fc, discord.Color.blurple(), vlog_msg.error1)
@@ -795,6 +837,12 @@ async def name(
     name: discord.Option(str, 'New name', required=True)
     ):
     await ctx.defer(ephemeral=True)
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        return
+    else:
+        pass
     y = await check_if_player_exists(ctx)
     if y:
         pass
@@ -883,6 +931,12 @@ async def table(
     scores: discord.Option(str, 'player scores (i.e. popuko 12 JPGiviner 42 Technical 180...)', required=True)
     ):
     await ctx.defer()
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        return
+    else:
+        pass
     bad = await check_if_banned_characters(str(scores))
     if bad:
         await send_to_verification_log(ctx, scores, discord.Color.blurple(), vlog_msg.error1)
@@ -1342,6 +1396,12 @@ async def stats(
     player: discord.Option(discord.Member, description='Which player?', required=False)
     ):
     await ctx.defer()
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        return
+    else:
+        pass
     mmr_history = [] #
     score_history = [] #
     last_10_wins = 0 #
@@ -1477,6 +1537,12 @@ async def stats(
 )
 async def mmr(ctx):
     await ctx.defer(ephemeral=True)
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        return
+    else:
+        pass
     with DBA.DBAccess() as db:
         temp = db.query('SELECT p.mmr, r.rank_name FROM player as p JOIN ranks as r ON p.rank_id = r.rank_id WHERE p.player_id = %s;', (ctx.author.id,))
         mmr = temp[0][0]
@@ -1502,6 +1568,12 @@ async def twitch(
     username: discord.Option(str, 'Enter your twitch username - your mogi streams will appear in the media channel', required=True)
     ):
     await ctx.defer(ephemeral=True)
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        return
+    else:
+        pass
     x = await check_if_player_exists(ctx)
     if x:
         pass
@@ -1531,6 +1603,12 @@ async def twitch(
 )
 async def strikes(ctx):
     await ctx.defer()
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        return
+    else:
+        pass
     x = await check_if_uid_exists(ctx.author.id)
     if x:
         pass
@@ -1560,6 +1638,12 @@ async def strikes(ctx):
 )
 async def teams(ctx):
     await ctx.defer()
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        return
+    else:
+        pass
     x = await check_if_mogi_is_ongoing(ctx)
     if x:
         pass
@@ -1983,7 +2067,8 @@ async def zreduce_loss(ctx,
         return
     await ctx.respond(f'Loss was reduced for {player.mention}.\nChange: `{mmr_change}` -> `{adjusted_mmr_change}`\nMMR: `{mmr}` -> `{adjusted_mmr}`')
     return
-    
+
+
 
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
@@ -2476,6 +2561,15 @@ async def check_for_dupes_in_list(my_list):
         return False
     else:
         return True
+
+async def check_if_uid_is_lounge_banned(uid):
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT UNIX_TIMESTAMP(unban_date) FROM player WHERE player_id = %s;', (uid,))
+        if temp[0][0] is None:
+            return False
+        else:
+            return temp[0][0]
 
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
