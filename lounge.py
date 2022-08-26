@@ -405,7 +405,7 @@ async def on_raw_reaction_add(payload):
 @client.slash_command(
     name='verify',
     description='Verify your MKC account',
-    #guild_ids=Lounge
+    # guild_ids=Lounge
 )
 async def verify(
     ctx, 
@@ -535,7 +535,7 @@ async def verify(
 @client.slash_command(
     name='c',
     description='🙋 Can up for a mogi',
-    #guild_ids=Lounge
+    # guild_ids=Lounge
 )
 @commands.cooldown(1, 15, commands.BucketType.user)
 async def c(
@@ -598,7 +598,7 @@ async def c(
 @client.slash_command(
     name='d',
     description='Drop from the mogi',
-    #guild_ids=Lounge
+    # guild_ids=Lounge
 )
 async def d(
     ctx,
@@ -649,7 +649,7 @@ async def d(
 @client.slash_command(
     name='l',
     description='Show the mogi list',
-    #guild_ids=Lounge
+    # guild_ids=Lounge
 )
 # @commands.command(aliases=['list'])
 @commands.cooldown(1, 30, commands.BucketType.user)
@@ -674,7 +674,7 @@ async def l(
 @client.slash_command(
     name='sub',
     description='Sub out a player',
-    #guild_ids=Lounge
+    # guild_ids=Lounge
 )
 async def sub(
     ctx,
@@ -756,7 +756,7 @@ async def sub(
 @client.slash_command(
     name='fc',
     description='Display or set your friend code',
-    #guild_ids=Lounge
+    # guild_ids=Lounge
 )
 async def fc(
     ctx,
@@ -788,7 +788,7 @@ async def fc(
 @client.slash_command(
     name='name',
     description='Change your name',
-    #guild_ids=Lounge
+    # guild_ids=Lounge
 )
 async def name(
     ctx,
@@ -874,7 +874,7 @@ async def name(
 @client.slash_command(
     name='table',
     description='Submit a table',
-    #guild_ids=Lounge
+    # guild_ids=Lounge
 )
 @commands.has_role(REPORTER_ROLE_ID)
 async def table(
