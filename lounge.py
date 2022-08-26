@@ -301,19 +301,21 @@ async def on_application_command_error(ctx, error):
 
 @client.event
 async def on_message(ctx):
+    if ctx.guild == GUILD: # Only care if messages are in 200 Lounge
+        pass
+    else:
+        return
     if ctx.author.id == secretly.bot_id: # ignore self messages
         return
-    if ctx.channel.id == 558096949337915413:
-        return # ignore carl bot logging
+    if ctx.channel.id == 558096949337915413: # ignore carl bot logging
+        return
     user = await GUILD.fetch_member(ctx.author.id)
-    # restricted players
-    if CHAT_RESTRICTED_ROLE in user.roles:
+    if CHAT_RESTRICTED_ROLE in user.roles: # restricted players
         if ctx.content in secretly.chat_restricted_words:
             pass
         else:
             await ctx.delete()
-    # I only care if messages are in a tier
-    if ctx.channel.id in TIER_ID_LIST:
+    if ctx.channel.id in TIER_ID_LIST: # Only care if messages are in a tier
         # If player in lineup, set player chat activity timer
         try:
             with DBA.DBAccess() as db:
@@ -347,13 +349,11 @@ async def on_message(ctx):
 
 @client.event
 async def on_raw_reaction_add(payload):
-    if int(payload.user_id) == int(secretly.bot_id):
-        # Return if bot reaction
+    if int(payload.user_id) == int(secretly.bot_id): # Return if bot reaction
         return
     if payload.channel_id == secretly.name_change_channel:
         pass
-    else:
-        # Return if this isnt a name change approval
+    else: # Return if this isnt a name change approval
         return
 
     # Stuff relating to the current embed
