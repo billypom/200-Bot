@@ -574,7 +574,7 @@ async def c(
             temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
             count = temp[0][0]
     except Exception as e:
-        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}. {e}')
+        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}.')
         await send_to_debug_channel(ctx, e)
         return
     # ADDITIONAL SUBS SHOULD BE ABLE TO JOIN NEXT MOGI
@@ -597,8 +597,9 @@ async def c(
         if mogi_started_successfully:
             pass
             # Chooses a host. Says the start time
-            # await start_mogi(ctx)
         else:
+            channel = client.get_channel(ctx.channel.id)
+            await channel.send(f'``Error 45:`` Failed to start mogi... {secretly.my_discord}')
             return
         # start the mogi, vote on format, create teams
     elif count == 6 or count == 11:
@@ -2197,6 +2198,12 @@ async def update_friend_code(ctx, message):
 
 # Takes a ctx, returns 0 if error, returns 1 if good, returns nothing if mogi cancelled
 async def start_mogi(ctx):
+    removal_passed = await remove_players_from_other_tiers(ctx.channel.id)
+    if removal_passed:
+        pass
+    else:
+        await send_to_debug_channel(ctx, 'Failed to remove all players from other lineups...')
+        return 0
     try:
         with DBA.DBAccess() as db:
             db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
@@ -2323,7 +2330,6 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         # Get the index of the voted on format
         max_val = max(format_list)
         ind = [i for i, v in enumerate(format_list) if v == max_val]
-        # print('got index of last entered')
 
     # Create a dictionary where key=format, value=list of players who voted
     poll_dictionary = {
@@ -2361,6 +2367,20 @@ async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
         return [random.choice(ind), poll_dictionary]
     except TypeError:
         return [ind, poll_dictionary]
+
+async def remove_players_from_other_tiers(channel_id):
+    try:
+        with DBA.DBAccess() as db:
+            players = db.query('SELECT player_id FROM lineups WHERE tier_id = %s;', (channel_id,))
+            for player in players:
+                player_tier = db.query('SELECT p.player_id, p.player_name, l.tier_id FROM lineups as l JOIN player as p ON l.player_id = p.player_id WHERE p.player_id = %s AND l.tier_id <> %s;', (player[0], channel_id))
+                if player_tier:
+                    channel = client.get_channel(player_tier[0][2])
+                    db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], player_tier[0][2]))
+                    await channel.send(f'{player_tier[0][1]} has dropped from the lineup')
+        return True
+    except:
+        return False
 
 # poll_results is [index of the voted on format, a dictionary of format:voters]
 # creates teams, finds host, returns a big string formatted...
@@ -2571,8 +2591,7 @@ async def check_if_uid_is_lounge_banned(uid):
         else:
             return temp[0][0]
     except Exception as e:
-        await send_raw_to_debug_channel('banned idk', e)
-        return True
+        return False
 
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
