@@ -865,6 +865,7 @@ async def name(
         pass
     input_name = name
     name = await jp_kr_romanize(name)
+    name = name.replace(" ", "-")
     if len(name) > 16:
         await ctx.respond(f'Your request: {input_name} -> Conversion: {name} | Name is too long. 16 characters max')
         return
