@@ -134,7 +134,6 @@ def get_live_streamers(temp):
         
     return list_of_streams
 
-
 def mogi_media_check():
     try:
         with DBA.DBAccess() as db:
@@ -223,14 +222,15 @@ def inactivity_check():
             for i in range(len(temp)):
                 unix_difference = unix_now - temp[i][1]
                 if temp[i][3] == 0:
-                    if (unix_difference) < 720 and (unix_difference) > 600:
-                        channel = client.get_channel(temp[i][2])
-                        if temp[0][3] == 0:
-                            message = f'<@{temp[i][0]}> Type anything in the chat in the next 2 minutes to keep your spot in the mogi.'
-                            asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=120), client.loop)
-                            with DBA.DBAccess() as db:
-                                db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0]))
-                        continue
+                    if unix_difference > 600:
+                        if unix_difference < 720:
+                            channel = client.get_channel(temp[i][2])
+                            if temp[0][3] == 0:
+                                message = f'<@{temp[i][0]}> Type anything in the chat in the next 2 minutes to keep your spot in the mogi.'
+                                asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=120), client.loop)
+                                with DBA.DBAccess() as db:
+                                    db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0]))
+                            continue
                 elif unix_difference > 720:
                     if temp[i][3] == 1:
                     # try:
@@ -563,12 +563,12 @@ async def c(
                 return
         else:
             pass
-    x = await check_if_uid_in_any_tier(ctx.author.id)
-    if x:
-        await ctx.respond('``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.')
-        return
-    else:
-        pass
+    # x = await check_if_uid_in_any_tier(ctx.author.id)
+    # if x:
+    #     await ctx.respond('``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.')
+    #     return
+    # else:
+    #     pass
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
@@ -850,9 +850,9 @@ async def name(
     else:
         await ctx.respond('Use `/verify <mkc link>` to register with Lounge')
         return
-    z = await check_if_uid_in_any_tier(ctx.author.id)
+    z = await check_if_uid_can_drop(ctx.author.id)
     if z:
-        await ctx.respond('You cannot change your name while playing/waiting for a Mogi.')
+        await ctx.respond('You cannot change your name while playing a Mogi.')
         return
     else:
         pass
