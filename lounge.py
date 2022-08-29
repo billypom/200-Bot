@@ -177,41 +177,44 @@ def mogi_media_check():
             continue
 
 def update_mogilist():
-    MOGILIST = {}
-    pre_ml_string = ''
-    pre_mllu_string = ''
-    remove_chars = {
-        39:None, # ,
-        91:None, # [
-        93:None, # ]
-    }
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT t.tier_id, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
-    for i in range(len(temp)): # create dictionary {tier_id:[list of players in tier]}
-        if temp[i][0] in MOGILIST:
-            MOGILIST[temp[i][0]].append(temp[i][1])
-        else:
-            MOGILIST[temp[i][0]]=[temp[i][1]]
-    num_active_mogis = len(MOGILIST.keys())
-    num_full_mogis = 0
-    for k,v in MOGILIST.items():
-        pre_ml_string += f'<#{k}> - ({len(v)}/12)\n'
-        if len(v) >= 12:
-            num_full_mogis +=1
-        mllu_players = str(v).translate(remove_chars)
-        pre_mllu_string += f'<#{k}> - ({len(v)}/12) - {mllu_players}\n'
-    title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n\n'
-    ml_string = f'{title}{pre_ml_string}'
-    mllu_string = f'{title}{pre_mllu_string}'
+    try:
+        MOGILIST = {}
+        pre_ml_string = ''
+        pre_mllu_string = ''
+        remove_chars = {
+            39:None, # ,
+            91:None, # [
+            93:None, # ]
+        }
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT t.tier_id, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
+        for i in range(len(temp)): # create dictionary {tier_id:[list of players in tier]}
+            if temp[i][0] in MOGILIST:
+                MOGILIST[temp[i][0]].append(temp[i][1])
+            else:
+                MOGILIST[temp[i][0]]=[temp[i][1]]
+        num_active_mogis = len(MOGILIST.keys())
+        num_full_mogis = 0
+        for k,v in MOGILIST.items():
+            pre_ml_string += f'<#{k}> - ({len(v)}/12)\n'
+            if len(v) >= 12:
+                num_full_mogis +=1
+            mllu_players = str(v).translate(remove_chars)
+            pre_mllu_string += f'<#{k}> - ({len(v)}/12) - {mllu_players}\n'
+        title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n\n'
+        ml_string = f'{title}{pre_ml_string}'
+        mllu_string = f'{title}{pre_mllu_string}'
 
-    ml = client.get_channel(secretly.mogilist_channel)
-    # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
-    ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id), client.loop)
-    asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'{ml_string}'), client.loop)
+        ml = client.get_channel(secretly.mogilist_channel)
+        # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
+        ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id), client.loop)
+        asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'{ml_string}'), client.loop)
 
-    mllu = client.get_channel(secretly.mogilist_lu_channel)
-    mllu_message = asyncio.run_coroutine_threadsafe(mllu.fetch_message(ml_lu_channel_message_id), client.loop)
-    asyncio.run_coroutine_threadsafe(mllu_message.result().edit(content=f'{mllu_string}'), client.loop)
+        mllu = client.get_channel(secretly.mogilist_lu_channel)
+        mllu_message = asyncio.run_coroutine_threadsafe(mllu.fetch_message(ml_lu_channel_message_id), client.loop)
+        asyncio.run_coroutine_threadsafe(mllu_message.result().edit(content=f'{mllu_string}'), client.loop)
+    except Exception as e:
+        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('mogilist error', e), client.loop)
 
 def inactivity_check():
     dtobject_now = datetime.datetime.now()
@@ -245,7 +248,7 @@ def inactivity_check():
     except Exception as e:
         return
         message = e
-        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('inactivity check error',message), client.loop)
+        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('inactivity check error', message), client.loop)
 
 def lounge_threads():
     time.sleep(30)
@@ -1436,7 +1439,7 @@ async def stats(
             temp = db.query('SELECT COUNT(*) FROM player WHERE mmr >= %s ORDER BY mmr DESC;', (mmr,))
             rank = temp[0][0]
     except Exception as e:
-        await send_raw_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, e)
         await ctx.respond('``Error 31:`` Player not found.')
         return
     if tier is None:
@@ -2607,7 +2610,7 @@ async def get_partner_avg(uid, *mogi_format):
             except Exception as e:
                 return 0
     except Exception as e:
-        await send_raw_to_debug_channel(e)
+        await send_raw_to_debug_channel('partner average error',e)
     return 0
 
 # Takes in ctx, returns mmr
