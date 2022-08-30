@@ -785,10 +785,16 @@ async def sub(
                 else:
                     pass
             try:
+                leaving_player_name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (leaving_player.id,))[0][0]
+                subbing_player_name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (subbing_player.id,))[0][0]
+                teams_string = db.query('SELECT teams_string FROM tier WHERE tier_id = %s;', (ctx.channel.id,))[0][0]
+                teams_string = teams_string.replace(leaving_player_name, subbing_player_name)
+                teams_string += f'\n\n`EDITED`: `{leaving_player_name}` -> `{subbing_player_name}`'
                 db.execute('DELETE FROM lineups WHERE player_id = %s;', (subbing_player.id,))
                 db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
+                db.execute('UPDATE tier SET teams_string = %s WHERE tier_id = %s;', (teams_string, ctx.channel.id))
             except Exception:
-                await ctx.respond('``Error 42:`` FATAL ERROR - contact popuko')
+                await ctx.respond(f'``Error 42:`` FATAL ERROR - {secretly.my_discord} help!!!')
                 return
     except Exception as e:
         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
