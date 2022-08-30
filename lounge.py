@@ -586,6 +586,19 @@ async def c(
     #     return
     try:
         with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.player.id, ctx.channel.id))
+        if temp:
+            if temp[0][0] == ctx.author.id:
+                await ctx.respond('You are already in the mogi')
+                return
+            else:
+                pass
+    except Exception as e:
+        await ctx.respond(f'``Error 46:`` Something went wrong! Contact {secretly.my_discord}.')
+        await send_to_debug_channel(ctx, e)
+        return
+    try:
+        with DBA.DBAccess() as db:
             db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
             await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
             channel = client.get_channel(ctx.channel.id)
