@@ -594,9 +594,10 @@ async def c(
             else:
                 pass
     except Exception as e:
-        await ctx.respond(f'``Error 46:`` Something went wrong! Contact {secretly.my_discord}.')
-        await send_to_debug_channel(ctx, e)
-        return
+        pass
+        # await ctx.respond(f'``Error 46:`` Something went wrong! Contact {secretly.my_discord}.')
+        # await send_to_debug_channel(ctx, e)
+        # return
     try:
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
