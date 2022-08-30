@@ -1528,7 +1528,7 @@ async def stats(
     else:
         title=f'{tier.name} stats' 
 
-    channel = client.get_channel(ctx.channel.id)
+    # channel = client.get_channel(ctx.channel.id)
     embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.blurple()) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
@@ -1545,8 +1545,8 @@ async def stats(
     embed.add_field(name='Average MMR', value=f'{round(average_mmr,0)}', inline=True)
     embed.add_field(name='Base MMR', value=f'{base}', inline=True)
     embed.set_image(url='attachment://stats.png')
-    await channel.send(file=f, embed=embed)
-    await ctx.respond(':coin:', delete_after=1)
+    # await channel.send(file=f, embed=embed)
+    await ctx.respond(file=f, embed=embed)
     return
 
 @client.slash_command(
