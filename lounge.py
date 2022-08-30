@@ -1015,22 +1015,27 @@ async def table(
         SPECIAL_TEAMS_INTEGER = 63
         OTHER_SPECIAL_INT = 19
         MULTIPLIER_SPECIAL = 2.1
+        table_color = ['#76D7C4', '#A3E4D7']
     elif mogi_format == 2:
         SPECIAL_TEAMS_INTEGER = 142
         OTHER_SPECIAL_INT = 39
         MULTIPLIER_SPECIAL = 3.0000001
+        table_color = ['#76D7C4', '#A3E4D7']
     elif mogi_format == 3:
         SPECIAL_TEAMS_INTEGER = 288
         OTHER_SPECIAL_INT = 59
         MULTIPLIER_SPECIAL = 3.1
+        table_color = ['#85C1E9', '#AED6F1']
     elif mogi_format == 4:
         SPECIAL_TEAMS_INTEGER = 402
         OTHER_SPECIAL_INT = 79
         MULTIPLIER_SPECIAL = 3.35
+        table_color = ['#C39BD3', '#D2B4DE']
     elif mogi_format == 6:
         SPECIAL_TEAMS_INTEGER = 525
         OTHER_SPECIAL_INT = 99
         MULTIPLIER_SPECIAL = 3.5
+        table_color = ['#F1948A', '#F5B7B1']
     else:
         await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, 4, or 6.')
         return
@@ -1115,9 +1120,9 @@ async def table(
         team.append(team_placement)
         if mogi_format != 1:
             if count_teams % 2 == 0:
-                lorenzi_query += f'{team_placement} #AAC8F4 \n'
+                lorenzi_query += f'{team_placement} {table_color[0]} \n'
             else:
-                lorenzi_query += f'{team_placement} #A3D9FF \n'
+                lorenzi_query += f'{team_placement} {table_color[1]} \n'
         for idx, player in enumerate(team):
             if idx > (mogi_format-1):
                 continue
