@@ -226,15 +226,15 @@ def inactivity_check():
                 unix_difference = unix_now - temp[i][1]
                 if temp[i][3] == 0:
                     if unix_difference > 600:
-                        if unix_difference < 720:
+                        if unix_difference < 900:
                             channel = client.get_channel(temp[i][2])
                             if temp[0][3] == 0:
-                                message = f'<@{temp[i][0]}> Type anything in the chat in the next 2 minutes to keep your spot in the mogi.'
+                                message = f'<@{temp[i][0]}> Type anything in the chat in the next 5 minutes to keep your spot in the mogi.'
                                 asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=120), client.loop)
                                 with DBA.DBAccess() as db:
                                     db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0]))
                             continue
-                elif unix_difference > 720:
+                elif unix_difference > 900:
                     if temp[i][3] == 1:
                     # try:
                         with DBA.DBAccess() as db:
