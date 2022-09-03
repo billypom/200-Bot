@@ -2521,8 +2521,8 @@ async def check_if_uid_can_drop(uid):
                 return True
             else:
                 return False
-    except Exception:
-        return False
+    except Exception: # Player not in any lineups?
+        return True
 
 async def check_if_uid_in_any_tier(uid):
     try:
