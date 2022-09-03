@@ -875,10 +875,10 @@ async def name(
         return
     z = await check_if_uid_can_drop(ctx.author.id)
     if z:
+        pass
+    else:
         await ctx.respond('You cannot change your name while playing a Mogi.')
         return
-    else:
-        pass
     x = await check_if_banned_characters(name)
     if x:
         await send_to_verification_log(ctx, name, discord.Color.blurple(), vlog_msg.error1)
