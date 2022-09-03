@@ -586,7 +586,7 @@ async def c(
     #     return
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.player.id, ctx.channel.id))
+            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
         if temp:
             if temp[0][0] == ctx.author.id:
                 await ctx.respond('You are already in the mogi')
