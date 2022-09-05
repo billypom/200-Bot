@@ -598,6 +598,9 @@ async def c(
         # await ctx.respond(f'``Error 46:`` Something went wrong! Contact {secretly.my_discord}.')
         # await send_to_debug_channel(ctx, e)
         # return
+    if ctx.channel.id = 965286774098260029:
+        await ctx.respond('Use !c to join squad queue')
+        return
     try:
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
