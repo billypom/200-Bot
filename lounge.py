@@ -2220,8 +2220,8 @@ async def ztable(
         for player in team:
             try:
                 with DBA.DBAccess() as db:
-                    # This part makes sure that only players in the current channel's lineup can have a table made for them
-                    temp = db.query('SELECT mmr FROM (SELECT p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY create_date ASC LIMIT 12) as m JOIN player p on p.player_id = m.player_id WHERE p.player_id = %s;', (ctx.channel.id, player[0]))
+                    # YOU CAN CHOOSE ANY PLAYER BE CAREFUL!!!!!!!!!
+                    temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
                     if temp[0][0] is None:
                         mmr = 0
                     else:
