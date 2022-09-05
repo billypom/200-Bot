@@ -598,7 +598,7 @@ async def c(
         # await ctx.respond(f'``Error 46:`` Something went wrong! Contact {secretly.my_discord}.')
         # await send_to_debug_channel(ctx, e)
         # return
-    if ctx.channel.id = 965286774098260029:
+    if ctx.channel.id == 965286774098260029:
         await ctx.respond('Use !c to join squad queue')
         return
     try:
