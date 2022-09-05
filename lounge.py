@@ -566,12 +566,12 @@ async def c(
                 return
         else:
             pass
-    # x = await check_if_uid_in_any_tier(ctx.author.id)
-    # if x:
-    #     await ctx.respond('``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.')
-    #     return
-    # else:
-    #     pass
+    x = await check_if_uid_in_any_tier(ctx.author.id)
+    if x:
+        await ctx.respond('``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.')
+        return
+    else:
+        pass
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
