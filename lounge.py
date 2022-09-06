@@ -341,13 +341,13 @@ async def on_message(ctx):
                         with DBA.DBAccess() as db:
                             temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s ORDER BY create_date LIMIT %s;', (ctx.author.id, ctx.channel.id, MAX_PLAYERS_IN_MOGI)) # limit prevents 13th person from voting
                     except Exception as e:
-                        await send_to_debug_channel(ctx, e)
+                        await send_to_debug_channel(ctx, f'on message error 1 {e}')
                         return
                     try:
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content), ctx.author.id))
                     except Exception as e:
-                        await send_to_debug_channel(ctx, e)
+                        await send_to_debug_channel(ctx, f'on message error 2 {e}')
                         return
 
 @client.event
@@ -578,7 +578,7 @@ async def c(
             count = temp[0][0]
     except Exception as e:
         await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}.')
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'/c error 18 lineup not found? {e}')
         return
     # ADDITIONAL SUBS SHOULD BE ABLE TO JOIN NEXT MOGI
     # if count == MAX_PLAYERS_IN_MOGI:
@@ -610,7 +610,7 @@ async def c(
             count+=1
     except Exception as e:
         await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secretly.my_discord}.')
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'/c error 16 unable to join {e}')
         return
     if count == MAX_PLAYERS_IN_MOGI:
         mogi_started_successfully = await start_mogi(ctx)
@@ -668,7 +668,7 @@ async def d(
                 db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
                 await ctx.respond(f'You have dropped from tier {tier_temp[0][1]}')
         except Exception as e:
-            await send_to_debug_channel(ctx, e)
+            await send_to_debug_channel(ctx, f'/d error 17 cant leave lineup {e}')
             await ctx.respond(f'``Error 17:`` Oops! Something went wrong. Contact {secretly.my_discord}')
             return
         try:
@@ -677,7 +677,7 @@ async def d(
                 channel = client.get_channel(tier_temp[0][0])
                 await channel.send(f'{temp[0][0]} has dropped from the lineup')
         except Exception as e:
-            await send_to_debug_channel(ctx, f'WHAT! 1 {e}')
+            await send_to_debug_channel(ctx, f'/d big error...WHAT! 1 {e}')
             # i should never ever see this...
         return
     else:
@@ -801,7 +801,7 @@ async def sub(
                 return
     except Exception as e:
         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'/sub error 19 {e}')
         return
     with DBA.DBAccess() as db:
         db.execute('INSERT INTO sub_leaver (player_id, tier_id) VALUES (%s, %s);', (leaving_player.id, ctx.channel.id))
@@ -832,7 +832,7 @@ async def fc(
                 await ctx.respond(temp[0][0])
         except Exception as e:
             await ctx.respond('``Error 12:`` No friend code found. Use ``/fc XXXX-XXXX-XXXX`` to set.')
-            await send_to_debug_channel(ctx, e)
+            await send_to_debug_channel(ctx, f'/fc Error 12: {e}')
     else:
         await ctx.defer(ephemeral=True)
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
@@ -999,7 +999,7 @@ async def table(
             players_in_lineup_count = temp[0][0]
     except Exception as e:
         await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}. {e}')
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'/table Error 18: {e}')
         return
     if players_in_lineup_count < 12:
         await ctx.respond('Mogi has not started. Cannot create a table now')
@@ -1080,7 +1080,7 @@ async def table(
                         team_score = team_score + int(score_and_pen[0]) - int(score_and_pen[1])
             except Exception as e:
                 # check for all 12 players exist
-                await send_to_debug_channel(ctx, e)
+                await send_to_debug_channel(ctx, f'/table Error 24:{e}')
                 await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>. If this is a sub, you must first use the `/sub` command')
                 return
         # print(team_score)
@@ -1470,7 +1470,7 @@ async def stats(
             temp = db.query('SELECT COUNT(*) FROM player WHERE mmr >= %s ORDER BY mmr DESC;', (mmr,))
             rank = temp[0][0]
     except Exception as e:
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'/stats error 31 | {e}')
         await ctx.respond('``Error 31:`` Player not found.')
         return
     if tier is None:
@@ -1505,7 +1505,7 @@ async def stats(
                         else:
                             last_10_losses += 1
         except Exception as e:
-            await send_to_debug_channel(ctx, e)
+            await send_to_debug_channel(ctx, f'/stats not played in tier | {e}')
             await ctx.respond(f'You have not played in {tier.mention}')
             return
         partner_average = await get_partner_avg(my_player_id, tier.id)
@@ -1748,7 +1748,7 @@ async def zrevert(
                 await ctx.respond('``Error 34:`` Mogi could not be found.')
                 return
     except Exception as e:
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'zrevert error 35 wrong mogi id? | {e}')
         await ctx.respond('``Error 35:`` Mogi could not be found')
         return
 
@@ -1794,7 +1794,7 @@ async def zrevert(
                     with DBA.DBAccess() as db:
                         db.execute('UPDATE player SET rank_id = %s, mmr = %s WHERE player_id = %s;', (rank_id, my_player_new_mmr, my_player_id))
             except Exception as e:
-                await send_to_debug_channel(ctx, e)
+                await send_to_debug_channel(ctx, f'/zrevert FATAL ERROR | {e}')
                 flag = 1
                 pass
     with DBA.DBAccess() as db:
@@ -1847,7 +1847,7 @@ async def zswapscore(
             id2 = temp2[0][0]
             idmogi = temp3[0][0]
     except Exception as e:
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'error 35 {e}')
         await ctx.respond('``Error 35:`` One of your inputs is invalid. Please try again')
     try:
         with DBA.DBAccess() as db:
@@ -1858,7 +1858,7 @@ async def zswapscore(
             db.execute('UPDATE player_mogi SET score = %s WHERE player_id = %s AND mogi_id = %s', (id1_score, id2, idmogi))
             db.execute('UPDATE player_mogi SET score = %s WHERE player_id = %s AND mogi_id = %s', (id2_score, id1, idmogi))
     except Exception as e:
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'error 36 {e}')
         await ctx.respond('``Error 36:`` Oops! Something went wrong.')
     await ctx.respond(f'Scores swapped successfully.\n{player1} {id1_score} -> {id2_score}\n{player2} {id2_score} -> {id1_score}')
     return
@@ -2033,7 +2033,7 @@ async def zmmr_penalty(
             db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (new_mmr, player.id))
         await ctx.respond(f'{player.mention} has been given a {mmr_penalty} mmr penalty')
     except Exception as e:
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'/zmmr_penalty error 38 {e}')
         await ctx.respond('`Error 38:` Could not apply penalty')
 
 @client.slash_command(
@@ -2238,7 +2238,7 @@ async def ztable(
                         team_score = team_score + int(score_and_pen[0]) - int(score_and_pen[1])
             except Exception as e:
                 # check for all 12 players exist
-                await send_to_debug_channel(ctx, e)
+                await send_to_debug_channel(ctx, f'/ztable error 24 why are you using this command. dont use this command!!! >:( {e}')
                 await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>. If this is a sub, you must first use the `/sub` command')
                 return
         # print(team_score)
@@ -2689,7 +2689,7 @@ async def create_player(ctx, mkc_user_id, country_code):
             await member.add_roles(role)
             return 'Verified & registered successfully'
         except Exception as e:
-            await send_to_debug_channel(ctx, e)
+            await send_to_debug_channel(ctx, f'create_player error 14 {e}')
             return f'``Error 14:`` Oops! An unlikely error occured. Contact {secretly.my_discord} if you think this is a mistake.'
             # 1. a player trying to use someone elses link (could be banned player)
             # 2. a genuine player locked from usage by another player (banned player might have locked them out)
@@ -2704,7 +2704,7 @@ async def update_friend_code(ctx, message):
                 db.execute('UPDATE player SET fc = %s WHERE player_id = %s;', (message, ctx.author.id))
                 return 'Friend Code updated'
         except Exception as e:
-            await send_to_debug_channel(ctx, e)
+            await send_to_debug_channel(ctx, f'update_friend_code error 15 {e}')
             return '``Error 15:`` Player not found'
     else:
         return 'Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
@@ -2721,7 +2721,7 @@ async def start_mogi(ctx):
         with DBA.DBAccess() as db:
             db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
     except Exception as e:
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote {e}')
         await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
         return 0
     channel = client.get_channel(ctx.channel.id)
@@ -2730,7 +2730,7 @@ async def start_mogi(ctx):
             temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
             db.execute('UPDATE lineups SET can_drop = 0 WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     except Exception as e:
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote {e}')
         await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
         return 0
     response = ''
@@ -2970,7 +2970,7 @@ async def create_teams(ctx, poll_results):
         with DBA.DBAccess() as db:
             db.execute('UPDATE tier SET teams_string = %s WHERE tier_id = %s;', (response_string, ctx.channel.id))
     except Exception as e:
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'team generation error log 1? | {e}')
     # choose a host
     host_string = '    '
     try:
@@ -3128,7 +3128,7 @@ async def get_player_mmr(ctx):
         with DBA.DBAccess() as db:
             temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (uid,))
     except Exception as e:
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'get_player_mmr error 1 | {e}')
         return -1
     return temp[0][0]
 
