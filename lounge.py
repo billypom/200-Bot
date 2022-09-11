@@ -2104,14 +2104,14 @@ async def zreduce_loss(ctx,
     await ctx.respond(f'Loss was reduced for {player.mention}.\nChange: `{mmr_change}` -> `{adjusted_mmr_change}`\nMMR: `{mmr}` -> `{adjusted_mmr}`')
     return
 
-# /table
-@client.slash_command(
-    name='ztable',
-    description='Submit a table',
-    # guild_ids=Lounge
-)
-@commands.has_any_role(ADMIN_ROLE_ID)
-async def ztable(
+# # /table
+# @client.slash_command(
+#     name='ztable',
+#     description='Submit a table',
+#     # guild_ids=Lounge
+# )
+# @commands.has_any_role(ADMIN_ROLE_ID)
+# async def ztable(
     ctx,
     mogi_format: discord.Option(int, '1=FFA, 2=2v2, 3=3v3, 4=4v4, 6=6v6', required=True),
     scores: discord.Option(str, 'player scores (i.e. popuko 12 JPGiviner 42 Technical 180...)', required=True)
