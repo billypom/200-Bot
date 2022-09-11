@@ -668,7 +668,7 @@ async def d(
             tier_temp = db.query('SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s;', (ctx.author.id,))
         try:
             with DBA.DBAccess() as db:
-                db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
+                db.execute('DELETE FROM lineups WHERE player_id = %s;', (ctx.author.id,))
                 await ctx.respond(f'You have dropped from tier {tier_temp[0][1]}')
         except Exception as e:
             await send_to_debug_channel(ctx, f'/d error 17 cant leave lineup {e}')
