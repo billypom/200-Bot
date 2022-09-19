@@ -1548,10 +1548,15 @@ async def stats(
     file = plotting.create_plot(base, mmr_history)
     f=discord.File(file, filename='stats.png')
 
+    title='Stats'
     if tier is None:
-        title='Stats'
+        pass
     else:
-        title=f'{tier.name} stats' 
+        title+=f' | {tier.name}'
+    if last is None:
+        pass
+    else:
+        title+=f' | Last {last}'
 
     # channel = client.get_channel(ctx.channel.id)
     embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.blurple()) # website link
