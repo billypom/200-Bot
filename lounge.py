@@ -1432,8 +1432,13 @@ async def table(
 async def stats(
     ctx,
     tier: discord.Option(discord.TextChannel, description='Which tier?', required=False),
-    player: discord.Option(discord.Member, description='Which player?', required=False)
+    player: discord.Option(discord.Member, description='Which player?', required=False),
+    last: discord.Option(int, description='How many mogis?', required=False)
     ):
+    if last is None:
+        number_of_mogis = 999999
+    else:
+        number_of_mogis = last
     await ctx.defer()
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
@@ -1478,7 +1483,7 @@ async def stats(
         return
     if tier is None:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date ASC;', (my_player_id,))
+            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date ASC LIMIT %s;', (my_player_id, number_of_mogis))
             try:
                 did_u_play_yet = temp[0][0]
             except Exception:
@@ -1497,7 +1502,7 @@ async def stats(
     elif tier.id in TIER_ID_LIST:
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT pm.mmr_change, pm.score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s ORDER BY m.create_date ASC;', (my_player_id, tier.id))
+                temp = db.query('SELECT pm.mmr_change, pm.score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s ORDER BY m.create_date ASC LIMIT %s;', (my_player_id, tier.id, number_of_mogis))
                 for i in range(len(temp)):
                     mmr_history.append(temp[i][0])
                     score_history.append(temp[i][1])
@@ -1670,6 +1675,7 @@ async def strikes(ctx):
     await ctx.respond('You have no strikes')
     return
 
+# /teams
 @client.slash_command(
     name='teams',
     description='See the teams in the ongoing mogi',
@@ -1698,6 +1704,74 @@ async def teams(ctx):
     except Exception as e:
         response = "Use `/teams` in a tier channel"
     await ctx.respond(response)
+
+# /zstrikes
+@client.slash_command(
+    name='zstrikes',
+    description='See your strikes',
+    #guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zstrikes(ctx,
+    player: discord.Option(discord.Member, description='Which player?', required=False)
+    ):
+    await ctx.defer()
+    if player is None:
+        lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+        if lounge_ban:
+            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+            return
+        else:
+            pass
+        x = await check_if_uid_exists(ctx.author.id)
+        if x:
+            pass
+        else:
+            await ctx.respond('Player not found. Use `/verify <mkc link>` to register with Lounge')
+            return
+        try:
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT UNIX_TIMESTAMP(expiration_date) FROM strike WHERE player_id = %s AND is_active = %s ORDER BY create_date ASC;', (ctx.author.id, 1))
+                if temp[0][0]:
+                    response = ''
+                    for i in range(len(temp)):
+                        response += f'`Strike {i+1}` Expires: <t:{str(int(temp[i][0]))}:F>\n'
+                    await ctx.respond(response)
+                    return
+                else:
+                    pass
+        except Exception:
+            pass
+        await ctx.respond('You have no strikes')
+        return
+    else:
+        lounge_ban = await check_if_uid_is_lounge_banned(player.id)
+        if lounge_ban:
+            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+            return
+        else:
+            pass
+        x = await check_if_uid_exists(player.id)
+        if x:
+            pass
+        else:
+            await ctx.respond('Player not found.')
+            return
+        try:
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT UNIX_TIMESTAMP(expiration_date) FROM strike WHERE player_id = %s AND is_active = %s ORDER BY create_date ASC;', (player.id, 1))
+                if temp[0][0]:
+                    response = ''
+                    for i in range(len(temp)):
+                        response += f'`Strike {i+1}` Expires: <t:{str(int(temp[i][0]))}:F>\n'
+                    await ctx.respond(response)
+                    return
+                else:
+                    pass
+        except Exception:
+            pass
+        await ctx.respond('This player has no strikes')
+        return
 
 # /zcancel_mogi
 @client.slash_command(
@@ -2932,43 +3006,50 @@ async def create_teams(ctx, poll_results):
     random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
     response_string += f'   `Room MMR:` {math.ceil(room_mmr)}\n'
+    # 6v6 /teams string
+    if players_per_team != 6:
+        # divide the list based on players_per_team
+        chunked_list = list()
+        for i in range(0, len(players_list), players_per_team):
+            chunked_list.append(players_list[i:i+players_per_team])
 
-    # divide the list based on players_per_team
-    chunked_list = list()
-    for i in range(0, len(players_list), players_per_team):
-        chunked_list.append(players_list[i:i+players_per_team])
+        # For each divided team, get mmr for all players, average them, append to team
+        for team in chunked_list:
+            temp_mmr = 0
+            count = 0
+            for player in team:
+                if player[2] is None: # Account for placement ppls
+                    pass
+                else:
+                    temp_mmr = temp_mmr + player[2]
+                    count += 1
+            if count == 0:
+                count = 1
+            team_mmr = temp_mmr/count
+            team.append(team_mmr)
 
-    # For each divided team, get mmr for all players, average them, append to team
-    for team in chunked_list:
-        temp_mmr = 0
-        count = 0
-        for player in team:
-            if player[2] is None: # Account for placement ppls
-                pass
-            else:
-                temp_mmr = temp_mmr + player[2]
-                count += 1
-        if count == 0:
-            count = 1
-        team_mmr = temp_mmr/count
-        team.append(team_mmr)
+        sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
+        sorted_list.reverse()
+        # print(sorted_list)
+        player_score_string = f'    `Table:` /table {players_per_team} '
+        team_count = 0
+        for team in sorted_list:
+            team_count+=1
+            response_string += f'   `Team {team_count}:` '
+            for player in team:
+                try:
+                    player_score_string += f'{player[0]} 0 '
+                    response_string += f'{player[0]} '
+                except TypeError:
+                    response_string += f'(MMR: {math.ceil(player)})\n'
 
-    sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
-    sorted_list.reverse()
-    # print(sorted_list)
-    player_score_string = f'    `Table:` /table {players_per_team} '
-    team_count = 0
-    for team in sorted_list:
-        team_count+=1
-        response_string += f'   `Team {team_count}:` '
-        for player in team:
-            try:
-                player_score_string += f'{player[0]} 0 '
-                response_string += f'{player[0]} '
-            except TypeError:
-                response_string += f'(MMR: {math.ceil(player)})\n'
-
-    response_string+=f'\n{player_score_string}'
+        response_string+=f'\n{player_score_string}'
+    else:
+        with DBA.DBAccess() as db:
+            captains = db.query('SELECT player_name, player_id FROM (SELECT p.player_name, p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s) as mytable ORDER BY mmr DESC LIMIT 2;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+        response_string += f'   `Captains:` <@{captains[0][1]}> & <@{captains[1][1]}>\n'
+        response_string += f'   `Table:` /table 6 `[Team 1 players & scores]` `[Team 2 players & scores]`\n'
+    
     try:
         with DBA.DBAccess() as db:
             db.execute('UPDATE tier SET teams_string = %s WHERE tier_id = %s;', (response_string, ctx.channel.id))
