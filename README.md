@@ -42,8 +42,11 @@ See the teams in the ongoing mogi (must be sent from a tier channel)
 # `/stats` +3 (optional) `#tier-channel` `@player` `last`
 
 Displays player statistics. 
+
 Filter by tier (#tier-a, #tier-b, ...)
+
 Filter by player (@popuko, @brandon, ...)
+
 Filter by last `x` mogis played (last 10, last 100, last 5, ...
 
 # `/name` +1 REQUIRED `new name`
