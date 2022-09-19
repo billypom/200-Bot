@@ -39,9 +39,12 @@ Submit a table. Provide a format (1, 2, 3, 4, 6) and a list of 12 players & 12 s
 
 See the teams in the ongoing mogi (must be sent from a tier channel)
 
-# `/stats` +1 (optional) `#tier-channel`
+# `/stats` +3 (optional) `#tier-channel` `@player` `last`
 
-Displays player statistics. You can also filter by tier by selecting the appropriate channel (#tier-a, #tier-b, etc...)
+Displays player statistics. 
+Filter by tier (#tier-a, #tier-b, ...)
+Filter by player (@popuko, @brandon, ...)
+Filter by last `x` mogis played (last 10, last 100, last 5, ...
 
 # `/name` +1 REQUIRED `new name`
 
