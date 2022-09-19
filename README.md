@@ -39,6 +39,10 @@ Submit a table. Provide a format (1, 2, 3, 4, 6) and a list of 12 players & 12 s
 
 See the teams in the ongoing mogi (must be sent from a tier channel)
 
+# `/mmr`
+
+Displays your MMR and rank. Useful for returning players.
+
 # `/stats` +3 (optional) `#tier-channel` `@player` `last`
 
 Displays player statistics. 
@@ -47,11 +51,15 @@ Filter by tier (#tier-a, #tier-b, ...)
 
 Filter by player (@popuko, @brandon, ...)
 
-Filter by last `x` mogis played (last 10, last 100, last 5, ...
+Filter by last `x` mogis played (last 10, last 100, last 5, ...)
 
 # `/name` +1 REQUIRED `new name`
 
 Submit a name-change request to staff.
+
+# `/strikes`
+
+Displayers your strikes
 
 # `/twitch` +1 REQUIRED `username`
 
