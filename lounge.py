@@ -229,7 +229,7 @@ def inactivity_check():
                             channel = client.get_channel(temp[i][2])
                             if temp[0][3] == 0:
                                 message = f'<@{temp[i][0]}> Type anything in the chat in the next 5 minutes to keep your spot in the mogi.'
-                                asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=120), client.loop)
+                                asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=300), client.loop)
                                 with DBA.DBAccess() as db:
                                     db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0]))
                             continue
