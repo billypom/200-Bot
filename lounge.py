@@ -511,7 +511,7 @@ async def verify(
         if seconds_since_last_login > SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT:
             verify_description = vlog_msg.error5
             verify_color = discord.Color.red()
-            await ctx.respond('``Error 5:`` Please log in to your MKC account and retry')
+            await ctx.respond('``Error 5:`` Please log in to your MKC account, open your player page, then retry')
             await send_to_verification_log(ctx, message, verify_color, verify_description)
             return
         else:
@@ -2188,7 +2188,7 @@ async def zreduce_loss(ctx,
 # /table
 @client.slash_command(
     name='ztable',
-    description='Submit a table',
+    description='Submit a table [Admin only] ',
     # guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID)
@@ -2658,7 +2658,6 @@ async def ztable(
         await ctx.respond('`Table Accepted.`', delete_after=300)
     else:
         await ctx.respond('`Table Denied.`', delete_after=300)
-
 
 
 
