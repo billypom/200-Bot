@@ -2701,9 +2701,9 @@ async def set_player_roles(ctx):
                 role = guild.get_role(ranks[i][0])
                 await member.add_roles(role)
                 break
-        player_name = player_name.replace("-", " ")
+        # player_name = player_name.replace("-", " ")
         try:
-            await member.edit(nick=player_name)
+            await member.edit(nick=str(player_name))
         except Exception as e:
             await send_to_debug_channel(ctx, f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')
             pass
