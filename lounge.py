@@ -511,7 +511,7 @@ async def verify(
         if seconds_since_last_login > SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT:
             verify_description = vlog_msg.error5
             verify_color = discord.Color.red()
-            await ctx.respond('``Error 5:`` Please log in to your MKC account, open your player page, then retry')
+            await ctx.respond('``Error 5:`` Please log in to your MKC account, then retry. \n\nIf you are still being refused verification, click this link then try again: https://www.mariokartcentral.com/forums/index.php?members/popuko.154/')
             await send_to_verification_log(ctx, message, verify_color, verify_description)
             return
         else:
@@ -2733,15 +2733,16 @@ async def create_player(ctx, mkc_user_id, country_code):
             if count == 16:
                 return f'``Error 39:`` Oops! An unlikely error occured. Contact {secretly.my_discord} if you think this is a mistake.'
         # Handle name too long
-        temp_name = ""
         if len(insert_name) > 16:
+            temp_name = ""
             count = 0
             for char in insert_name:
                 if count == 15:
                     break
                 temp_name+=char
                 count+=1
-
+            insert_name = temp_name
+        
         f = open('/home/lounge/200-Lounge-Mogi-Bot/200lounge.csv',encoding='utf-8-sig') # f is our filename as string
         lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
         f.close()
