@@ -2862,7 +2862,7 @@ async def start_mogi(ctx):
         with DBA.DBAccess() as db:
             db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
     except Exception as e:
-        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote {e}')
+        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 1 |  {e}')
         await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
         return 0
     try:
@@ -2870,7 +2870,7 @@ async def start_mogi(ctx):
             temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
             db.execute('UPDATE lineups SET can_drop = 0 WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     except Exception as e:
-        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote {e}')
+        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 2 | {e}')
         await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
         return 0
     response = ''
