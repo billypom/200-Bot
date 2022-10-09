@@ -2661,7 +2661,7 @@ async def ztable(
 # /zchange_discord_account
 @client.slash_command(
     name='zchange_discord_account',
-    description='Change a players discord account [Admin only] [Developer mode required]'
+    description='Change a players discord account [Admin only] [Developer mode required]',
     # guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID)
@@ -2673,12 +2673,12 @@ async def zchange_discord_account(
     await ctx.defer()
     bad = await check_if_banned_characters(old_discord_id)
     if bad:
-        await send_to_verification_log(ctx, old_discord_id, discord.Color.blurple(), vlog_msg.error1)
+        await send_to_danger_debug_channel(ctx, old_discord_id, discord.Color.red(), vlog_msg.error1)
         await ctx.respond('``Error 50:`` Invalid discord ID (Original Discord ID)')
         return
     bad = await check_if_banned_characters(new_discord_id)
     if bad:
-        await send_to_verification_log(ctx, old_discord_id, discord.Color.blurple(), vlog_msg.error1)
+        await send_to_danger_debug_channel(ctx, old_discord_id, discord.Color.red(), vlog_msg.error1)
         await ctx.respond('``Error 51:`` Invalid discord ID (New Discord ID)')
         return
     old_discord_id = int(old_discord_id)
@@ -3300,6 +3300,14 @@ async def send_to_debug_channel(ctx, error):
     embed = discord.Embed(title='Error', description='>.<', color = discord.Color.blurple())
     embed.add_field(name='Issuer: ', value=ctx.author.mention, inline=False)
     embed.add_field(name='Error: ', value=str(error), inline=False)
+    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
+    await channel.send(content=None, embed=embed)
+
+async def send_to_danger_debug_channel(ctx, message, verify_color, verify_description):
+    channel = client.get_channel(secretly.debug_channel)
+    embed = discord.Embed(title='Verification', description=verify_description, color = verify_color)
+    embed.add_field(name='Name: ', value=ctx.author.mention, inline=False)
+    embed.add_field(name='Message: ', value=message, inline=False)
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
     await channel.send(content=None, embed=embed)
 
