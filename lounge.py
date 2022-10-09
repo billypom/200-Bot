@@ -2658,6 +2658,53 @@ async def ztable(
     else:
         await ctx.respond('`Table Denied.`', delete_after=300)
 
+@client.slash_command(
+    name='zchange_discord_account',
+    description='Change a players discord account [Admin only] [Developer mode required]'
+    # guild_ids=Lounge
+)
+@commands.has_any_role(ADMIN_ROLE_ID)
+async def zchange_discord_account(
+    ctx,
+    old_discord_id: discord.Option(int, 'Original Discord ID', required=True),
+    new_discord_id: discord.Option(int, 'New Discord ID', required=True)
+    ):
+    await ctx.defer()
+    x = await check_if_uid_exists(old_discord_id)
+    y = await check_if_uid_exists(new_discord_id)
+    z = await check_if_uid_in_any_tier(old_discord_id)
+    if not x:
+        await ctx.respond(f'``Error 47:`` {old_discord_id} does not exist')
+        return
+    if y:
+        await ctx.respond(f'``Error 48:`` {new_discord_id} already exists')
+        return
+    if z:
+        await ctx.respond(f'``Error 49:`` {old_discord_id} is in a mogi! You cannot delete them.')
+    try:
+        with DBA.DBAccess() as db:
+            # get old player data
+            temp = db.query('SELECT * FROM player WHERE player_id = %s;', (old_discord_id,))
+            # create new player
+            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, fc, is_host_banned, mmr, base_mmr, peak_mmr, rank_id, times_strike_limit_reached, twitch_link, mogi_media_message_id, unban_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);', (new_discord_id, temp[0][1], temp[0][2], temp[0][3], temp[0][4], temp[0][5], temp[0][6], temp[0][7], temp[0][8], temp[0][9], temp[0][10], temp[0][11], temp[0][12], temp[0][13]))
+            # update player_mogi instances
+            db.execute('UPDATE player_mogi SET player_id = %s WHERE player_id = %s;', (new_discord_id, old_discord_id))
+            # update player_name_request instances
+            db.execute('UPDATE player_name_request SET player_id = %s WHERE player_id = %s;', (new_discord_id, old_discord_id))
+            # update strike instances
+            db.execute('UPDATE strike SET player_id = %s WHERE player_id = %s;', (new_discord_id, old_discord_id))
+            # update sub_leaver instances
+            db.execute('UPDATE sub_leaver SET player_id = %s WHERE player_id = %s;', (new_discord_id, old_discord_id))
+            # delete old player
+            db.execyte('DELETE FROM player WHERE player_id = %s;', (old_discord_id,))
+    except Exception as e:
+        await send_raw_to_debug_channel('change discord account error', e)
+        return
+    await ctx.respond(f'Successfully moved player `{old_discord_id}` -> `{new_discord_id}`')
+    return
+
+        
+    
 
 
 
