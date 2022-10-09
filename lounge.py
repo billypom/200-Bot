@@ -2666,10 +2666,22 @@ async def ztable(
 @commands.has_any_role(ADMIN_ROLE_ID)
 async def zchange_discord_account(
     ctx,
-    old_discord_id: discord.Option(int, 'Original Discord ID', required=True),
-    new_discord_id: discord.Option(int, 'New Discord ID', required=True)
+    old_discord_id: discord.Option(str, 'Original Discord ID', required=True),
+    new_discord_id: discord.Option(str, 'New Discord ID', required=True)
     ):
     await ctx.defer()
+    bad = await check_if_banned_characters(old_discord_id)
+    if bad:
+        await send_to_verification_log(ctx, old_discord_id, discord.Color.blurple(), vlog_msg.error1)
+        await ctx.respond('``Error 50:`` Invalid discord ID (Original Discord ID)')
+        return
+    bad = await check_if_banned_characters(new_discord_id)
+    if bad:
+        await send_to_verification_log(ctx, old_discord_id, discord.Color.blurple(), vlog_msg.error1)
+        await ctx.respond('``Error 51:`` Invalid discord ID (New Discord ID)')
+        return
+    old_discord_id = int(old_discord_id)
+    new_discord_id = int(new_discord_id)
     x = await check_if_uid_exists(old_discord_id)
     y = await check_if_uid_exists(new_discord_id)
     z = await check_if_uid_in_any_tier(old_discord_id)
