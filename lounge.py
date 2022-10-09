@@ -2708,7 +2708,7 @@ async def zchange_discord_account(
             # update sub_leaver instances
             db.execute('UPDATE sub_leaver SET player_id = %s WHERE player_id = %s;', (new_discord_id, old_discord_id))
             # delete old player
-            db.execyte('DELETE FROM player WHERE player_id = %s;', (old_discord_id,))
+            db.execute('DELETE FROM player WHERE player_id = %s;', (old_discord_id,))
     except Exception as e:
         await send_raw_to_debug_channel('change discord account error', e)
         return
