@@ -618,7 +618,7 @@ async def c(
         if mogi_started_successfully:
             pass
             # Chooses a host. Says the start time
-        else:
+        else: # start_mogi returned 0
             channel = client.get_channel(ctx.channel.id)
             await channel.send(f'``Error 45:`` Failed to start mogi... {secretly.my_discord}')
             return
@@ -2658,6 +2658,7 @@ async def ztable(
     else:
         await ctx.respond('`Table Denied.`', delete_after=300)
 
+# /zchange_discord_account
 @client.slash_command(
     name='zchange_discord_account',
     description='Change a players discord account [Admin only] [Developer mode required]'
@@ -2850,6 +2851,7 @@ async def update_friend_code(ctx, message):
 
 # Takes a ctx, returns 0 if error, returns 1 if good, returns nothing if mogi cancelled
 async def start_mogi(ctx):
+    channel = client.get_channel(ctx.channel.id)
     removal_passed = await remove_players_from_other_tiers(ctx.channel.id)
     if removal_passed:
         pass
@@ -2863,7 +2865,6 @@ async def start_mogi(ctx):
         await send_to_debug_channel(ctx, f'start_mogi cannot start format vote {e}')
         await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
         return 0
-    channel = client.get_channel(ctx.channel.id)
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
