@@ -1070,6 +1070,7 @@ async def table(
                     temp = db.query('SELECT mmr FROM (SELECT p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY create_date ASC LIMIT 12) as m JOIN player p on p.player_id = m.player_id WHERE p.player_id = %s;', (ctx.channel.id, player[0]))
                     if temp[0][0] is None:
                         mmr = 0
+                        count += 1 # added this line 10/10/22 because placement players ppl are mad grrr i need my mmr
                     else:
                         mmr = temp[0][0]
                         count+=1
@@ -3066,7 +3067,7 @@ async def create_teams(ctx, poll_results):
             pass
         else:
             room_mmr = room_mmr + player_db[i][2]
-    random.shuffle(players_list) # [[popuko, 7238917831, 4000],[2p, 7u3891273812, 4500]]
+    random.shuffle(players_list) # [[popuko, 7238965417831, 4000],[name, discord id, mmr]]
     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
     response_string += f'   `Room MMR:` {math.ceil(room_mmr)}\n'
     # 6v6 /teams string
@@ -3081,8 +3082,9 @@ async def create_teams(ctx, poll_results):
             temp_mmr = 0
             count = 0
             for player in team:
-                if player[2] is None: # Account for placement ppls
-                    pass
+                if player[2] is None: # If mmr is null - Account for placement ppls
+                    count+=1
+                    #pass - commented out and added count+=1 10/10/22 because people mad about playing with placements even tho its 200 and its tier all lol
                 else:
                     temp_mmr = temp_mmr + player[2]
                     count += 1
