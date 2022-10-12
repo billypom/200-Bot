@@ -240,7 +240,7 @@ def inactivity_check():
                             db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
                         channel = client.get_channel(temp[i][2])
                         message = f'<@{temp[i][0]}> has been removed from the mogi due to inactivity'
-                        asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=30), client.loop)
+                        asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
                         continue
                 else:
                     continue
@@ -554,7 +554,7 @@ async def c(
     await ctx.defer(ephemeral=True)
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
         return
     else:
         pass
@@ -607,7 +607,7 @@ async def c(
             db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
             await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
             channel = client.get_channel(ctx.channel.id)
-            await channel.send(f'<@{ctx.author.id}> has joined the mogi!')
+            await channel.send(f'{ctx.author.display_name} has joined the mogi!')
             count+=1
     except Exception as e:
         await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secretly.my_discord}.')
@@ -640,7 +640,7 @@ async def d(
     await ctx.defer(ephemeral=True)
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
         return
     else:
         pass
@@ -867,7 +867,7 @@ async def name(
     await ctx.defer(ephemeral=True)
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
         return
     else:
         pass
@@ -1013,6 +1013,22 @@ async def table(
     if has_dupes:
         await ctx.respond('``Error 37:`` You cannot have duplicate players on a table')
         return
+    
+    # Check if all 12 players are SUPPOSED to be on the table (1st 12 players. You can't just ignore a player and put the 13th player in the mogi without using the /sub command)
+    for player in player_list_check:
+        try:
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT can_drop FROM lineups WHERE player_id = %s AND tier_id = %s ORDER BY create_date ASC LIMIT 12;', (player, ctx.channel.id))
+            if temp == 0:
+                pass
+            else:
+                await ctx.respond(f'``Error 52:`` Unexpected player in lineup. Is there a sub among us? Please use the `/sub` command.\n\nCreate a ticket or contact {secretly.my_discord} if you think this is a mistake.')
+                return
+        except Exception as e:
+            await ctx.respond(f'``Error 53:`` Oops! Something went wrong. | Unexpected player in lineup. Is there a sub among us? Please use the `/sub` command.\n\nCreate a ticket or contact {secretly.my_discord} if you think this is a mistake.')
+            await send_to_debug_channel(ctx, f'/table Error 53: {e}')
+            return
+
 
     # Check the mogi_format
     if mogi_format == 1:
@@ -1587,7 +1603,7 @@ async def mmr(ctx):
     await ctx.defer(ephemeral=True)
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
         return
     else:
         pass
@@ -1618,7 +1634,7 @@ async def twitch(
     await ctx.defer(ephemeral=True)
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
         return
     else:
         pass
@@ -2087,6 +2103,7 @@ async def zloungeless(
         await user.add_roles(LOUNGELESS_ROLE)
         await ctx.respond(f'Loungeless added to {player.mention}')
 
+# /zmmr_penalty
 @client.slash_command(
     name='zmmr_penalty',
     description='Give a player an MMR penalty, with no strike [Admin only]',
@@ -2117,6 +2134,7 @@ async def zmmr_penalty(
         await send_to_debug_channel(ctx, f'/zmmr_penalty error 38 {e}')
         await ctx.respond('`Error 38:` Could not apply penalty')
 
+# /zsendmsg
 @client.slash_command(
     name='zsendmsg',
     description='bot send message here',
@@ -2129,6 +2147,7 @@ async def zsendmsg(ctx):
     await channel.send('a')
     await ctx.respond('message sent')
 
+# /zreduce_loss
 @client.slash_command(
     name='zreduce_loss',
     description='Reduce the loss for 1 player in 1 mogi',
@@ -2185,7 +2204,7 @@ async def zreduce_loss(ctx,
     await ctx.respond(f'Loss was reduced for {player.mention}.\nChange: `{mmr_change}` -> `{adjusted_mmr_change}`\nMMR: `{mmr}` -> `{adjusted_mmr}`')
     return
 
-# /table
+# /ztable
 @client.slash_command(
     name='ztable',
     description='Submit a table [Admin only] ',
@@ -2251,6 +2270,21 @@ async def ztable(
     if has_dupes:
         await ctx.respond('``Error 37:`` You cannot have duplicate players on a table')
         return
+
+    # Check if all 12 players are SUPPOSED to be on the table (1st 12 players. You can't just ignore a player and put the 13th player in the mogi without using the /sub command)
+    # for player in player_list_check:
+    #     try:
+    #         with DBA.DBAccess() as db:
+    #             temp = db.query('SELECT can_drop FROM lineups WHERE player_id = %s AND tier_id = %s ORDER BY create_date ASC LIMIT 12;', (player, ctx.channel.id))
+    #         if temp == 0:
+    #             pass
+    #         else:
+    #             await ctx.respond(f'``Error 52:`` Unexpected player in lineup. Is there a sub among us? Please use the `/sub` command.\n\nCreate a ticket or contact {secretly.my_discord} if you think this is a mistake.')
+    #             return
+    #     except Exception as e:
+    #         await ctx.respond(f'``Error 53:`` Oops! Something went wrong. | Unexpected player in lineup. Is there a sub among us? Please use the `/sub` command.\n\nCreate a ticket or contact {secretly.my_discord} if you think this is a mistake.')
+    #         await send_to_debug_channel(ctx, f'/table Error 53: {e}')
+    #         return
 
     # Check the mogi_format
     if mogi_format == 1:
@@ -2717,8 +2751,6 @@ async def zchange_discord_account(
     await ctx.respond(f'Successfully moved player `{old_discord_id}` -> `{new_discord_id}`')
     return
 
-        
-    
 
 
 
