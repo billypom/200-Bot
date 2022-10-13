@@ -238,8 +238,10 @@ def inactivity_check():
                     # try:
                         with DBA.DBAccess() as db:
                             db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
+                        with DBA.DBAccess() as db:
+                            name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (temp[i][0],))
                         channel = client.get_channel(temp[i][2])
-                        message = f'<@{temp[i][0]}> has been removed from the mogi due to inactivity'
+                        message = f'{name[0][0]} has been removed from the mogi due to inactivity'
                         asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
                         continue
                 else:
