@@ -1021,11 +1021,12 @@ async def table(
         try:
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT can_drop FROM lineups WHERE player_id = %s AND tier_id = %s;', (player, ctx.channel.id))
-            if temp[0][0] == 0:
-                pass
-            else:
-                await ctx.respond(f'``Error 52:`` Unexpected player in lineup. Is there a sub among us? Please use the `/sub` command.\n\nCreate a ticket or contact {secretly.my_discord} if you think this is a mistake.')
-                return
+                await send_to_debug_channel(ctx, f'Error 53 detail: {temp}')
+                if temp[0][0] == 0:
+                    pass
+                else:
+                    await ctx.respond(f'``Error 52:`` Unexpected player in lineup. Is there a sub among us? Please use the `/sub` command.\n\nCreate a ticket or contact {secretly.my_discord} if you think this is a mistake.')
+                    return
         except Exception as e:
             await ctx.respond(f'``Error 53:`` Oops! Something went wrong. | Unexpected player in lineup. Is there a sub among us? Please use the `/sub` command.\n\nCreate a ticket or contact {secretly.my_discord} if you think this is a mistake.')
             await send_to_debug_channel(ctx, f'/table Error 53: {e}')
