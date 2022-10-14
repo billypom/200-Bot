@@ -1020,8 +1020,8 @@ async def table(
     for player in player_list_check:
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT can_drop FROM lineups WHERE player_id = %s AND tier_id = %s ORDER BY create_date ASC LIMIT 12;', (player, ctx.channel.id))
-            if temp == 0:
+                temp = db.query('SELECT can_drop FROM lineups WHERE player_id = %s AND tier_id = %s;', (player, ctx.channel.id))
+            if temp[0][0] == 0:
                 pass
             else:
                 await ctx.respond(f'``Error 52:`` Unexpected player in lineup. Is there a sub among us? Please use the `/sub` command.\n\nCreate a ticket or contact {secretly.my_discord} if you think this is a mistake.')
