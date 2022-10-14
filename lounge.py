@@ -1020,11 +1020,9 @@ async def table(
     
     # Check if all 12 players are SUPPOSED to be on the table (1st 12 players. You can't just ignore a player and put the 13th player in the mogi without using the /sub command)
     for player in player_id_list_check:
-        await send_to_debug_channel(ctx, f'Error 53 detail1: {player}')
         try:
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT can_drop FROM lineups WHERE player_id = %s AND tier_id = %s;', (player, ctx.channel.id))
-                await send_to_debug_channel(ctx, f'Error 53 detail2: {temp}')
                 if temp[0][0] == 0:
                     pass
                 else:
@@ -1032,7 +1030,7 @@ async def table(
                     return
         except Exception as e:
             await ctx.respond(f'``Error 53:`` Oops! Something went wrong. | Unexpected player in lineup. Is there a sub among us? Please use the `/sub` command.\n\nCreate a ticket or contact {secretly.my_discord} if you think this is a mistake.')
-            await send_to_debug_channel(ctx, f'/table Error 53: {e}')
+            await send_to_debug_channel(ctx, f'/table Error 53: temp: {temp}\ne: {e}')
             return
 
 
