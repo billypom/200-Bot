@@ -989,11 +989,13 @@ async def table(
 
     #print(f'score list: {score_list}')
     player_list_check = []
+    player_id_list_check = []
     for i in range(0, len(score_list), 2):
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (score_list[i],))
             player_list_check.append(score_list[i])
             score_list[i] = temp[0][0]
+            player_id_list_check.append(temp[0][0])
 
     # Check for if mogi has started
     try:
@@ -1017,7 +1019,7 @@ async def table(
         return
     
     # Check if all 12 players are SUPPOSED to be on the table (1st 12 players. You can't just ignore a player and put the 13th player in the mogi without using the /sub command)
-    for player in player_list_check:
+    for player in player_id_list_check:
         await send_to_debug_channel(ctx, f'Error 53 detail1: {player}')
         try:
             with DBA.DBAccess() as db:
