@@ -222,6 +222,7 @@ def inactivity_check():
             temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id, wait_for_activity FROM lineups WHERE can_drop = %s;', (1,))
             for i in range(len(temp)):
                 unix_difference = unix_now - temp[i][1]
+                print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
                 if unix_difference > 600: # if its been longer than 10 minutes
                     if unix_difference < 900: # if its not been 15 minutes (give 5 minutes to response)
                         channel = client.get_channel(temp[i][2])
