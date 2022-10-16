@@ -216,6 +216,7 @@ def update_mogilist():
         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('mogilist error', e), client.loop)
 
 def inactivity_check():
+    print('checking inactivity')
     unix_now = time.mktime(datetime.datetime.now().timetuple())
     try:
         with DBA.DBAccess() as db:
