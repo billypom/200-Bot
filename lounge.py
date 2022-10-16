@@ -216,14 +216,14 @@ def update_mogilist():
         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('mogilist error', e), client.loop)
 
 def inactivity_check():
-    print('checking inactivity')
+    # print('checking inactivity')
     unix_now = time.mktime(datetime.datetime.now().timetuple())
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id, wait_for_activity FROM lineups WHERE can_drop = %s;', (1,))
             for i in range(len(temp)):
                 unix_difference = unix_now - temp[i][1]
-                print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
+                # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
                 if unix_difference < 900: # if it has been less than 15 minutes
                     if unix_difference > 600: # if it has been more than 10 minutes
                         channel = client.get_channel(temp[i][2])
@@ -244,13 +244,13 @@ def inactivity_check():
                         asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
                         continue
                     except Exception as e:
-                        print(f'2 {e}')
+                        # print(f'2 {e}')
                         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity error? {temp[i][0]} | {temp[i][1]} | {temp[i][2]}',e), client.loop)
                         continue
                 else:
                     continue
     except Exception as e:
-        print(f'1 {e}')
+        # print(f'1 {e}')
         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('inactivity_check error', e), client.loop)
         return
 
