@@ -216,26 +216,23 @@ def update_mogilist():
         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('mogilist error', e), client.loop)
 
 def inactivity_check():
-    dtobject_now = datetime.datetime.now()
-    unix_now = time.mktime(dtobject_now.timetuple())
+    unix_now = time.mktime(datetime.datetime.now().timetuple())
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id, wait_for_activity FROM lineups WHERE can_drop = %s;', (1,))
             for i in range(len(temp)):
                 unix_difference = unix_now - temp[i][1]
-                if temp[i][3] == 0:
-                    if unix_difference > 600:
-                        if unix_difference < 900:
-                            channel = client.get_channel(temp[i][2])
-                            if temp[0][3] == 0:
-                                message = f'<@{temp[i][0]}> Type anything in the chat in the next 5 minutes to keep your spot in the mogi.'
-                                asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=300), client.loop)
-                                with DBA.DBAccess() as db:
-                                    db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0]))
-                            continue
-                elif unix_difference > 900:
-                    if temp[i][3] == 1:
-                    # try:
+                if unix_difference > 600: # if its been longer than 10 minutes
+                    if unix_difference < 900: # if its not been 15 minutes (give 5 minutes to response)
+                        channel = client.get_channel(temp[i][2])
+                        if temp[0][3] == 0: # false we are not waiting for activity
+                            message = f'<@{temp[i][0]}> Type anything in the chat in the next 5 minutes to keep your spot in the mogi.'
+                            asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=300), client.loop)
+                            with DBA.DBAccess() as db:
+                                db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0])) # we are waiting for activity
+                        continue
+                elif unix_difference > 1200: # if its been more than 20 minutes
+                    try:
                         with DBA.DBAccess() as db:
                             db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
                         with DBA.DBAccess() as db:
@@ -243,6 +240,9 @@ def inactivity_check():
                         channel = client.get_channel(temp[i][2])
                         message = f'{name[0][0]} has been removed from the mogi due to inactivity'
                         asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
+                        continue
+                    except Exception as e:
+                        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity error? {temp[i][0]} | {temp[i][1] |} | {temp[i][2]}',e), client.loop)
                         continue
                 else:
                     continue
