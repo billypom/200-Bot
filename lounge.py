@@ -224,8 +224,8 @@ def inactivity_check():
             for i in range(len(temp)):
                 unix_difference = unix_now - temp[i][1]
                 print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
-                if unix_difference > 600: # if its been longer than 10 minutes
-                    if unix_difference < 900: # if its not been 15 minutes (give 5 minutes to response)
+                if unix_difference < 900: # if it has been less than 15 minutes
+                    if unix_difference > 600: # if it has been more than 10 minutes
                         channel = client.get_channel(temp[i][2])
                         if temp[0][3] == 0: # false we are not waiting for activity
                             message = f'<@{temp[i][0]}> Type anything in the chat in the next 5 minutes to keep your spot in the mogi.'
