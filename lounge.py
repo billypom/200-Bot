@@ -242,7 +242,7 @@ def inactivity_check():
                         asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
                         continue
                     except Exception as e:
-                        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity error? {temp[i][0]} | {temp[i][1] |} | {temp[i][2]}',e), client.loop)
+                        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity error? {temp[i][0]} | {temp[i][1]} | {temp[i][2]}',e), client.loop)
                         continue
                 else:
                     continue
