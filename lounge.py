@@ -220,11 +220,12 @@ def inactivity_check():
     unix_now = time.mktime(datetime.datetime.now().timetuple())
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id, wait_for_activity FROM lineups WHERE can_drop = %s;', (1,))
+            temp = db.query('SELECT l.player_id, UNIX_TIMESTAMP(l.last_active), l.tier_id, l.wait_for_activity, p.player_name FROM lineups as l JOIN player as p ON l.player_id = p.player_id WHERE l.can_drop = %s;', (1,))
     except Exception as e:
         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 1 {secrely.my_discord}', e), client.loop)
         return
     for i in range(len(temp)):
+        name = temp[i][4]
         unix_difference = unix_now - temp[i][1]
         # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
         if unix_difference < 900: # if it has been less than 15 minutes
@@ -240,7 +241,7 @@ def inactivity_check():
                     except Exception as e:
                         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 2 {secrely.my_discord}', e), client.loop)
                         return
-            else:
+            else: # has not been at least 10 minutes yet
                 continue # does this make it faster? idk
         elif unix_difference > 1200: # if its been more than 20 minutes
             # Drop player
@@ -249,17 +250,10 @@ def inactivity_check():
                     db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
             except Exception as e:
                 asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'{secrely.my_discord} inactivity_check - cannot delete from lineup',f'{temp[i][0]} | {temp[i][1]} | {temp[i][2]} | {e}'), client.loop)
-                continue
-            # Get name of dropped player
-            try:
-                with DBA.DBAccess() as db:
-                    name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (temp[i][0],))
-            except Exception as e:
-                asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'{secrely.my_discord} inactivity_check - cannot get name of dropped player?',e), client.loop)
-                continue
+                return
             # Send message
             channel = client.get_channel(temp[i][2])
-            message = f'{name[0][0]} has been removed from the mogi due to inactivity'
+            message = f'{name} has been removed from the mogi due to inactivity'
             asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
         else:
             continue
@@ -626,17 +620,19 @@ async def c(
     if ctx.channel.id == 965286774098260029:
         await ctx.respond('Use !c to join squad queue')
         return
+    # Add player to lineup
     try:
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
-            await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
-            channel = client.get_channel(ctx.channel.id)
-            await channel.send(f'{ctx.author.display_name} has joined the mogi!')
-            count+=1
     except Exception as e:
         await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secretly.my_discord}.')
         await send_to_debug_channel(ctx, f'/c error 16 unable to join {e}')
         return
+    await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
+    channel = client.get_channel(ctx.channel.id)
+    await channel.send(f'{ctx.author.display_name} has joined the mogi!')
+    count+=1
+    # Check for full lineup
     if count == MAX_PLAYERS_IN_MOGI:
         # start the mogi, vote on format, create teams
         mogi_started_successfully = await start_mogi(ctx)
