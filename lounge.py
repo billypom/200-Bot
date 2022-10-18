@@ -221,38 +221,48 @@ def inactivity_check():
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id, UNIX_TIMESTAMP(last_active), tier_id, wait_for_activity FROM lineups WHERE can_drop = %s;', (1,))
-            for i in range(len(temp)):
-                unix_difference = unix_now - temp[i][1]
-                # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
-                if unix_difference < 900: # if it has been less than 15 minutes
-                    if unix_difference > 600: # if it has been more than 10 minutes
-                        channel = client.get_channel(temp[i][2])
-                        if temp[i][3] == 0: # false we are not waiting for activity
-                            message = f'<@{temp[i][0]}> Type anything in the chat in the next 5 minutes to keep your spot in the mogi.'
-                            asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=300), client.loop)
-                            with DBA.DBAccess() as db:
-                                db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0])) # we are waiting for activity
-                        continue
-                elif unix_difference > 1200: # if its been more than 20 minutes
+    except Exception as e:
+        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 1 {secrely.my_discord}', e), client.loop)
+        return
+    for i in range(len(temp)):
+        unix_difference = unix_now - temp[i][1]
+        # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
+        if unix_difference < 900: # if it has been less than 15 minutes
+            if unix_difference > 600: # if it has been more than 10 minutes
+                channel = client.get_channel(temp[i][2])
+                if temp[i][3] == 0: # false we are not waiting for activity
+                    message = f'<@{temp[i][0]}> Type anything in the chat in the next 5 minutes to keep your spot in the mogi.'
+                    asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=300), client.loop)
+                    # set wait_for_activity = 1 means the ping was already sent.
                     try:
                         with DBA.DBAccess() as db:
-                            db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
-                        with DBA.DBAccess() as db:
-                            name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (temp[i][0],))
-                        channel = client.get_channel(temp[i][2])
-                        message = f'{name[0][0]} has been removed from the mogi due to inactivity'
-                        asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
-                        continue
+                            db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0])) # we are waiting for activity
                     except Exception as e:
-                        # print(f'2 {e}')
-                        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity error? {temp[i][0]} | {temp[i][1]} | {temp[i][2]}',e), client.loop)
-                        continue
-                else:
-                    continue
-    except Exception as e:
-        # print(f'1 {e}')
-        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('inactivity_check error', e), client.loop)
-        return
+                        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 2 {secrely.my_discord}', e), client.loop)
+                        return
+            else:
+                continue # does this make it faster? idk
+        elif unix_difference > 1200: # if its been more than 20 minutes
+            # Drop player
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
+            except Exception as e:
+                asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'{secrely.my_discord} inactivity_check - cannot delete from lineup',f'{temp[i][0]} | {temp[i][1]} | {temp[i][2]} | {e}'), client.loop)
+                continue
+            # Get name of dropped player
+            try:
+                with DBA.DBAccess() as db:
+                    name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (temp[i][0],))
+            except Exception as e:
+                asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'{secrely.my_discord} inactivity_check - cannot get name of dropped player?',e), client.loop)
+                continue
+            # Send message
+            channel = client.get_channel(temp[i][2])
+            message = f'{name[0][0]} has been removed from the mogi due to inactivity'
+            asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
+        else:
+            continue
 
 def lounge_threads():
     time.sleep(30)
@@ -330,17 +340,25 @@ async def on_message(ctx):
         try:
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_id, tier_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
-                if temp[0][0] is None:
+        except Exception as e:
+            await send_to_debug_channel(ctx, f'on_message error 1 | {e}')
+            return
+        if temp[0][0] is None:
+            return
+        else:
+            if ctx.channel.id == temp[0][1]: # Type activity in correct channel
+                try:
+                    with DBA.DBAccess() as db:
+                        db.execute('UPDATE lineups SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
+                except Exception as e:
+                    await send_to_debug_channel(ctx, f'on_message error 2 | {e}')
                     return
-                else:
-                    if ctx.channel.id == temp[0][1]: # Type activity in correct channel
-                        with DBA.DBAccess() as db:
-                            db.execute('UPDATE lineups SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
-        except Exception:
-            pass
+        try:
+            with DBA.DBAccess() as db:
+                get_tier = db.query('SELECT voting, tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+        except Exception as e:
+            await send_to_debug_channel(ctx, f'on_message error 3 | {e}')
         # Set votes, if tier is currently voting
-        with DBA.DBAccess() as db:
-            get_tier = db.query('SELECT voting, tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
         if get_tier[0][0]:
             if get_tier[0][1] == ctx.channel.id:
                 if str(ctx.content) in ['1', '2', '3', '4', '6']:
@@ -348,13 +366,13 @@ async def on_message(ctx):
                         with DBA.DBAccess() as db:
                             temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s ORDER BY create_date LIMIT %s;', (ctx.author.id, ctx.channel.id, MAX_PLAYERS_IN_MOGI)) # limit prevents 13th person from voting
                     except Exception as e:
-                        await send_to_debug_channel(ctx, f'on message error 1 {e}')
+                        await send_to_debug_channel(ctx, f'on_message error 4 {e}')
                         return
                     try:
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content), ctx.author.id))
                     except Exception as e:
-                        await send_to_debug_channel(ctx, f'on message error 2 {e}')
+                        await send_to_debug_channel(ctx, f'on_message error 5 {e}')
                         return
 
 @client.event
@@ -620,15 +638,19 @@ async def c(
         await send_to_debug_channel(ctx, f'/c error 16 unable to join {e}')
         return
     if count == MAX_PLAYERS_IN_MOGI:
+        # start the mogi, vote on format, create teams
         mogi_started_successfully = await start_mogi(ctx)
-        if mogi_started_successfully:
+        if mogi_started_successfully == 1:
             pass
             # Chooses a host. Says the start time
-        else: # start_mogi returned 0
+        elif mogi_started_successfully == 0:
             channel = client.get_channel(ctx.channel.id)
-            await channel.send(f'``Error 45:`` Failed to start mogi... {secretly.my_discord}')
+            await channel.send(f'``Error 45:`` Failed to start mogi. {secretly.my_discord}!!!!!!!!!!!!')
             return
-        # start the mogi, vote on format, create teams
+        elif mogi_started_successfully == 2:
+            channel = client.get_channel(ctx.channel.id)
+            await channel.send(f'``Error 54:`` Failed to start mogi. {secretly.my_discord}!!!!!!!!!!!!!!')
+            return
     elif count == 6 or count == 11:
         channel = client.get_channel(ctx.channel.id)
         await channel.send(f'@here +{12-count}')
@@ -2899,6 +2921,7 @@ async def start_mogi(ctx):
     else:
         await send_to_debug_channel(ctx, 'Failed to remove all players from other lineups...')
         return 0
+    # Set the tier to the voting state
     try:
         with DBA.DBAccess() as db:
             db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
@@ -2906,13 +2929,21 @@ async def start_mogi(ctx):
         await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 1 |  {e}')
         await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
         return 0
+    # Get the first 12 players
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-            db.execute('UPDATE lineups SET can_drop = 0 WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     except Exception as e:
         await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 2 | {e}')
         await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
+        return 0
+    # Set 12 players' state to "cannot drop"
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE lineups SET can_drop = 0 WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+    except Exception as e:
+        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 3 | {e}')
+        await channel.send(f'`Error 55:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
         return 0
     response = ''
     for i in range(len(temp)):
@@ -2936,7 +2967,7 @@ async def start_mogi(ctx):
         # Cancel Mogi
         await channel.send('No votes. Mogi will be cancelled.')
         await cancel_mogi(ctx)
-        return
+        return 2
         
     teams_results = await create_teams(ctx, poll_results)
 
@@ -2971,7 +3002,7 @@ async def start_mogi(ctx):
     {teams_results}
     '''
     await channel.send(poll_results_response)
-    return True
+    return 1
 
 # When the voting starts - constantly check for player input
 async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
