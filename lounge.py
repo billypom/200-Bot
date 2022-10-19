@@ -42,6 +42,10 @@ PLACEMENT_ROLE_ID = 846497627508047872
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
+
+initial_extensions = ['cogs.inactivity_check', 'cogs.update_mogilist']
+for extension in initial_extensions:
+    client.load_extension(extension)
 # manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
 # send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
 
@@ -86,23 +90,6 @@ class Confirm(View):
         await interaction.response.send_message("Denying...", ephemeral=True)
         self.value = False
         self.stop()
-
-class MyCog(commands.Cog):
-    def __init__(self, client):
-        self.index = 0
-        self.printer.start()
-        self.client = client
-
-    def cog_unload(self):
-        self.printer.cancel()
-
-    @tasks.loop(seconds=5)
-    async def printer(self):
-        print(self.index)
-        self.index +=1
-
-def setup(client):
-    client.add_cog(MyCog(client))
 
 # Not async because of concurrent futures
 def get_live_streamers(temp):
@@ -3662,7 +3649,5 @@ async def neg_mmr_wrapper(input):
 async def peak_mmr_wrapper(input):
     # return (f'[0;2m[0;41m[0;37m{input}[0m[0;41m[0m[0m')
     return (f'<span foreground="Yellow1"><i>{input}</i></span>')
-
-# client.add_cog(MyCog)
 
 client.run(secretly.token)
