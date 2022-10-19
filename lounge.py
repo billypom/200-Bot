@@ -88,9 +88,10 @@ class Confirm(View):
         self.stop()
 
 class MyCog(commands.Cog):
-    def __init__(self):
+    def __init__(self, client):
         self.index = 0
         self.printer.start()
+        self.client = client
 
     def cog_unload(self):
         self.printer.cancel()
@@ -99,6 +100,9 @@ class MyCog(commands.Cog):
     async def printer(self):
         print(self.index)
         self.index +=1
+
+def setup(client):
+    client.add_cog(MyCog(client))
 
 # Not async because of concurrent futures
 def get_live_streamers(temp):
