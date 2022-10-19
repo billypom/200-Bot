@@ -3,7 +3,7 @@ import secretly
 import plotting
 import discord
 from discord.ui import Button, View
-from discord.ext import commands
+from discord.ext import commands, tasks
 import vlog_msg
 import math
 import threading
@@ -87,7 +87,18 @@ class Confirm(View):
         self.value = False
         self.stop()
 
+class MyCog(commands.Cog):
+    def __init__(self):
+        self.index = 0
+        self.printer.start()
 
+    def cog_unload(self):
+        self.printer.cancel()
+
+    @tasks.loop(seconds=5)
+    async def printer(self):
+        print(self.index)
+        self.index +=1
 
 # Not async because of concurrent futures
 def get_live_streamers(temp):
@@ -1620,6 +1631,7 @@ async def stats(
     await ctx.respond(file=f, embed=embed)
     return
 
+# /mmr
 @client.slash_command(
     name='mmr',
     description='Your mmr',
