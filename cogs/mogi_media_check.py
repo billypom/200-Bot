@@ -68,6 +68,7 @@ class mogi_media_check(commands.Cog):
 
     @tasks.loop(seconds=5)
     async def check(self):
+        print('checking mogi media...')
         try:
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT p.twitch_link, p.mogi_media_message_id, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
@@ -78,6 +79,7 @@ class mogi_media_check(commands.Cog):
         #     future = executor.submit(get_live_streamers, temp)
         #     streams = future.result()
         streams = await self.get_live_streamers()
+        print(streams)
 
         # print(f'future.result from thread executor: {streams}')
         for stream in streams:
@@ -114,7 +116,7 @@ class mogi_media_check(commands.Cog):
 
     @check.before_loop
     async def before_check(self):
-        print('check waiting...')
+        print('mogi media waiting...')
         global GUILD
         GUILD = self.client.get_guild(Lounge[0])
         await self.client.wait_until_ready()
