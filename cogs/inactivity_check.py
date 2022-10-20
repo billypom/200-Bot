@@ -18,13 +18,20 @@ class inactivity_check(commands.Cog):
     #     print(self.index)
     #     self.index +=1
 
+    async def send_raw_to_debug_channel(self, anything, error):
+        channel = self.client.get_channel(secretly.debug_channel)
+        embed = discord.Embed(title='Error', description='>.<', color = discord.Color.yellow())
+        embed.add_field(name='anything: ', value=anything, inline=False)
+        embed.add_field(name='Error: ', value=str(error), inline=False)
+        await channel.send(content=None, embed=embed)
+
     def cog_unload(self):
         self.check.cancel()
     
     @tasks.loop(seconds=5)
     async def check(self):
         print('checking inactivity')
-        await send_raw_to_debug_channel(f'`:` Checking inactivity...', 'Test')
+        await self.send_raw_to_debug_channel(f'`:` Checking inactivity...', 'Test')
         unix_now = time.mktime(datetime.datetime.now().timetuple())
         try:
             with DBA.DBAccess() as db:
