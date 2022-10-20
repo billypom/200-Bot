@@ -26,6 +26,7 @@ class update_mogilist(commands.Cog):
     @tasks.loop(seconds=5)
     async def update(self):
         print('updating mogilist...')
+        unix_now = time.mktime(datetime.datetime.now().timetuple())
         try:
             MOGILIST = {}
             pre_ml_string = ''
