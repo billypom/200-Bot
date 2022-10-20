@@ -52,8 +52,10 @@ class update_mogilist(commands.Cog):
             mllu_string = f'{title}{pre_mllu_string}'
 
             ml = self.client.get_channel(secretly.mogilist_channel)
+            print(f'ml: {type(ml)} | {ml}')
             # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
             ml_message = await ml.fetch_message(ml_channel_message_id)
+            print(f'ml_message: {type(ml_message)} | {ml_message}')
             await ml_message.result().edit(content=f'{ml_string}')
 
             mllu = self.client.get_channel(secretly.mogilist_lu_channel)
