@@ -12,7 +12,7 @@ Lounge = [461383953937596416]
 
 class mogi_media_check(commands.Cog):
     def __init__(self, client):
-        self.check.start()
+        self.mogi_media.start()
         self.client = client
 
     async def send_raw_to_debug_channel(self, anything, error):
@@ -23,7 +23,7 @@ class mogi_media_check(commands.Cog):
         await channel.send(content=None, embed=embed)
 
     def cog_unload(self):
-        self.check.cancel()
+        self.mogi_media.cancel()
     
     async def get_live_streamers(self, temp):
         list_of_streams = []
@@ -67,7 +67,7 @@ class mogi_media_check(commands.Cog):
         return list_of_streams
 
     @tasks.loop(seconds=5)
-    async def check(self):
+    async def mogi_media(self):
         print('checking mogi media...')
         try:
             with DBA.DBAccess() as db:
@@ -102,7 +102,7 @@ class mogi_media_check(commands.Cog):
                         member_future = await GUILD.fetch_member(stream[5])
                         member = member_future.result()               
                         channel = self.client.get_channel(mogi_media_channel_id)
-                        message = await channel.fetch_message(stream[4]), client.loop)
+                        message = await channel.fetch_message(stream[4])
                         # message = temp_message.result()
                         await message.delete()
                         with DBA.DBAccess() as db:
@@ -110,12 +110,13 @@ class mogi_media_check(commands.Cog):
             except Exception as e:
                 continue
 
-    @check.before_loop
-    async def before_check(self):
+    @mogi_media.before_loop
+    async def before_mogi_media(self):
         print('mogi media waiting...')
         await self.client.wait_until_ready()
         global GUILD
         GUILD = self.client.get_guild(Lounge[0])
-        
+
+
 def setup(client):
     client.add_cog(mogi_media_check(client))
