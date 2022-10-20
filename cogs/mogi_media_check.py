@@ -66,7 +66,7 @@ class mogi_media_check(commands.Cog):
             # name, title, image, is_live, db_mogimediamessageid, db_player_id
         return list_of_streams
 
-    @tasks.loop(seconds=5)
+    @tasks.loop(seconds=30)
     async def mogi_media(self):
         print('checking mogi media...')
         try:
