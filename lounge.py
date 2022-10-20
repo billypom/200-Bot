@@ -263,10 +263,10 @@ def inactivity_check():
 def lounge_threads():
     time.sleep(30)
     while(True):
-        update_mogilist()
-        inactivity_check()
-        mogi_media_check()
-        time.sleep(15)
+        # update_mogilist()
+        # inactivity_check()
+        # mogi_media_check()
+        # time.sleep(15)
 
 
 poll_thread = threading.Thread(target=lounge_threads)
