@@ -18,6 +18,7 @@ class inactivity_check(commands.Cog):
     @tasks.loop(seconds=15)
     async def inactivity_check(self):
         print('checking inactivity')
+        await send_raw_to_debug_channel(f'`:` Checking inactivity...', 'Test')
         unix_now = time.mktime(datetime.datetime.now().timetuple())
         try:
             with DBA.DBAccess() as db:
