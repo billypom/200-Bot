@@ -12,7 +12,7 @@ class update_mogilist(commands.Cog):
 
     @tasks.loop(seconds=5)
     async def printer(self):
-        print(self.index)
+        print(f'{self.index} mogilist')
         self.index +=1
 
 def setup(client):
