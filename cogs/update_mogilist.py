@@ -60,11 +60,11 @@ class update_mogilist(commands.Cog):
             # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
             ml_message = await ml.fetch_message(ml_channel_message_id)
             # print(f'ml_message: {type(ml_message)} | {ml_message}')
-            await ml_message.edit(content=f'{ml_string}\n<t:{unix_now}:F>')
+            await ml_message.edit(content=f'{ml_string}\n<t:{int(unix_now)}:F>')
 
             mllu = self.client.get_channel(secretly.mogilist_lu_channel)
             mllu_message = await mllu.fetch_message(ml_lu_channel_message_id)
-            await mllu_message.edit(content=f'{mllu_string}\n<t:{unix_now}:F>')
+            await mllu_message.edit(content=f'{mllu_string}\n<t:{int(unix_now)}:F>')
         except Exception as e:
             print(e)
             await self.send_raw_to_debug_channel('mogilist error', e)
