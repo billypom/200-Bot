@@ -142,46 +142,46 @@ class Confirm(View):
 #     return list_of_streams
 
 # def mogi_media_check():
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT p.twitch_link, p.mogi_media_message_id, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
-    except Exception:
-        return
+    # try:
+    #     with DBA.DBAccess() as db:
+    #         temp = db.query('SELECT p.twitch_link, p.mogi_media_message_id, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
+    # except Exception:
+    #     return
 
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        future = executor.submit(get_live_streamers, temp)
-        streams = future.result()
-    # print(f'future.result from thread executor: {streams}')
-    for stream in streams:
-        try:
-            # If live
-            if stream[3]:
-                # If no mogi media sent yet
-                if stream[4] is None:
-                    member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
-                    member = member_future.result()
-                    embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
-                    embed.add_field(name='Link', value=f'https://twitch.tv/{stream[0]}', inline=False)
-                    embed.set_image(url=stream[2])
-                    embed.set_thumbnail(url=member.display_avatar)
-                    mogi_media = client.get_channel(mogi_media_channel_id)
-                    temp_val = asyncio.run_coroutine_threadsafe(mogi_media.send(embed=embed), client.loop)
-                    mogi_media_message = temp_val.result()
-                    with DBA.DBAccess() as db:
-                        db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
-            # If not live
-            else:
-                if stream[4] > 0: 
-                    member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
-                    member = member_future.result()               
-                    channel = client.get_channel(mogi_media_channel_id)
-                    temp_message = asyncio.run_coroutine_threadsafe(channel.fetch_message(stream[4]), client.loop)
-                    message = temp_message.result()
-                    asyncio.run_coroutine_threadsafe(message.delete(), client.loop)
-                    with DBA.DBAccess() as db:
-                        db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (member.id,))
-        except Exception as e:
-            continue
+    # with concurrent.futures.ThreadPoolExecutor() as executor:
+    #     future = executor.submit(get_live_streamers, temp)
+    #     streams = future.result()
+    # # print(f'future.result from thread executor: {streams}')
+    # for stream in streams:
+    #     try:
+    #         # If live
+    #         if stream[3]:
+    #             # If no mogi media sent yet
+    #             if stream[4] is None:
+    #                 member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
+    #                 member = member_future.result()
+    #                 embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
+    #                 embed.add_field(name='Link', value=f'https://twitch.tv/{stream[0]}', inline=False)
+    #                 embed.set_image(url=stream[2])
+    #                 embed.set_thumbnail(url=member.display_avatar)
+    #                 mogi_media = client.get_channel(mogi_media_channel_id)
+    #                 temp_val = asyncio.run_coroutine_threadsafe(mogi_media.send(embed=embed), client.loop)
+    #                 mogi_media_message = temp_val.result()
+    #                 with DBA.DBAccess() as db:
+    #                     db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
+    #         # If not live
+    #         else:
+    #             if stream[4] > 0: 
+    #                 member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
+    #                 member = member_future.result()               
+    #                 channel = client.get_channel(mogi_media_channel_id)
+    #                 temp_message = asyncio.run_coroutine_threadsafe(channel.fetch_message(stream[4]), client.loop)
+    #                 message = temp_message.result()
+    #                 asyncio.run_coroutine_threadsafe(message.delete(), client.loop)
+    #                 with DBA.DBAccess() as db:
+    #                     db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (member.id,))
+    #     except Exception as e:
+    #         continue
 
 # def update_mogilist():
 #     try:
