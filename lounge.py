@@ -45,9 +45,9 @@ client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge'))
 # manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
 # send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
 
-# initial_extensions = ['cogs.inactivity_check', 'cogs.update_mogilist']
-# for extension in initial_extensions:
-#     client.load_extension(extension)
+initial_extensions = ['cogs.inactivity_check', 'cogs.update_mogilist']
+for extension in initial_extensions:
+    client.load_extension(extension)
 
 
 # Initialize the TIER_ID_LIST
