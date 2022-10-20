@@ -78,7 +78,7 @@ class mogi_media_check(commands.Cog):
         # with concurrent.futures.ThreadPoolExecutor() as executor:
         #     future = executor.submit(get_live_streamers, temp)
         #     streams = future.result()
-        streams = await self.get_live_streamers()
+        streams = await self.get_live_streamers(temp)
         print(streams)
 
         # print(f'future.result from thread executor: {streams}')
