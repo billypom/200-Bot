@@ -73,6 +73,11 @@ class inactivity_check(commands.Cog):
                 await channel.send(message)
             else:
                 continue
+    
+    @check.before_loop
+    async def before_check(self):
+        print('waiting...')
+        await self.client.wait_until_ready()
 
 def setup(client):
     client.add_cog(inactivity_check(client))
