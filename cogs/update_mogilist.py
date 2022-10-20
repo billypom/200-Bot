@@ -63,7 +63,7 @@ class update_mogilist(commands.Cog):
 
             mllu = self.client.get_channel(secretly.mogilist_lu_channel)
             mllu_message = await mllu.fetch_message(ml_lu_channel_message_id)
-            await mllu_message.result().edit(content=f'{mllu_string}')
+            await mllu_message.edit(content=f'{mllu_string}')
         except Exception as e:
             print(e)
             await self.send_raw_to_debug_channel('mogilist error', e)
