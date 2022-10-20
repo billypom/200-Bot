@@ -4,6 +4,7 @@ import time
 import datetime
 import DBA
 import secretly
+import requests
 
 ml_channel_message_id = 1010644370954924052
 ml_lu_channel_message_id = 1010644338499403937
@@ -24,7 +25,7 @@ class mogi_media_check(commands.Cog):
     def cog_unload(self):
         self.check.cancel()
     
-    def get_live_streamers(temp):
+    async def get_live_streamers(self, temp):
         list_of_streams = []
         for i in range(0, len(temp)):
             streamer_name = temp[i][0]
@@ -73,9 +74,11 @@ class mogi_media_check(commands.Cog):
         except Exception:
             return
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future = executor.submit(get_live_streamers, temp)
-            streams = future.result()
+        # with concurrent.futures.ThreadPoolExecutor() as executor:
+        #     future = executor.submit(get_live_streamers, temp)
+        #     streams = future.result()
+        streams = await self.get_live_streamers()
+
         # print(f'future.result from thread executor: {streams}')
         for stream in streams:
             try:
@@ -83,26 +86,27 @@ class mogi_media_check(commands.Cog):
                 if stream[3]:
                     # If no mogi media sent yet
                     if stream[4] is None:
-                        member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
-                        member = member_future.result()
+                        # member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
+                        # member = member_future.result()
+                        member = await GUILD.fetch_member(stream[5])
                         embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
                         embed.add_field(name='Link', value=f'https://twitch.tv/{stream[0]}', inline=False)
                         embed.set_image(url=stream[2])
                         embed.set_thumbnail(url=member.display_avatar)
-                        mogi_media = client.get_channel(mogi_media_channel_id)
-                        temp_val = asyncio.run_coroutine_threadsafe(mogi_media.send(embed=embed), client.loop)
-                        mogi_media_message = temp_val.result()
+                        mogi_media = self.client.get_channel(mogi_media_channel_id)
+                        mogi_media_message = await mogi_media.send(embed=embed)
+                        # mogi_media_message = temp_val.result()
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
                 # If not live
                 else:
                     if stream[4] > 0: 
-                        member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
+                        member_future = await GUILD.fetch_member(stream[5])
                         member = member_future.result()               
-                        channel = client.get_channel(mogi_media_channel_id)
-                        temp_message = asyncio.run_coroutine_threadsafe(channel.fetch_message(stream[4]), client.loop)
-                        message = temp_message.result()
-                        asyncio.run_coroutine_threadsafe(message.delete(), client.loop)
+                        channel = self.client.get_channel(mogi_media_channel_id)
+                        message = await channel.fetch_message(stream[4]), client.loop)
+                        # message = temp_message.result()
+                        await message.delete()
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (member.id,))
             except Exception as e:
