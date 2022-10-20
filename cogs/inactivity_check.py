@@ -66,7 +66,7 @@ class inactivity_check(commands.Cog):
     
     @check.before_loop
     async def before_check(self):
-        print('waiting...')
+        print('check waiting...')
         await self.client.wait_until_ready()
 
 def setup(client):

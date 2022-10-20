@@ -7,7 +7,7 @@ import secretly
 
 class update_mogilist(commands.Cog):
     def __init__(self, client):
-        self.check.start()
+        self.update.start()
         self.client = client
 
     async def send_raw_to_debug_channel(self, anything, error):
@@ -18,10 +18,10 @@ class update_mogilist(commands.Cog):
         await channel.send(content=None, embed=embed)
 
     def cog_unload(self):
-        self.check.cancel()
+        self.update.cancel()
 
     @tasks.loop(seconds=5):
-    async def check(self):
+    async def update(self):
         print('updating mogilist...')
         try:
             MOGILIST = {}
@@ -63,9 +63,9 @@ class update_mogilist(commands.Cog):
             print(e)
             await self.send_raw_to_debug_channel('mogilist error', e)
     
-    @check.before_loop
-    async def before_check(self):
-        print('mogilist waiting...')
+    @update.before_loop
+    async def before_update(self):
+        print('update waiting...')
         await self.client.wait_until_ready()
 
 def setup(client):
