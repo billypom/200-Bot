@@ -84,8 +84,6 @@ class mogi_media_check(commands.Cog):
                 if stream[3]:
                     # If no mogi media sent yet
                     if stream[4] is None:
-                        # member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
-                        # member = member_future.result()
                         member = await GUILD.fetch_member(stream[5])
                         embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
                         embed.add_field(name='Link', value=f'https://twitch.tv/{stream[0]}', inline=False)
@@ -93,7 +91,6 @@ class mogi_media_check(commands.Cog):
                         embed.set_thumbnail(url=member.display_avatar)
                         mogi_media = self.client.get_channel(mogi_media_channel_id)
                         mogi_media_message = await mogi_media.send(embed=embed)
-                        # mogi_media_message = temp_val.result()
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
                 # If not live
@@ -103,7 +100,6 @@ class mogi_media_check(commands.Cog):
                         member = member_future.result()               
                         channel = self.client.get_channel(mogi_media_channel_id)
                         message = await channel.fetch_message(stream[4])
-                        # message = temp_message.result()
                         await message.delete()
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (member.id,))
@@ -116,7 +112,6 @@ class mogi_media_check(commands.Cog):
         await self.client.wait_until_ready()
         global GUILD
         GUILD = self.client.get_guild(Lounge[0])
-
 
 def setup(client):
     client.add_cog(mogi_media_check(client))
