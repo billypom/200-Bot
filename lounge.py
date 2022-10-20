@@ -24,8 +24,6 @@ import pykakasi
 from korean_romanizer.romanizer import Romanizer
 
 Lounge = [461383953937596416]
-ml_channel_message_id = 1010644370954924052
-ml_lu_channel_message_id = 1010644338499403937
 mogi_media_channel_id = 1005091507604312074
 # mogi_media_message_id = 1005205285817831455
 TIER_ID_LIST = list()
@@ -91,51 +89,59 @@ class Confirm(View):
         self.value = False
         self.stop()
 
-# Not async because of concurrent futures
-def get_live_streamers(temp):
-    list_of_streams = []
-    for i in range(0, len(temp)):
-        streamer_name = temp[i][0]
-        if streamer_name is None:
-            continue
-        else:
-            streamer_name = str(streamer_name).strip().lower()
-        body = {
-            'client_id': secretly.twitch_client_id,
-            'client_secret': secretly.twitch_client_secret,
-            "grant_type": 'client_credentials'
-        }
-        r = requests.post('https://id.twitch.tv/oauth2/token', body)
-        #data output
-        keys = r.json()
-        #print(keys)
-        headers = {
-            'Client-ID': secretly.twitch_client_id,
-            'Authorization': 'Bearer ' + keys['access_token']
-        }
-        #print(headers)
-        stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
-        stream_data = stream.json()
-        try:
-            if len(stream_data['data']) == 1:
-                is_live = True
-                streamer_name = stream_data['data'][0]['user_name']
-                stream_title = stream_data['data'][0]['title']
-                stream_thumbnail_url = stream_data['data'][0]['thumbnail_url']
-                list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
-            else:
-                is_live = False
-                stream_title = ""
-                stream_thumbnail_url = ""
-                list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
-        except Exception as e:
-            continue
 
-        # name, title, image, is_live, db_mogimediamessageid, db_player_id
+
+# OLD MULTITHREAD CODE
+# "threading in python is a bit of a lie, python has a global interpreter lock which means that even if you have multiple threads running, 
+# it can only run one thread at a time so if you have two threads running, then python in the background just switches between them"
+# - Vike 10/19/2022
+# "i delet multi thred"
+# - me
+# # Not async because of concurrent futures
+# def get_live_streamers(temp):
+#     list_of_streams = []
+#     for i in range(0, len(temp)):
+#         streamer_name = temp[i][0]
+#         if streamer_name is None:
+#             continue
+#         else:
+#             streamer_name = str(streamer_name).strip().lower()
+#         body = {
+#             'client_id': secretly.twitch_client_id,
+#             'client_secret': secretly.twitch_client_secret,
+#             "grant_type": 'client_credentials'
+#         }
+#         r = requests.post('https://id.twitch.tv/oauth2/token', body)
+#         #data output
+#         keys = r.json()
+#         #print(keys)
+#         headers = {
+#             'Client-ID': secretly.twitch_client_id,
+#             'Authorization': 'Bearer ' + keys['access_token']
+#         }
+#         #print(headers)
+#         stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
+#         stream_data = stream.json()
+#         try:
+#             if len(stream_data['data']) == 1:
+#                 is_live = True
+#                 streamer_name = stream_data['data'][0]['user_name']
+#                 stream_title = stream_data['data'][0]['title']
+#                 stream_thumbnail_url = stream_data['data'][0]['thumbnail_url']
+#                 list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
+#             else:
+#                 is_live = False
+#                 stream_title = ""
+#                 stream_thumbnail_url = ""
+#                 list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
+#         except Exception as e:
+#             continue
+
+#         # name, title, image, is_live, db_mogimediamessageid, db_player_id
         
-    return list_of_streams
+#     return list_of_streams
 
-def mogi_media_check():
+# def mogi_media_check():
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT p.twitch_link, p.mogi_media_message_id, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
@@ -177,101 +183,101 @@ def mogi_media_check():
         except Exception as e:
             continue
 
-def update_mogilist():
-    try:
-        MOGILIST = {}
-        pre_ml_string = ''
-        pre_mllu_string = ''
-        remove_chars = {
-            39:None, # ,
-            91:None, # [
-            93:None, # ]
-        }
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT t.tier_id, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
-        for i in range(len(temp)): # create dictionary {tier_id:[list of players in tier]}
-            if temp[i][0] in MOGILIST:
-                MOGILIST[temp[i][0]].append(temp[i][1])
-            else:
-                MOGILIST[temp[i][0]]=[temp[i][1]]
-        num_active_mogis = len(MOGILIST.keys())
-        num_full_mogis = 0
-        for k,v in MOGILIST.items():
-            pre_ml_string += f'<#{k}> - ({len(v)}/12)\n'
-            if len(v) >= 12:
-                num_full_mogis +=1
-            mllu_players = str(v).translate(remove_chars)
-            pre_mllu_string += f'<#{k}> - ({len(v)}/12) - {mllu_players}\n'
-        title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n\n'
-        ml_string = f'{title}{pre_ml_string}'
-        mllu_string = f'{title}{pre_mllu_string}'
+# def update_mogilist():
+#     try:
+#         MOGILIST = {}
+#         pre_ml_string = ''
+#         pre_mllu_string = ''
+#         remove_chars = {
+#             39:None, # ,
+#             91:None, # [
+#             93:None, # ]
+#         }
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT t.tier_id, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
+#         for i in range(len(temp)): # create dictionary {tier_id:[list of players in tier]}
+#             if temp[i][0] in MOGILIST:
+#                 MOGILIST[temp[i][0]].append(temp[i][1])
+#             else:
+#                 MOGILIST[temp[i][0]]=[temp[i][1]]
+#         num_active_mogis = len(MOGILIST.keys())
+#         num_full_mogis = 0
+#         for k,v in MOGILIST.items():
+#             pre_ml_string += f'<#{k}> - ({len(v)}/12)\n'
+#             if len(v) >= 12:
+#                 num_full_mogis +=1
+#             mllu_players = str(v).translate(remove_chars)
+#             pre_mllu_string += f'<#{k}> - ({len(v)}/12) - {mllu_players}\n'
+#         title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n\n'
+#         ml_string = f'{title}{pre_ml_string}'
+#         mllu_string = f'{title}{pre_mllu_string}'
 
-        ml = client.get_channel(secretly.mogilist_channel)
-        # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
-        ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id), client.loop)
-        asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'{ml_string}'), client.loop)
+#         ml = client.get_channel(secretly.mogilist_channel)
+#         # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
+#         ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id), client.loop)
+#         asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'{ml_string}'), client.loop)
 
-        mllu = client.get_channel(secretly.mogilist_lu_channel)
-        mllu_message = asyncio.run_coroutine_threadsafe(mllu.fetch_message(ml_lu_channel_message_id), client.loop)
-        asyncio.run_coroutine_threadsafe(mllu_message.result().edit(content=f'{mllu_string}'), client.loop)
-    except Exception as e:
-        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('mogilist error', e), client.loop)
+#         mllu = client.get_channel(secretly.mogilist_lu_channel)
+#         mllu_message = asyncio.run_coroutine_threadsafe(mllu.fetch_message(ml_lu_channel_message_id), client.loop)
+#         asyncio.run_coroutine_threadsafe(mllu_message.result().edit(content=f'{mllu_string}'), client.loop)
+#     except Exception as e:
+#         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('mogilist error', e), client.loop)
 
-def inactivity_check():
-    # print('checking inactivity')
-    unix_now = time.mktime(datetime.datetime.now().timetuple())
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT l.player_id, UNIX_TIMESTAMP(l.last_active), l.tier_id, l.wait_for_activity, p.player_name FROM lineups as l JOIN player as p ON l.player_id = p.player_id WHERE l.can_drop = %s;', (1,))
-    except Exception as e:
-        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 1 {secrely.my_discord}', e), client.loop)
-        return
-    for i in range(len(temp)):
-        name = temp[i][4]
-        unix_difference = unix_now - temp[i][1]
-        # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
-        if unix_difference < 900: # if it has been less than 15 minutes
-            if unix_difference > 600: # if it has been more than 10 minutes
-                channel = client.get_channel(temp[i][2])
-                if temp[i][3] == 0: # false we are not waiting for activity
-                    message = f'<@{temp[i][0]}> Type anything in the chat in the next 5 minutes to keep your spot in the mogi.'
-                    asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=300), client.loop)
-                    # set wait_for_activity = 1 means the ping was already sent.
-                    try:
-                        with DBA.DBAccess() as db:
-                            db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0])) # we are waiting for activity
-                    except Exception as e:
-                        asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 2 {secrely.my_discord}', e), client.loop)
-                        return
-            else: # has not been at least 10 minutes yet
-                continue # does this make it faster? idk
-        elif unix_difference > 1200: # if its been more than 20 minutes
-            # Drop player
-            try:
-                with DBA.DBAccess() as db:
-                    db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
-            except Exception as e:
-                asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'{secrely.my_discord} inactivity_check - cannot delete from lineup',f'{temp[i][0]} | {temp[i][1]} | {temp[i][2]} | {e}'), client.loop)
-                return
-            # Send message
-            channel = client.get_channel(temp[i][2])
-            message = f'{name} has been removed from the mogi due to inactivity'
-            asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
-        else:
-            continue
+# def inactivity_check():
+#     # print('checking inactivity')
+#     unix_now = time.mktime(datetime.datetime.now().timetuple())
+#     try:
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT l.player_id, UNIX_TIMESTAMP(l.last_active), l.tier_id, l.wait_for_activity, p.player_name FROM lineups as l JOIN player as p ON l.player_id = p.player_id WHERE l.can_drop = %s;', (1,))
+#     except Exception as e:
+#         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 1 {secrely.my_discord}', e), client.loop)
+#         return
+#     for i in range(len(temp)):
+#         name = temp[i][4]
+#         unix_difference = unix_now - temp[i][1]
+#         # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
+#         if unix_difference < 900: # if it has been less than 15 minutes
+#             if unix_difference > 600: # if it has been more than 10 minutes
+#                 channel = client.get_channel(temp[i][2])
+#                 if temp[i][3] == 0: # false we are not waiting for activity
+#                     message = f'<@{temp[i][0]}> Type anything in the chat in the next 5 minutes to keep your spot in the mogi.'
+#                     asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=300), client.loop)
+#                     # set wait_for_activity = 1 means the ping was already sent.
+#                     try:
+#                         with DBA.DBAccess() as db:
+#                             db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0])) # we are waiting for activity
+#                     except Exception as e:
+#                         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 2 {secrely.my_discord}', e), client.loop)
+#                         return
+#             else: # has not been at least 10 minutes yet
+#                 continue # does this make it faster? idk
+#         elif unix_difference > 1200: # if its been more than 20 minutes
+#             # Drop player
+#             try:
+#                 with DBA.DBAccess() as db:
+#                     db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
+#             except Exception as e:
+#                 asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'{secrely.my_discord} inactivity_check - cannot delete from lineup',f'{temp[i][0]} | {temp[i][1]} | {temp[i][2]} | {e}'), client.loop)
+#                 return
+#             # Send message
+#             channel = client.get_channel(temp[i][2])
+#             message = f'{name} has been removed from the mogi due to inactivity'
+#             asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
+#         else:
+#             continue
 
-def lounge_threads():
-    time.sleep(30)
-    while(True):
-        pass
-        # update_mogilist()
-        # inactivity_check()
-        # mogi_media_check()
-        # time.sleep(15)
+# def lounge_threads():
+#     time.sleep(30)
+#     while(True):
+#         pass
+#         # update_mogilist()
+#         # inactivity_check()
+#         # mogi_media_check()
+#         # time.sleep(15)
 
 
-poll_thread = threading.Thread(target=lounge_threads)
-poll_thread.start()
+# poll_thread = threading.Thread(target=lounge_threads)
+# poll_thread.start()
 
 
 @client.event
