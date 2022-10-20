@@ -33,7 +33,7 @@ class inactivity_check(commands.Cog):
         for i in range(len(temp)):
             name = temp[i][4]
             unix_difference = unix_now - temp[i][1]
-            # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
+            print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
             if unix_difference < 900: # if it has been less than 15 minutes
                 if unix_difference > 600: # if it has been more than 10 minutes
                     channel = self.client.get_channel(temp[i][2])
