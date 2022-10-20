@@ -6,8 +6,6 @@ import DBA
 import secretly
 import requests
 
-ml_channel_message_id = 1010644370954924052
-ml_lu_channel_message_id = 1010644338499403937
 Lounge = [461383953937596416]
 
 class mogi_media_check(commands.Cog):
