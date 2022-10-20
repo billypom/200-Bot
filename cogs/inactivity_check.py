@@ -7,7 +7,6 @@ import secretly
 
 class inactivity_check(commands.Cog):
     def __init__(self, client):
-        self.index = 0
         self.check.start()
         self.client = client
 
@@ -24,9 +23,7 @@ class inactivity_check(commands.Cog):
     @tasks.loop(seconds=5)
     async def check(self):
         print(f'checking inactivity | {secretly.debug_channel}')
-        await self.send_raw_to_debug_channel(f'`:` Checking inactivity...', 'Test')
         unix_now = time.mktime(datetime.datetime.now().timetuple())
-        print(unix_now)
         try:
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT l.player_id, UNIX_TIMESTAMP(l.last_active), l.tier_id, l.wait_for_activity, p.player_name FROM lineups as l JOIN player as p ON l.player_id = p.player_id WHERE l.can_drop = %s;', (1,))
