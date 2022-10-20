@@ -263,6 +263,7 @@ def inactivity_check():
 def lounge_threads():
     time.sleep(30)
     while(True):
+        pass
         # update_mogilist()
         # inactivity_check()
         # mogi_media_check()
