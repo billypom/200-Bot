@@ -16,6 +16,9 @@ class inactivity_check(commands.Cog):
     # async def printer(self):
     #     print(self.index)
     #     self.index +=1
+
+    def cog_unload(self):
+        self.check.cancel()
     
     @tasks.loop(seconds=5)
     async def check(self):
