@@ -5,6 +5,9 @@ import datetime
 import DBA
 import secretly
 
+ml_channel_message_id = 1010644370954924052
+ml_lu_channel_message_id = 1010644338499403937
+
 class update_mogilist(commands.Cog):
     def __init__(self, client):
         self.update.start()
