@@ -74,10 +74,6 @@ class mogi_media_check(commands.Cog):
                 temp = db.query('SELECT p.twitch_link, p.mogi_media_message_id, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
         except Exception:
             return
-
-        # with concurrent.futures.ThreadPoolExecutor() as executor:
-        #     future = executor.submit(get_live_streamers, temp)
-        #     streams = future.result()
         streams = await self.get_live_streamers(temp)
         print(streams)
 
@@ -117,9 +113,9 @@ class mogi_media_check(commands.Cog):
     @check.before_loop
     async def before_check(self):
         print('mogi media waiting...')
+        await self.client.wait_until_ready()
         global GUILD
         GUILD = self.client.get_guild(Lounge[0])
-        await self.client.wait_until_ready()
         
 def setup(client):
     client.add_cog(mogi_media_check(client))
