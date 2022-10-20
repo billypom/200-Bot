@@ -2,11 +2,12 @@ import discord
 from discord.ext import commands, tasks
 import time
 import datetime
+import DBA
 
 class inactivity_check(commands.Cog):
     def __init__(self, client):
         self.index = 0
-        self.printer.start()
+        self.check.start()
         self.client = client
 
     # def cog_unload(self):
