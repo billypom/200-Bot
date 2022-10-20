@@ -20,7 +20,7 @@ class update_mogilist(commands.Cog):
     def cog_unload(self):
         self.update.cancel()
 
-    @tasks.loop(seconds=5):
+    @tasks.loop(seconds=5)
     async def update(self):
         print('updating mogilist...')
         try:
