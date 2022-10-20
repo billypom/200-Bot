@@ -61,6 +61,11 @@ class update_mogilist(commands.Cog):
             await mllu_message.result().edit(content=f'{mllu_string}')
         except Exception as e:
             await self.send_raw_to_debug_channel('mogilist error', e)
+    
+    @check.before_loop
+    async def before_check(self):
+        print('mogilist waiting...')
+        await self.client.wait_until_ready()
 
 def setup(client):
     client.add_cog(update_mogilist(client))
