@@ -31,7 +31,7 @@ class inactivity_check(commands.Cog):
     
     @tasks.loop(seconds=5)
     async def check(self):
-        print('checking inactivity')
+        print(f'checking inactivity | {secretly.debug_channel}')
         await self.send_raw_to_debug_channel(f'`:` Checking inactivity...', 'Test')
         unix_now = time.mktime(datetime.datetime.now().timetuple())
         try:
