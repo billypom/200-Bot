@@ -871,7 +871,6 @@ async def fc(
                 await ctx.respond(temp[0][0])
         except Exception as e:
             await ctx.respond('``Error 12:`` No friend code found. Use ``/fc XXXX-XXXX-XXXX`` to set.')
-            await send_to_debug_channel(ctx, f'/fc Error 12: {e}')
     else:
         await ctx.defer(ephemeral=True)
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
