@@ -2932,8 +2932,16 @@ async def start_mogi(ctx):
         with DBA.DBAccess() as db:
             db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
     except Exception as e:
-        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 1 |  {e}')
+        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 1 | {e}')
         await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
+        return 0
+    # Initialize the mogi timer, for mogilist checker minutes since start...
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE lineups SET mogi_start_time = %s WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (datetime.datetime.now(), ctx.channel.id))
+    except Exception as e:
+        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 4 | {e}')
+        await channel.send(f'`Error 23.2:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
         return 0
     # Get the first 12 players
     try:
