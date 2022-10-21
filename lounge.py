@@ -1639,8 +1639,8 @@ async def stats(
 
     files_to_read = [f, sf]
     for filename in files_to_read:
-    with open(filename, 'rb') as f:  # discord file objects must be opened in binary and read mode
-        files_to_send.append(discord.File(f))
+        with open(filename, 'rb') as f:  # discord file objects must be opened in binary and read mode
+            files_to_send.append(discord.File(f))
 
     embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.from_rgb(red, green, blue)) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
