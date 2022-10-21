@@ -4,6 +4,7 @@ import time
 import datetime
 import DBA
 import secretly
+import math
 
 ml_channel_message_id = 1010644370954924052
 ml_lu_channel_message_id = 1010644338499403937
@@ -54,7 +55,7 @@ class update_mogilist(commands.Cog):
                 # print(f'k,v: {k} | {v[0][0]} | {v[0][1]}')
                 try:
                     mogi_start_time = int(v[0][1])
-                    minutes_since_start = f' - `{str((unix_now - mogi_start_time)/60)}m ago`'
+                    minutes_since_start = f' - `{str(math.floor((unix_now - mogi_start_time)/60))}m ago`'
                 except Exception as e:
                     minutes_since_start = ""
                     pass
