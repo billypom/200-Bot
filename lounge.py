@@ -1660,7 +1660,7 @@ async def stats(
     embed.set_thumbnail(url='attachment://stats_rank.jpg')
     embed.set_image(url='attachment://stats.png')
     # await channel.send(file=f, embed=embed)
-    await ctx.respond(file=f, embed=embed)
+    await ctx.respond(file=files_to_send, embed=embed)
     return
 
 # /mmr
