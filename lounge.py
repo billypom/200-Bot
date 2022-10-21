@@ -1628,6 +1628,16 @@ async def stats(
         red, green, blue = 0, 0, 0
     if mmr >= 11000:
         red, green, blue = 163, 2, 44
+
+    rank_filename = f'/home/lounge/200-Lounge-Mogi-Bot/images/rank.png'
+    stats_rank_filename = f'/home/lounge/200-Lounge-Mogi-Bot/images/stats_rank.png'
+
+    correct = subprocess.run(['convert', f'{rank_filename}'], '-fill', f'"rgb({red},{green},{blue})"', '-tint', '100', f'{stats_rank_filename}')
+    f=discord.File(rank_filename, filename='rank.jpg')
+    sf=discord.File(f'/home/lounge/200-Lounge-Mogi-Bot/images/stats_rank.png', filename='stats_rank.jpg')
+    embed.set_thumbnail(url='attachment://stats_rank.jpg')
+
+
     embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.from_rgb(red, green, blue)) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
