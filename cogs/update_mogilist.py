@@ -61,8 +61,11 @@ class update_mogilist(commands.Cog):
                 pre_ml_string += f'<#{k}> - ({len(v)}/12){minutes_since_start}\n'
                 if len(v) >= 12:
                     num_full_mogis +=1
-                for player in v:
-                    mllu_players += f'{player[0]}, '
+                for idx, player in enumerate(v):
+                    if idx == len(v)-1:
+                        mllu_players += f'{player[0]}'    
+                    else:
+                        mllu_players += f'{player[0]}, '
                 # mllu_players = str(v[0][0]).translate(remove_chars)
                 pre_mllu_string += f'<#{k}> - ({len(v)}/12){minutes_since_start} - {mllu_players}\n'
             title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n\n'
