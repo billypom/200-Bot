@@ -50,7 +50,7 @@ class update_mogilist(commands.Cog):
             num_full_mogis = 0
             for k,v in MOGILIST.items():
                 print(f'unix now: {unix_now}')
-                print(f'k,v: {k} | {v[0]} | {v[1]}')
+                print(f'k,v: {k} | {v}')
                 pre_ml_string += f'<#{k}> - ({len(v)}/12)\n'
                 if len(v) >= 12:
                     num_full_mogis +=1
