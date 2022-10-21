@@ -1637,6 +1637,10 @@ async def stats(
     # f=discord.File(rank_filename, filename='rank.jpg')
     sf=discord.File(stats_rank_filename, filename='stats_rank.jpg')
 
+    files_to_send = []
+    files_to_send.append(f)
+    files_to_send.append(sf)
+
     embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.from_rgb(red, green, blue)) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
@@ -1655,7 +1659,7 @@ async def stats(
     embed.set_thumbnail(url='attachment://stats_rank.jpg')
     embed.set_image(url='attachment://stats.png')
     # await channel.send(file=f, embed=embed)
-    await ctx.respond(file=(f,sf), embed=embed)
+    await ctx.respond(file=files_to_send, embed=embed)
     return
 
 # /mmr
