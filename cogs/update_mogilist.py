@@ -27,6 +27,7 @@ class update_mogilist(commands.Cog):
     async def update(self):
         print('updating mogilist...')
         unix_now = time.mktime(datetime.datetime.now().timetuple())
+        minutes_since_start = ""
         try:
             MOGILIST = {}
             pre_ml_string = ''
@@ -37,15 +38,19 @@ class update_mogilist(commands.Cog):
                 93:None, # ]
             }
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT t.tier_id, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
+                temp = db.query('SELECT t.tier_id, p.player_name, UNIX_TIMESTAMP(l.mogi_start_time) FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s ORDER BY l.create_date ASC', (1,))
             for i in range(len(temp)): # create dictionary {tier_id:[list of players in tier]}
-                if temp[i][0] in MOGILIST:
-                    MOGILIST[temp[i][0]].append(temp[i][1])
+                if temp[i][0] in MOGILIST: # if we already have tier_id as a key
+                    MOGILIST[temp[i][0]].append((temp[i][1], temp[i][2])) # append to current value list
                 else:
-                    MOGILIST[temp[i][0]]=[temp[i][1]]
+                    MOGILIST[temp[i][0]]=[(temp[i][1], temp[i][2])] # add new key
+
+
             num_active_mogis = len(MOGILIST.keys())
             num_full_mogis = 0
             for k,v in MOGILIST.items():
+                print(f'unix now: {unix_now}')
+                print(f'k,v: {k} | {v[0]} | {v[1]}')
                 pre_ml_string += f'<#{k}> - ({len(v)}/12)\n'
                 if len(v) >= 12:
                     num_full_mogis +=1
@@ -64,7 +69,7 @@ class update_mogilist(commands.Cog):
             await mllu_message.edit(content=f'{mllu_string}\n<t:{int(unix_now)}:F>')
         except Exception as e:
             print(e)
-            await self.send_raw_to_debug_channel('mogilist error', e)
+            await self.send_raw_to_debug_channel('mogilist error 1', e)
     
     @update.before_loop
     async def before_update(self):
