@@ -9,7 +9,7 @@ unit_test.py
 migration_commands.py
 
 # other files
-200lounge.csv
+# 200lounge.csv
 
 # folders
 /__pycache__
