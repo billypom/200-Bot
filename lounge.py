@@ -1625,7 +1625,7 @@ async def stats(
     if mmr >= 7500:
         red, green, blue = 185, 242, 255
     if mmr >= 9000:
-        red, green, blue = 255, 255, 255
+        red, green, blue = 0, 0, 0
     if mmr >= 11000:
         red, green, blue = 163, 2, 44
     embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.from_rgb(red, green, blue)) # website link
