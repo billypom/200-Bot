@@ -1513,6 +1513,7 @@ async def stats(
     largest_loss = 0 #
     rank = 0
     count_of_wins = 0
+    files_to_send = [] # sending image and thumbnail
     if player is None:
         my_player_id = ctx.author.id
     else:
@@ -1600,7 +1601,9 @@ async def stats(
     win_rate = count_of_wins/len(mmr_history)*100
 
     file = plotting.create_plot(base, mmr_history)
-    f=discord.File(file, filename='stats.png')
+    with open(file, 'rb') as f:  # discord file objects must be opened in binary and read mode
+        files_to_send.append(discord.File(f, filename='stats.png'))
+    # f=discord.File(file, filename='stats.png')
 
     title='Stats'
     if tier is None:
@@ -1635,12 +1638,9 @@ async def stats(
     rgb_flag = f'rgb({red},{green},{blue})'
     correct = subprocess.run([f'convert', rank_filename, '-fill', rgb_flag, '-tint', '100', stats_rank_filename])
     # f=discord.File(rank_filename, filename='rank.jpg')
-    sf=discord.File(stats_rank_filename, filename='stats_rank.jpg')
-
-    files_to_read = [f, sf]
-    for filename in files_to_read:
-        with open(filename, 'rb') as f:  # discord file objects must be opened in binary and read mode
-            files_to_send.append(discord.File(f))
+    with open(stats_rank_filename, 'rb') as f:  # discord file objects must be opened in binary and read mode
+        files_to_send.append(discord.File(f, filename='stats_rank.png'))
+    # sf=discord.File(stats_rank_filename, filename='stats_rank.jpg')
 
     embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.from_rgb(red, green, blue)) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
@@ -1660,7 +1660,7 @@ async def stats(
     embed.set_thumbnail(url='attachment://stats_rank.jpg')
     embed.set_image(url='attachment://stats.png')
     # await channel.send(file=f, embed=embed)
-    await ctx.respond(file=files_to_send, embed=embed)
+    await ctx.respond(file=f, embed=embed)
     return
 
 # /mmr
