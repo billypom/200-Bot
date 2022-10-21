@@ -25,7 +25,7 @@ class update_mogilist(commands.Cog):
 
     @tasks.loop(seconds=5)
     async def update(self):
-        print('updating mogilist...')
+        # print('updating mogilist...')
         unix_now = time.mktime(datetime.datetime.now().timetuple())
         minutes_since_start = ""
         try:
