@@ -1613,7 +1613,22 @@ async def stats(
         title+=f' | Last {last}'
 
     # channel = client.get_channel(ctx.channel.id)
-    embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.blurple()) # website link
+    red, green, blue = 129, 120, 118
+    if mmr >= 1500:
+        red, green, blue = 230, 126, 34
+    if mmr >= 3000:
+        red, green, blue = 125, 131, 150
+    if mmr >= 4500:
+        red, green, blue = 241, 196, 15
+    if mmr >= 6000:
+        red, green, blue = 0, 162, 184
+    if mmr >= 7500:
+        red, green, blue = 185, 242, 255
+    if mmr >= 9000:
+        red, green, blue = 255, 255, 255
+    if mmr >= 11000:
+        red, green, blue = 163, 2, 44
+    embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.from_rgb(red, green, blue)) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
     embed.add_field(name='Peak MMR', value=f'{peak}', inline=True)
