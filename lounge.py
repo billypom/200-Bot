@@ -1629,10 +1629,10 @@ async def stats(
     if mmr >= 11000:
         red, green, blue = 163, 2, 44
 
-    rank_filename = f'/home/lounge/200-Lounge-Mogi-Bot/images/rank.png'
-    stats_rank_filename = f'/home/lounge/200-Lounge-Mogi-Bot/images/stats_rank.png'
+    rank_filename = '/home/lounge/200-Lounge-Mogi-Bot/images/rank.png'
+    stats_rank_filename = '/home/lounge/200-Lounge-Mogi-Bot/images/stats_rank.png'
 
-    correct = subprocess.run(['convert', rank_filename, '-fill', f'"rgb({red},{green},{blue})"', '-tint', '100', stats_rank_filename])
+    correct = subprocess.run([f'convert {rank_filename}', '-fill', f'"rgb({red},{green},{blue})"', '-tint', '100', stats_rank_filename])
     # f=discord.File(rank_filename, filename='rank.jpg')
     sf=discord.File(stats_rank_filename, filename='stats_rank.jpg')
 
