@@ -1635,8 +1635,6 @@ async def stats(
     correct = subprocess.run(['convert', f'{rank_filename}', '-fill', f'"rgb({red},{green},{blue})"', '-tint', '100', f'{stats_rank_filename}'])
     f=discord.File(rank_filename, filename='rank.jpg')
     sf=discord.File(f'/home/lounge/200-Lounge-Mogi-Bot/images/stats_rank.png', filename='stats_rank.jpg')
-    embed.set_thumbnail(url='attachment://stats_rank.jpg')
-
 
     embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.from_rgb(red, green, blue)) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
@@ -1653,6 +1651,7 @@ async def stats(
     embed.add_field(name='Largest Loss', value=f'{largest_loss}', inline=True)
     embed.add_field(name='Average MMR', value=f'{round(average_mmr,0)}', inline=True)
     embed.add_field(name='Base MMR', value=f'{base}', inline=True)
+    embed.set_thumbnail(url='attachment://stats_rank.jpg')
     embed.set_image(url='attachment://stats.png')
     # await channel.send(file=f, embed=embed)
     await ctx.respond(file=f, embed=embed)
