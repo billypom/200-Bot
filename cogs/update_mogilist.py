@@ -49,8 +49,8 @@ class update_mogilist(commands.Cog):
 
             num_active_mogis = len(MOGILIST.keys())
             num_full_mogis = 0
-            mllu_players = ""
             for k,v in MOGILIST.items():
+                mllu_players = ""
                 # print(f'unix now: {unix_now}')
                 print('for k,v in mogilist.items()')
                 print(f'k: {k} | v: {v}')
