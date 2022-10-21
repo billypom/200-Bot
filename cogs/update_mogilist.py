@@ -51,11 +51,17 @@ class update_mogilist(commands.Cog):
             for k,v in MOGILIST.items():
                 print(f'unix now: {unix_now}')
                 print(f'k,v: {k} | {v[0][0]} | {v[0][1]}')
-                pre_ml_string += f'<#{k}> - ({len(v)}/12)\n'
+                try:
+                    mogi_start_time = int(v[0][1])
+                    minutes_since_start = f'{str((unix_now - mogi_start_time)/60)}m ago'
+                except Exception as e:
+                    minutes_since_start = ""
+                    pass
+                pre_ml_string += f'<#{k}> - ({len(v)}/12) - `{minutes_since_start}`\n'
                 if len(v) >= 12:
                     num_full_mogis +=1
-                mllu_players = str(v).translate(remove_chars)
-                pre_mllu_string += f'<#{k}> - ({len(v)}/12) - {mllu_players}\n'
+                mllu_players = str(v[0][0]).translate(remove_chars)
+                pre_mllu_string += f'<#{k}> - ({len(v)}/12) - `{minutes_since_start}` - {mllu_players}\n'
             title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n\n'
             ml_string = f'{title}{pre_ml_string}'
             mllu_string = f'{title}{pre_mllu_string}'
