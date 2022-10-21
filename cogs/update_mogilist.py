@@ -52,7 +52,9 @@ class update_mogilist(commands.Cog):
             mllu_players = ""
             for k,v in MOGILIST.items():
                 # print(f'unix now: {unix_now}')
-                # print(f'k,v: {k} | {v[0][0]} | {v[0][1]}')
+                print('for k,v in mogilist.items()')
+                print(f'k: {k} | v: {v}')
+                print(f'v[0][0]: {v[0][0]} | v[0][1]: {v[0][1]}')
                 try:
                     mogi_start_time = int(v[0][1])
                     minutes_since_start = f' - `{str(math.floor((unix_now - mogi_start_time)/60))}m ago`'
