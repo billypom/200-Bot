@@ -49,8 +49,8 @@ class update_mogilist(commands.Cog):
             num_active_mogis = len(MOGILIST.keys())
             num_full_mogis = 0
             for k,v in MOGILIST.items():
-                print(f'unix now: {unix_now}')
-                print(f'k,v: {k} | {v[0][0]} | {v[0][1]}')
+                # print(f'unix now: {unix_now}')
+                # print(f'k,v: {k} | {v[0][0]} | {v[0][1]}')
                 try:
                     mogi_start_time = int(v[0][1])
                     minutes_since_start = f' - `{str((unix_now - mogi_start_time)/60)}m ago`'
@@ -74,7 +74,7 @@ class update_mogilist(commands.Cog):
             mllu_message = await mllu.fetch_message(ml_lu_channel_message_id)
             await mllu_message.edit(content=f'{mllu_string}\n<t:{int(unix_now)}:F>')
         except Exception as e:
-            print(e)
+            # print(e)
             await self.send_raw_to_debug_channel('mogilist error 1', e)
     
     @update.before_loop
