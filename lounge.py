@@ -1632,7 +1632,7 @@ async def stats(
     rank_filename = f'/home/lounge/200-Lounge-Mogi-Bot/images/rank.png'
     stats_rank_filename = f'/home/lounge/200-Lounge-Mogi-Bot/images/stats_rank.png'
 
-    correct = subprocess.run(['convert', f'{rank_filename}'], '-fill', f'"rgb({red},{green},{blue})"', '-tint', '100', f'{stats_rank_filename}')
+    correct = subprocess.run(['convert', f'{rank_filename}', '-fill', f'"rgb({red},{green},{blue})"', '-tint', '100', f'{stats_rank_filename}'])
     f=discord.File(rank_filename, filename='rank.jpg')
     sf=discord.File(f'/home/lounge/200-Lounge-Mogi-Bot/images/stats_rank.png', filename='stats_rank.jpg')
     embed.set_thumbnail(url='attachment://stats_rank.jpg')
