@@ -346,6 +346,11 @@ async def on_message(ctx):
         except Exception as e:
             await send_to_debug_channel(ctx, f'on_message error 1 | {e}')
             return
+        try:
+            test_assign = temp[0][0]
+        except Exception:
+            # player not in lineup talked. dont care
+            return
         if temp[0][0] is None:
             return
         else:
