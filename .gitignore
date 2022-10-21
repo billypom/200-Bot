@@ -14,5 +14,4 @@ migration_commands.py
 # folders
 /__pycache__
 /magick_test
-/images
 /dont
