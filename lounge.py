@@ -1632,7 +1632,7 @@ async def stats(
     rank_filename = '/home/lounge/200-Lounge-Mogi-Bot/images/rank.png'
     stats_rank_filename = '/home/lounge/200-Lounge-Mogi-Bot/images/stats_rank.png'
 
-    rgb_flag = f'"rgb({red},{green},{blue})"'
+    rgb_flag = f'rgb({red},{green},{blue})'
     correct = subprocess.run([f'convert', rank_filename, '-fill', rgb_flag, '-tint', '100', stats_rank_filename])
     # f=discord.File(rank_filename, filename='rank.jpg')
     sf=discord.File(stats_rank_filename, filename='stats_rank.jpg')
