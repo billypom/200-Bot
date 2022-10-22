@@ -2613,7 +2613,7 @@ async def ztable(
                 #     else:
                 #         my_player_mmr_change = team[len(team)-1]
                 # else:
-                #     my_player_mmr_change = team[len(team)-1]
+                my_player_mmr_change = team[len(team)-1]
                 my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
 
                 # Start creating string for MMR table
