@@ -1959,6 +1959,13 @@ async def zrevert(
                 await send_to_debug_channel(ctx, f'/zrevert FATAL ERROR | {e}')
                 flag = 1
                 pass
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, my_player_id))
+            except Exception as e:
+                await send_to_debug_channel(ctx, f'/zrevert FATAL ERROR 2 | {e}')
+                flag = 1
+                pass
     with DBA.DBAccess() as db:
         db.execute('DELETE FROM player_mogi WHERE mogi_id = %s;', (mogi_id,))
         db.execute('DELETE FROM mogi WHERE mogi_id = %s;', (mogi_id,))
