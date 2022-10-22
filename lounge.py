@@ -472,8 +472,8 @@ async def verify(
             x = regex_group.group()
             reg_array = re.split('/', x)
             mkc_player_id = reg_array[len(reg_array)-1]
-        elif re.search(regex_pattern2, str(message.content)):
-            regex_group = re.search(regex_pattern2, message.content)
+        elif re.search(regex_pattern2, str(message)):
+            regex_group = re.search(regex_pattern2, message)
             x = regex_group.group()
             reg_array = re.split('/', x)
             mkc_player_id = reg_array[len(reg_array)-1]
@@ -489,8 +489,8 @@ async def verify(
             x = regex_group.group()
             temp = re.split('\.|/', x)
             mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
-        elif re.search(regex_pattern2, str(message.content)):
-            regex_group = re.search(regex_pattern2, message.content)
+        elif re.search(regex_pattern2, str(message)):
+            regex_group = re.search(regex_pattern2, message)
             x = regex_group.group()
             temp = re.split('\.|/', x)
             mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
