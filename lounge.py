@@ -2569,13 +2569,12 @@ async def ztable(
                 if idx > (mogi_format-1):
                     break
                 with DBA.DBAccess() as db:
-                    temp = db.query('SELECT p.player_name, p.mmr, p.peak_mmr, p.rank_id, l.is_sub, p.mogi_media_message_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE p.player_id = %s;', (player[0],))
+                    temp = db.query('SELECT player_name, mmr, peak_mmr, rank_id, mogi_media_message_id FROM player WHERE player_id = %s;', (player[0],))
                     my_player_name = temp[0][0]
                     my_player_mmr = temp[0][1]
                     my_player_peak = temp[0][2]
                     my_player_rank_id = temp[0][3]
-                    is_sub = temp[0][4]
-                    mogi_media_message_id = temp[0][5]
+                    mogi_media_message_id = temp[0][4]
                     if my_player_peak is None:
                         # print('its none...')
                         my_player_peak = 0
@@ -2608,13 +2607,13 @@ async def ztable(
                     await discord_member.remove_roles(placement_role)
                     await results_channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
 
-                if is_sub: # Subs only gain on winning team
-                    if team[len(team)-1] < 0:
-                        my_player_mmr_change = 0
-                    else:
-                        my_player_mmr_change = team[len(team)-1]
-                else:
-                    my_player_mmr_change = team[len(team)-1]
+                # if is_sub: # Subs only gain on winning team
+                #     if team[len(team)-1] < 0:
+                #         my_player_mmr_change = 0
+                #     else:
+                #         my_player_mmr_change = team[len(team)-1]
+                # else:
+                #     my_player_mmr_change = team[len(team)-1]
                 my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
 
                 # Start creating string for MMR table
