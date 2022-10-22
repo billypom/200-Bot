@@ -1959,13 +1959,22 @@ async def zrevert(
                 await send_to_debug_channel(ctx, f'/zrevert FATAL ERROR | {e}')
                 flag = 1
                 pass
-            try:
-                with DBA.DBAccess() as db:
-                    db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, my_player_id))
-            except Exception as e:
-                await send_to_debug_channel(ctx, f'/zrevert FATAL ERROR 2 | {e}')
-                flag = 1
-                pass
+    for i in range(len(players_mogi)): # this is very bad because i should just loop the other way around
+        # but im lazy and still need to make a dev server
+        # but also who cares
+        my_player_id = players_mogi[i][0]
+        my_player_name = players_mogi[i][1]
+        my_player_mmr = int(players_mogi[i][2])
+        my_player_new_mmr = my_player_mmr + (int(players_mogi[i][3])* -1)
+        my_player_rank_id = players_mogi[i][4]
+        results_channel_id = players_mogi[i][5]
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, my_player_id))
+        except Exception as e:
+            await send_to_debug_channel(ctx, f'/zrevert FATAL ERROR 2 | {e}')
+            flag = 1
+            pass
     with DBA.DBAccess() as db:
         db.execute('DELETE FROM player_mogi WHERE mogi_id = %s;', (mogi_id,))
         db.execute('DELETE FROM mogi WHERE mogi_id = %s;', (mogi_id,))
