@@ -429,7 +429,7 @@ async def on_raw_reaction_add(payload):
                     await message.delete()
                 else:
                     x = int('hey')
-            except Exception:
+            except Exception as e:
                 await send_raw_to_debug_channel('Name change exception', e)
                 pass
         try:
