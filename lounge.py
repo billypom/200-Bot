@@ -22,6 +22,7 @@ import concurrent.futures
 from bs4 import BeautifulSoup as Soup
 import pykakasi
 from korean_romanizer.romanizer import Romanizer
+import operator
 
 Lounge = [461383953937596416]
 mogi_media_channel_id = 1005091507604312074
