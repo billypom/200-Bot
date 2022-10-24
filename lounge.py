@@ -1558,7 +1558,7 @@ async def stats(
                         last_10_wins += 1
                     else:
                         last_10_losses += 1
-        partner_average = await get_partner_avg(my_player_id)
+        partner_average = await get_partner_avg(my_player_id, number_of_mogis)
     elif tier.id in TIER_ID_LIST:
         try:
             with DBA.DBAccess() as db:
@@ -1577,7 +1577,7 @@ async def stats(
             await send_to_debug_channel(ctx, f'/stats not played in tier | {e}')
             await ctx.respond(f'You have not played in {tier.mention}')
             return
-        partner_average = await get_partner_avg(my_player_id, tier.id)
+        partner_average = await get_partner_avg(my_player_id, number_of_mogis, tier.id)
     else:
         await ctx.respond(f'``Error 30:`` {tier.mention} is not a valid tier')
         return
@@ -3401,10 +3401,11 @@ async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
 
 # Takes in ctx, returns avg partner score
-async def get_partner_avg(uid, *mogi_format):
+async def get_partner_avg(uid, number_of_mogis, tier_id='%'):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid, uid))
+            # temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid, uid))
+            temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT pm.mogi_id, pm.place FROM player_mogi as pm JOIN mogi as m on pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND pm.mogi_id like %s ORDER BY m.create_date DESC LIMIT %s)) as table2;', (uid, uid, tier_id, number_of_mogis))
             try:
                 return round(float(temp[0][0]), 2)
             except Exception as e:
