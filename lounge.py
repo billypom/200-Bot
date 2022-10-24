@@ -1540,16 +1540,16 @@ async def stats(
         return
     if tier is None:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, number_of_mogis))
+            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, number_of_mogis)) # order newest first
             try:
                 did_u_play_yet = temp[0][0]
             except Exception:
                 await ctx.respond('You must play at least 1 match to use `/stats`')
                 return
             for i in range(len(temp)):
-                mmr_history.append(temp[i][0])
+                mmr_history.append(temp[i][0]) # append to list newest first
                 score_history.append(temp[i][1])
-                if i <= 9:
+                if i >= (len(temp) - 10): # if we are at the last 10 indexes
                     last_10_change += mmr_history[i]
                     if mmr_history[i] > 0:
                         last_10_wins += 1
@@ -1563,7 +1563,7 @@ async def stats(
                 for i in range(len(temp)):
                     mmr_history.append(temp[i][0])
                     score_history.append(temp[i][1])
-                    if i <= 9:
+                    if i >= (len(temp) - 10):
                         last_10_change += mmr_history[i]
                         if mmr_history[i] > 0:
                             last_10_wins += 1
@@ -1577,6 +1577,8 @@ async def stats(
     else:
         await ctx.respond(f'``Error 30:`` {tier.mention} is not a valid tier')
         return
+    mmr_history.reverse() # reverse list, oldest first for matplotlib
+    score_history.reverse()
 
     events_played = len(mmr_history)
     try:
