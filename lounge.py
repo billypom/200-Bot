@@ -3405,7 +3405,7 @@ async def get_partner_avg(uid, number_of_mogis, tier_id='%'):
     try:
         with DBA.DBAccess() as db:
             # temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid, uid))
-            temp = db.query("SELECT AVG(score) FROM (SELECT pm.player_id, pm.mogi_id, pm.place, pm.score FROM player_mogi as pm INNER JOIN (SELECT pm.mogi_id, pm.place FROM player_mogi as pm JOIN mogi as m on pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND tier_id like %s ORDER BY m.create_date DESC LIMIT %s) as pm2 ON pm2.mogi_id = pm.mogi_id WHERE player_id <> %s) as a", (uid, tier_id, number_of_mogis, uid))
+            temp = db.query("SELECT AVG(score) FROM (SELECT pm.player_id, pm.mogi_id, pm.place, pm.score FROM player_mogi as pm INNER JOIN (SELECT pm.mogi_id, pm.place FROM player_mogi as pm JOIN mogi as m on pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND tier_id like %s ORDER BY m.create_date DESC LIMIT %s) as pm2 ON pm2.mogi_id = pm.mogi_id AND pm2.place = pm.place WHERE player_id <> %s) as a", (uid, tier_id, number_of_mogis, uid))
             try:
                 return round(float(temp[0][0]), 2)
             except Exception as e:
