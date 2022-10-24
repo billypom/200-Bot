@@ -1505,6 +1505,7 @@ async def stats(
         pass
     mmr_history = [] #
     score_history = [] #
+    mogi_id_history = [] #
     last_10_wins = 0 #
     last_10_losses = 0 #
     last_10_change = 0 #
@@ -1540,7 +1541,7 @@ async def stats(
         return
     if tier is None:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mmr_change, score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, number_of_mogis)) # order newest first
+            temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, number_of_mogis)) # order newest first
             try:
                 did_u_play_yet = temp[0][0]
             except Exception:
@@ -1549,6 +1550,7 @@ async def stats(
             for i in range(len(temp)):
                 mmr_history.append(temp[i][0]) # append to list newest first
                 score_history.append(temp[i][1])
+                mogi_id_history.append(temp[i][2])
                 if i >= (len(temp) - 10): # if we are at the last 10 indexes
                     last_10_change += mmr_history[i]
                     if mmr_history[i] > 0:
@@ -1559,10 +1561,11 @@ async def stats(
     elif tier.id in TIER_ID_LIST:
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT pm.mmr_change, pm.score FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, tier.id, number_of_mogis))
+                temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, tier.id, number_of_mogis))
                 for i in range(len(temp)):
                     mmr_history.append(temp[i][0])
                     score_history.append(temp[i][1])
+                    mogi_id_history.append(temp[i][2])
                     if i >= (len(temp) - 10):
                         last_10_change += mmr_history[i]
                         if mmr_history[i] > 0:
@@ -1579,13 +1582,15 @@ async def stats(
         return
     mmr_history.reverse() # reverse list, oldest first for matplotlib
     score_history.reverse()
+    mogi_id_history.reverse()
 
     events_played = len(mmr_history)
     try:
-        top_score = max(score_history)
+        top_index, top_score = max(enumerate(score_history), key=operator.itemgetter(1))
     except Exception as e:
         await ctx.respond(f'You have not played in {tier.mention}')
         return
+    top_mogi_id = mogi_id_history[top_index]
 
     try:
         largest_gain = max(mmr_history)
@@ -1642,7 +1647,7 @@ async def stats(
     # f=discord.File(rank_filename, filename='rank.jpg')
     sf=discord.File(stats_rank_filename, filename='stats_rank.jpg')
 
-    embed = discord.Embed(title=f'{title}', description=f'{player_name}', color = discord.Color.from_rgb(red, green, blue)) # website link
+    embed = discord.Embed(title=f'{title}', description=f'[{player_name}](https://200-lounge.com/player/{player_name})', color = discord.Color.from_rgb(red, green, blue)) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
     embed.add_field(name='Peak MMR', value=f'{peak}', inline=True)
@@ -1650,7 +1655,7 @@ async def stats(
     embed.add_field(name='W-L (Last 10)', value=f'{last_10_wins} - {last_10_losses}', inline=True)
     embed.add_field(name='+/- (Last 10)', value=f'{last_10_change}', inline=True)
     embed.add_field(name='Avg. Score', value=f'{round(average_score, 2)}', inline=True)
-    embed.add_field(name='Top Score', value=f'{top_score}', inline=True) # website link
+    embed.add_field(name='Top Score', value=f'[{top_score}](https://200-lounge.com/mogi/{top_mogi_id})', inline=True) # website link
     embed.add_field(name='Partner Avg.', value=f'{partner_average}', inline=True)
     embed.add_field(name='Events Played', value=f'{events_played}', inline=True)
     embed.add_field(name='Largest Gain', value=f'{largest_gain}', inline=True)
