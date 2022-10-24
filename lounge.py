@@ -1594,15 +1594,15 @@ async def stats(
 
     largest_loss = min(mmr_history)
     average_score = sum(score_history)/len(score_history)
-    temp_for_average_mmr = base # 3750
-    running_sum = base
+    temp_for_average_mmr = 0 # base ...
+    running_sum = base # 3750
     for match in mmr_history:
         temp_for_average_mmr += match # x = 3750 + 300 
         running_sum += temp_for_average_mmr
         if match > 0:
             count_of_wins += 1
     average_mmr = running_sum/(len(mmr_history)+1)
-    win_rate = count_of_wins/len(mmr_history)*100
+    win_rate = (count_of_wins/len(mmr_history))*100
 
     file = plotting.create_plot(base, mmr_history)
     f=discord.File(file, filename='stats.png')
