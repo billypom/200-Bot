@@ -1552,7 +1552,7 @@ async def stats(
                 mmr_history.append(temp[i][0]) # append to list newest first
                 score_history.append(temp[i][1])
                 mogi_id_history.append(temp[i][2])
-                if i >= (len(temp) - 10): # if we are at the last 10 indexes
+                if i <= 9: # if we are at the last 10 indexes (first 10, newest first)
                     last_10_change += mmr_history[i]
                     if mmr_history[i] > 0:
                         last_10_wins += 1
@@ -1567,7 +1567,7 @@ async def stats(
                     mmr_history.append(temp[i][0])
                     score_history.append(temp[i][1])
                     mogi_id_history.append(temp[i][2])
-                    if i >= (len(temp) - 10):
+                    if i <= 9:
                         last_10_change += mmr_history[i]
                         if mmr_history[i] > 0:
                             last_10_wins += 1
