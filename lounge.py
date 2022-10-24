@@ -1600,7 +1600,7 @@ async def stats(
 
     largest_loss = min(mmr_history)
     average_score = sum(score_history)/len(score_history)
-    temp_for_average_mmr = 0 # base ...
+    temp_for_average_mmr = base # base ...
     running_sum = base # 3750
     for match in mmr_history:
         temp_for_average_mmr += match # x = 3750 + 300 
