@@ -419,7 +419,7 @@ async def on_raw_reaction_add(payload):
                     await member.send(f'Your name change has been approved.')
                     # Delete the embed message
                     await message.delete()
-                if str(payload.emoji) == '❌':
+                elif str(payload.emoji) == '❌':
                     with DBA.DBAccess() as db:
                         # Remove the db record
                         db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
@@ -427,6 +427,8 @@ async def on_raw_reaction_add(payload):
                     member = guild.get_member(message_ids[i][1])
                     await member.send(f'Your name change has been denied.')
                     await message.delete()
+                else:
+                    x = int('hey')
             except Exception:
                 await send_raw_to_debug_channel('Name change exception', e)
                 pass
