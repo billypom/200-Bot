@@ -415,7 +415,7 @@ async def on_raw_reaction_add(payload):
                         db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[i][2], message_ids[i][1]))
                         # Change the discord username
                     member = guild.get_member(message_ids[i][1])
-                    await member.send(f'Your name change has been approved.')
+                    await member.send(f'Your name change [{message_ids[i][2]}] has been approved.')
                     # Delete the embed message
                     await message.delete()
                     await member.edit(nick=str(message_ids[i][2]))
@@ -425,7 +425,7 @@ async def on_raw_reaction_add(payload):
                         db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
                         # Delete the embed message
                     member = guild.get_member(message_ids[i][1])
-                    await member.send(f'Your name change has been denied.')
+                    await member.send(f'Your name change [{message_ids[i][2]}] has been denied.')
                     await message.delete()
                 else:
                     x = int('hey')
