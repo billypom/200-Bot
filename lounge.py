@@ -415,10 +415,10 @@ async def on_raw_reaction_add(payload):
                         db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[i][2], message_ids[i][1]))
                         # Change the discord username
                     member = guild.get_member(message_ids[i][1])
-                    await member.edit(nick=str(message_ids[i][2]))
                     await member.send(f'Your name change has been approved.')
                     # Delete the embed message
                     await message.delete()
+                    await member.edit(nick=str(message_ids[i][2]))
                 elif str(payload.emoji) == '❌':
                     with DBA.DBAccess() as db:
                         # Remove the db record
