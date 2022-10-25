@@ -1609,7 +1609,7 @@ async def stats(
     else:
         temp_for_average_mmr = mmr_history[0]
         running_sum = mmr_history[0]
-        graph_base = sum(mmr_history) + mmr
+        graph_base = mmr + (sum(mmr_history)*-1)
 
     for match in mmr_history:
         temp_for_average_mmr += match # x = 3750 + 300 
