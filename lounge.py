@@ -1605,9 +1605,11 @@ async def stats(
     if last is None:
         temp_for_average_mmr = base # base ...
         running_sum = base # 3750
+        graph_base = base
     else:
         temp_for_average_mmr = mmr_history[0]
         running_sum = mmr_history[0]
+        graph_base = mmr_history[0]
 
     for match in mmr_history:
         temp_for_average_mmr += match # x = 3750 + 300 
@@ -1617,7 +1619,7 @@ async def stats(
     average_mmr = running_sum/(len(mmr_history)+1)
     win_rate = (count_of_wins/len(mmr_history))*100
 
-    file = plotting.create_plot(base, mmr_history)
+    file = plotting.create_plot(graph_base, mmr_history)
     f=discord.File(file, filename='stats.png')
 
     title='Stats'
