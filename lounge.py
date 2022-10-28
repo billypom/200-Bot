@@ -902,6 +902,7 @@ async def esn(ctx):
         await send_to_debug_channel(ctx, f'esn error 2: {e}')
         await ctx.respond('`Error 63:` esners')
         return
+    await ctx.respond('`/esn`@here - New mogi started')
 
     # try:
     #     with DBA.DBAccess() as db:
