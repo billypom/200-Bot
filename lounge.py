@@ -883,7 +883,7 @@ async def esn(ctx):
         mogi_start_time = temp[0][0]
     except Exception as e:
         await send_to_debug_channel(ctx, f'esn error 1: {e}')
-        await ctx.respond('`Error 62:` esners')
+        await ctx.respond('`Error 62:` Mogi has not started')
         return
     unix_now = await get_unix_time_now()
     minutes_since_start = math.floor((unix_now - mogi_start_time)/60)
@@ -2941,8 +2941,8 @@ async def set_player_roles(ctx):
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_name, mmr FROM player WHERE player_id = %s;', (ctx.author.id,))
-            player_name = temp[0][0]
-            mmr = temp[0][1]
+        player_name = temp[0][0]
+        mmr = temp[0][1]
         guild = client.get_guild(Lounge[0])
         member = await guild.fetch_member(ctx.author.id)
         if mmr is None:
@@ -2960,7 +2960,7 @@ async def set_player_roles(ctx):
         with DBA.DBAccess() as db:
             ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
         for i in range(len(ranks)):
-            if mmr > int(ranks[i][1]) and mmr < int(ranks[i][2]):
+            if mmr >= int(ranks[i][1]) and mmr < int(ranks[i][2]):
                 # Found your rank
                 with DBA.DBAccess() as db:
                     temp = db.query('SELECT rank_id FROM ranks;', ())
@@ -2970,7 +2970,6 @@ async def set_player_roles(ctx):
                     await member.remove_roles(remove_rank)
                 role = guild.get_role(ranks[i][0])
                 await member.add_roles(role)
-                break
         # player_name = player_name.replace("-", " ")
         try:
             await member.edit(nick=str(player_name))
