@@ -720,7 +720,7 @@ async def d(
             return
         # No try block - check is above...
         with DBA.DBAccess() as db:
-            tier_temp = db.query('SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s;', (ctx.author.id,))
+            tier_temp = db.query('SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s AND t.tier_id = %s;', (ctx.author.id, ctx.channel.id))
         try:
             with DBA.DBAccess() as db:
                 db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
