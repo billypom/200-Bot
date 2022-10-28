@@ -21,9 +21,9 @@ Drop from a mogi (Leave the queue)
 
 List players in the mogi (See the queue)
 
-# `/sub` +2 REQUIRED `@leaving_player` & `@subbing_player`
+# `/esn`
 
-Substitute a player during a mogi.
+Ends the current mogi, Starts a New mogi
 
 # `/fc` +1 (optional) `XXXX-XXXX-XXXX`
 
