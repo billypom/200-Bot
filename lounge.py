@@ -583,7 +583,7 @@ async def verify(
     description='🙋 Can up for a mogi',
     # guild_ids=Lounge
 )
-@commands.cooldown(1, 15, commands.BucketType.user)
+@commands.cooldown(1, 3, commands.BucketType.user)
 async def c(
     ctx,
     ):
