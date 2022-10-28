@@ -882,7 +882,7 @@ async def esn(ctx):
             temp = db.query('SELECT UNIX_TIMESTAMP(mogi_start_time) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT %s;', (ctx.channel.id, 1))
         mogi_start_time = temp[0][0]
     except Exception as e:
-        await send_to_debug_channel(ctx, f'esn error 1: {e}')
+        # await send_to_debug_channel(ctx, f'esn error 1: {e}')
         await ctx.respond('`Error 62:` Mogi has not started')
         return
     unix_now = await get_unix_time_now()
