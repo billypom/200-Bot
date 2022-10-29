@@ -624,6 +624,7 @@ async def c(
         await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}.')
         await send_to_debug_channel(ctx, f'/c error 18 lineup not found? {e}')
         return
+    await send_to_debug_channel(ctx, f'count: {count}')
 
     # ADDITIONAL SUBS SHOULD BE ABLE TO JOIN NEXT MOGI
     # if count == MAX_PLAYERS_IN_MOGI:
