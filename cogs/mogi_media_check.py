@@ -102,7 +102,7 @@ class mogi_media_check(commands.Cog):
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (member.id,))
             except Exception as e:
-                await self.send_raw_to_debug_channel('twitch error 1', e)
+                # await self.send_raw_to_debug_channel('twitch error 1', e)
                 continue
 
     @mogi_media.before_loop
