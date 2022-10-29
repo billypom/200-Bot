@@ -62,18 +62,19 @@ class mogi_media_check(commands.Cog):
             except Exception as e:
                 continue
             # name, title, image, is_live, db_mogimediamessageid, db_player_id
+        # print(list_of_streams)
         return list_of_streams
 
     @tasks.loop(seconds=30)
     async def mogi_media(self):
-        # print('checking mogi media...')
+        print('checking mogi media...')
         try:
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT p.twitch_link, p.mogi_media_message_id, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
         except Exception:
             return
         streams = await self.get_live_streamers(temp)
-        # print(streams)
+        print(streams)
 
         # print(f'future.result from thread executor: {streams}')
         for stream in streams:
