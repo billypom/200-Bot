@@ -896,10 +896,11 @@ async def esn(ctx):
     try:
         with DBA.DBAccess() as db:
             players = db.query('SELECT player_id FROM lineups WHERE tier_id = %s AND mogi_start_time <> NULL;', (ctx.channel.id,))
+        print(players)
         for player in players:
             with DBA.DBAccess() as db:
                 db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id))
-        await ctx.respond('`/esn`@here - New mogi started')
+        await ctx.respond('`New mogi started')
     except Exception as e:
         await send_to_debug_channel(ctx, f'esn error 2: {e}')
         await ctx.respond('`Error 63:` esners')
