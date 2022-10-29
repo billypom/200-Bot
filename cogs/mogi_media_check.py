@@ -12,6 +12,7 @@ class mogi_media_check(commands.Cog):
     def __init__(self, client):
         self.mogi_media.start()
         self.client = client
+        self.mogi_media_channel_id = 1005091507604312074
 
     async def send_raw_to_debug_channel(self, anything, error):
         channel = self.client.get_channel(secretly.debug_channel)
@@ -86,7 +87,7 @@ class mogi_media_check(commands.Cog):
                         embed.add_field(name='Link', value=f'https://twitch.tv/{stream[0]}', inline=False)
                         embed.set_image(url=stream[2])
                         embed.set_thumbnail(url=member.display_avatar)
-                        mogi_media = self.client.get_channel(mogi_media_channel_id)
+                        mogi_media = self.client.get_channel(self.mogi_media_channel_id)
                         mogi_media_message = await mogi_media.send(embed=embed)
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
@@ -95,7 +96,7 @@ class mogi_media_check(commands.Cog):
                     if stream[4] > 0: 
                         member_future = await GUILD.fetch_member(stream[5])
                         member = member_future.result()               
-                        channel = self.client.get_channel(mogi_media_channel_id)
+                        channel = self.client.get_channel(self.mogi_media_channel_id)
                         message = await channel.fetch_message(stream[4])
                         await message.delete()
                         with DBA.DBAccess() as db:
