@@ -880,7 +880,7 @@ async def esn(ctx):
     # Delete player records in this tier where they already played mogi (mogi_start_time not null)
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT UNIX_TIMESTAMP(mogi_start_time) FROM lineups WHERE tier_id = %s ORDER BY create_date DESC LIMIT %s;', (ctx.channel.id, 1))
+            temp = db.query('SELECT UNIX_TIMESTAMP(mogi_start_time) FROM lineups WHERE tier_id = %s AND can_drop = 0 ORDER BY create_date DESC LIMIT %s;', (ctx.channel.id, 1))
         mogi_start_time = temp[0][0]
     except Exception as e:
         # await send_to_debug_channel(ctx, f'esn error 1: {e}')
