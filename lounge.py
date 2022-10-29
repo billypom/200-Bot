@@ -1206,20 +1206,21 @@ async def table(
             try:
                 with DBA.DBAccess() as db:
                     # This part makes sure that only players in the current channel's lineup can have a table made for them
+                    # nevermind
                     # temp = db.query('SELECT mmr FROM (SELECT p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY create_date ASC LIMIT 12) as m JOIN player p on p.player_id = m.player_id WHERE p.player_id = %s;', (ctx.channel.id, player[0]))
                     temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
-                    if temp[0][0] is None:
-                        mmr = 0
-                        count += 1 # added this line 10/10/22 because placement players ppl are mad grrr i need my mmr
-                    else:
-                        mmr = temp[0][0]
-                        count+=1
-                    temp_mmr += mmr
-                    try:
-                        team_score += int(player[1])
-                    except Exception:
-                        score_and_pen = str(player[1]).split('-')
-                        team_score = team_score + int(score_and_pen[0]) - int(score_and_pen[1])
+                if temp[0][0] is None:
+                    mmr = 0
+                    count += 1 # added this line 10/10/22 because placement players ppl are mad grrr i need my mmr
+                else:
+                    mmr = temp[0][0]
+                    count+=1
+                temp_mmr += mmr
+                try:
+                    team_score += int(player[1])
+                except Exception:
+                    score_and_pen = str(player[1]).split('-')
+                    team_score = team_score + int(score_and_pen[0]) - int(score_and_pen[1])
             except Exception as e:
                 # check for all 12 players exist
                 await send_to_debug_channel(ctx, f'/table Error 24:{e}')
@@ -1303,13 +1304,14 @@ async def table(
         # Create mogi
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO mogi (mogi_format, tier_id) values (%s, %s);', (mogi_format, ctx.channel.id))
-
+        await send_raw_to_debug_channel('Mogi created', f'{mogi_format} | {ctx.channel.id}')
         # Get the results channel and tier name for later use
         with DBA.DBAccess() as db:
             temp = db.query('SELECT results_id, tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
             db_results_channel = temp[0][0]
             tier_name = temp[0][1]
         results_channel = client.get_channel(db_results_channel)
+        await send_raw_to_debug_channel('Results channel acquired', f'{results_channel}')
 
         # Pre MMR table calculate
         value_table = list()
@@ -1337,6 +1339,7 @@ async def table(
                             pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
                 working_list.append(pre_mmr)
             value_table.append(working_list)
+        await send_raw_to_debug_channel('MMR calculated', value_table)
 
         # # DEBUG
         # print(f'\nprinting value table:\n')
@@ -1364,6 +1367,7 @@ async def table(
         mmr_table_string += f'PLACE |       NAME       |  MMR  |  +/-  | NEW MMR |  RANKUPS\n'
 
         for team in sorted_list:
+            await send_raw_to_debug_channel('Updating team', team)
             my_player_place = team[len(team)-2]
             string_my_player_place = str(my_player_place)
             for idx, player in enumerate(team):
@@ -1371,13 +1375,12 @@ async def table(
                 if idx > (mogi_format-1):
                     break
                 with DBA.DBAccess() as db:
-                    temp = db.query('SELECT p.player_name, p.mmr, p.peak_mmr, p.rank_id, l.is_sub, p.mogi_media_message_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE p.player_id = %s;', (player[0],))
+                    temp = db.query('SELECT player_name, mmr, peak_mmr, rank_id, mogi_media_message_id FROM player player_id = %s;', (player[0],))
                     my_player_name = temp[0][0]
                     my_player_mmr = temp[0][1]
                     my_player_peak = temp[0][2]
                     my_player_rank_id = temp[0][3]
-                    is_sub = temp[0][4]
-                    mogi_media_message_id = temp[0][5]
+                    mogi_media_message_id = temp[0][4]
                     if my_player_peak is None:
                         # print('its none...')
                         my_player_peak = 0
@@ -1452,7 +1455,7 @@ async def table(
                         temp = db.query('SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
                         db_mogi_id = temp[0][0]
                         # Insert reference record
-                        db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr, is_sub) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr), is_sub))
+                        db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr)))
                         # Update player record
                         db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
                         # Remove player from lineups
@@ -1521,7 +1524,7 @@ async def table(
                 formatted_my_player_new_rank = await new_rank_wrapper(string_my_player_new_rank, my_player_new_mmr)
                 mmr_table_string += f'{formatted_my_player_new_rank}'
                 string_my_player_place = ''
-
+        await send_raw_to_debug_channel('TEAMS UPDATED', 'Success')
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
