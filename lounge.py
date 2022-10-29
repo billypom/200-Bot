@@ -895,7 +895,7 @@ async def esn(ctx):
         return
     try:
         with DBA.DBAccess() as db:
-            players = db.query('SELECT player_id FROM lineups WHERE tier_id = %s AND mogi_start_time IS NOT NULL;', (ctx.channel.id,))
+            players = db.query('SELECT player_id FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
         print(players)
         for player in players:
             with DBA.DBAccess() as db:
