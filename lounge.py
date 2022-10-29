@@ -1413,13 +1413,13 @@ async def table(
                     await discord_member.remove_roles(placement_role)
                     await results_channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
 
-                if is_sub: # Subs only gain on winning team
-                    if team[len(team)-1] < 0:
-                        my_player_mmr_change = 0
-                    else:
-                        my_player_mmr_change = team[len(team)-1]
-                else:
-                    my_player_mmr_change = team[len(team)-1]
+                # if is_sub: # Subs only gain on winning team
+                #     if team[len(team)-1] < 0:
+                #         my_player_mmr_change = 0
+                #     else:
+                #         my_player_mmr_change = team[len(team)-1]
+                # else:
+                my_player_mmr_change = team[len(team)-1]
                 my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
 
                 # Start creating string for MMR table
