@@ -79,10 +79,8 @@ class mogi_media_check(commands.Cog):
         # print(f'future.result from thread executor: {streams}')
         for stream in streams:
             try:
-                # If live
-                if stream[3]:
-                    # If no mogi media sent yet
-                    if stream[4] is None:
+                if stream[3]: # If live 
+                    if stream[4] is None: # If no mogi media sent yet
                         member = await GUILD.fetch_member(stream[5])
                         embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
                         embed.add_field(name='Link', value=f'https://twitch.tv/{stream[0]}', inline=False)
@@ -103,6 +101,7 @@ class mogi_media_check(commands.Cog):
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (member.id,))
             except Exception as e:
+                await self.send_raw_to_debug_channel('twitch error 1', e)
                 continue
 
     @mogi_media.before_loop
