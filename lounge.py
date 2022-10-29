@@ -618,7 +618,7 @@ async def c(
     # Get the current lineup count - only players that were not in the last mogi (mogi_start_time not null)
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s AND mogi_start_time <> NULL;', (ctx.channel.id,))
+            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s AND mogi_start_time is NULL;', (ctx.channel.id,))
             count = temp[0][0]
     except Exception as e:
         await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}.')
