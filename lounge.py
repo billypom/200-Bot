@@ -1562,7 +1562,7 @@ async def table(
         #  discord ansi coloring (doesn't work on mobile)
         # https://gist.github.com/kkrypt0nn/a02506f3712ff2d1c8ca7c9e0aed7c06
         # https://rebane2001.com/discord-colored-text-generator/ 
-        await ctx.respond('`Table Accepted.`', delete_after=300)
+        await ctx.respond('`Table Accepted.`')
     else:
         await ctx.respond('`Table Denied.`', delete_after=300)
 
