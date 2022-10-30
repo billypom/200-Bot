@@ -2780,7 +2780,8 @@ async def remove_players_from_other_tiers(channel_id):
         for tier in player_tier:
             await send_raw_to_debug_channel('Removing from other tiers', f'{tier[1]} - {tier[2]}')
             channel = client.get_channel(tier[2])
-            db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (tier[0], tier[2]))
+            with DBA.DBAccess() as db:
+                db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (tier[0], tier[2]))
             await channel.send(f'{tier[1]} has dropped from the lineup')
     return True
 
