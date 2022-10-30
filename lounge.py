@@ -1459,7 +1459,7 @@ async def table(
                         # Update player record
                         db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
                         # Remove player from lineups
-                        db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
+                        # db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
                         # Clear sub leaver table
                         # subs dont matter anymore
                         # db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (ctx.channel.id,))
