@@ -399,45 +399,40 @@ async def on_raw_reaction_add(payload):
     message = await channel.fetch_message(payload.message_id)
     try:
         with DBA.DBAccess() as db:
-            message_ids = db.query('SELECT embed_message_id, player_id, requested_name FROM player_name_request WHERE was_accepted = %s;', (0,))
+            message_ids = db.query('SELECT embed_message_id, player_id, requested_name FROM player_name_request WHERE was_accepted = %s AND player_id = %s ORDER BY create_date DESC LIMIT 1;', (0,payload.user_id))
     except Exception:
+        await send_raw_to_debug_channel('Name change exception 1', e)
         return
 
     # Look @ all embed message ids
-    for i in range(0, len(message_ids)):
-        if int(payload.message_id) == int(message_ids[i][0]):
-            # Join
-            try:
-                if str(payload.emoji) == '✅':
-                    with DBA.DBAccess() as db:
-                        # Set record to accepted
-                        db.execute('UPDATE player_name_request SET was_accepted = %s WHERE embed_message_id = %s;', (1, int(payload.message_id)))
-                        # Change the db username
-                        db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[i][2], message_ids[i][1]))
-                        # Change the discord username
-                    member = guild.get_member(message_ids[i][1])
-                    await member.send(f'Your name change [{message_ids[i][2]}] has been approved.')
-                    # Delete the embed message
-                    await message.delete()
-                    await member.edit(nick=str(message_ids[i][2]))
-                elif str(payload.emoji) == '❌':
-                    with DBA.DBAccess() as db:
-                        # Remove the db record
-                        db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
-                        # Delete the embed message
-                    member = guild.get_member(message_ids[i][1])
-                    await member.send(f'Your name change [{message_ids[i][2]}] has been denied.')
-                    await message.delete()
-                else:
-                    x = int('hey')
-            except Exception as e:
-                await send_raw_to_debug_channel('Name change exception', e)
-                pass
+    if int(payload.message_id) == int(message_ids[0][0]):
+        # Join
         try:
-            await message.remove_reaction(payload.emoji, member)
-        except Exception:
+            if str(payload.emoji) == '✅':
+                with DBA.DBAccess() as db:
+                    # Set record to accepted
+                    db.execute('UPDATE player_name_request SET was_accepted = %s WHERE embed_message_id = %s;', (1, int(payload.message_id)))
+                    # Change the db username
+                    db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[0][2], message_ids[0][1]))
+                    # Change the discord username
+                member = guild.get_member(message_ids[0][1])
+                await member.send(f'Your name change [{message_ids[0][2]}] has been approved.')
+                # Delete the embed message
+                await message.delete()
+                await member.edit(nick=str(message_ids[0][2]))
+            elif str(payload.emoji) == '❌':
+                with DBA.DBAccess() as db:
+                    # Remove the db record
+                    db.execute('DELETE FROM player_name_request WHERE embed_message_id = %s;', (int(payload.message_id),))
+                    # Delete the embed message
+                member = guild.get_member(message_ids[0][1])
+                await member.send(f'Your name change [{message_ids[0][2]}] has been denied.')
+                await message.delete()
+            else:
+                x = int('hey')
+        except Exception as e:
+            await send_raw_to_debug_channel('Name change exception 2', e)
             pass
-    return
 
 
 
@@ -1421,6 +1416,8 @@ async def table(
                 # else:
                 my_player_mmr_change = team[len(team)-1]
                 my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
+                # Dont go below 0 mmr
+                # Keep mogi history clean - chart doesn't go below 0
                 if my_player_new_mmr < 0:
                     my_player_mmr_change = my_player_mmr
                     my_player_new_mmr = 0
