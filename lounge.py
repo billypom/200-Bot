@@ -1422,6 +1422,7 @@ async def table(
                 my_player_mmr_change = team[len(team)-1]
                 my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
                 if my_player_new_mmr < 0:
+                    my_player_mmr_change = my_player_mmr
                     my_player_new_mmr = 0
 
                 # Start creating string for MMR table
