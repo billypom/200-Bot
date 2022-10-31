@@ -400,7 +400,7 @@ async def on_raw_reaction_add(payload):
     try:
         with DBA.DBAccess() as db:
             message_ids = db.query('SELECT embed_message_id, player_id, requested_name FROM player_name_request WHERE was_accepted = %s ORDER BY create_date DESC;', (0,))
-    except Exception:
+    except Exception as e:
         await send_raw_to_debug_channel('Name change exception 1', e)
         return
 
