@@ -55,12 +55,6 @@ with DBA.DBAccess() as db:
     for i in range(len(get_tier_list)):
         TIER_ID_LIST.append(get_tier_list[i][0])
 
-# # Initialize the RANK_ID_LIST
-# with DBA.DBAccess() as db:
-#     temp = db.query('SELECT rank_id FROM ranks WHERE rank_id > %s;', (0,))
-#     for i in range(len(temp)):
-#         RANK_ID_LIST.append(temp[i][0])
-
 # Discord UI button - Confirmation button
 class Confirm(View):
     def __init__(self, uid):
@@ -91,194 +85,6 @@ class Confirm(View):
         self.stop()
 
 
-
-# OLD MULTITHREAD CODE
-# "threading in python is a bit of a lie, python has a global interpreter lock which means that even if you have multiple threads running, 
-# it can only run one thread at a time so if you have two threads running, then python in the background just switches between them"
-# - Vike 10/19/2022
-# "i delet multi thred"
-# - me
-# # Not async because of concurrent futures
-# def get_live_streamers(temp):
-#     list_of_streams = []
-#     for i in range(0, len(temp)):
-#         streamer_name = temp[i][0]
-#         if streamer_name is None:
-#             continue
-#         else:
-#             streamer_name = str(streamer_name).strip().lower()
-#         body = {
-#             'client_id': secretly.twitch_client_id,
-#             'client_secret': secretly.twitch_client_secret,
-#             "grant_type": 'client_credentials'
-#         }
-#         r = requests.post('https://id.twitch.tv/oauth2/token', body)
-#         #data output
-#         keys = r.json()
-#         #print(keys)
-#         headers = {
-#             'Client-ID': secretly.twitch_client_id,
-#             'Authorization': 'Bearer ' + keys['access_token']
-#         }
-#         #print(headers)
-#         stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
-#         stream_data = stream.json()
-#         try:
-#             if len(stream_data['data']) == 1:
-#                 is_live = True
-#                 streamer_name = stream_data['data'][0]['user_name']
-#                 stream_title = stream_data['data'][0]['title']
-#                 stream_thumbnail_url = stream_data['data'][0]['thumbnail_url']
-#                 list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
-#             else:
-#                 is_live = False
-#                 stream_title = ""
-#                 stream_thumbnail_url = ""
-#                 list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
-#         except Exception as e:
-#             continue
-
-#         # name, title, image, is_live, db_mogimediamessageid, db_player_id
-        
-#     return list_of_streams
-
-# def mogi_media_check():
-    # try:
-    #     with DBA.DBAccess() as db:
-    #         temp = db.query('SELECT p.twitch_link, p.mogi_media_message_id, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
-    # except Exception:
-    #     return
-
-    # with concurrent.futures.ThreadPoolExecutor() as executor:
-    #     future = executor.submit(get_live_streamers, temp)
-    #     streams = future.result()
-    # # print(f'future.result from thread executor: {streams}')
-    # for stream in streams:
-    #     try:
-    #         # If live
-    #         if stream[3]:
-    #             # If no mogi media sent yet
-    #             if stream[4] is None:
-    #                 member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
-    #                 member = member_future.result()
-    #                 embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
-    #                 embed.add_field(name='Link', value=f'https://twitch.tv/{stream[0]}', inline=False)
-    #                 embed.set_image(url=stream[2])
-    #                 embed.set_thumbnail(url=member.display_avatar)
-    #                 mogi_media = client.get_channel(mogi_media_channel_id)
-    #                 temp_val = asyncio.run_coroutine_threadsafe(mogi_media.send(embed=embed), client.loop)
-    #                 mogi_media_message = temp_val.result()
-    #                 with DBA.DBAccess() as db:
-    #                     db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
-    #         # If not live
-    #         else:
-    #             if stream[4] > 0: 
-    #                 member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
-    #                 member = member_future.result()               
-    #                 channel = client.get_channel(mogi_media_channel_id)
-    #                 temp_message = asyncio.run_coroutine_threadsafe(channel.fetch_message(stream[4]), client.loop)
-    #                 message = temp_message.result()
-    #                 asyncio.run_coroutine_threadsafe(message.delete(), client.loop)
-    #                 with DBA.DBAccess() as db:
-    #                     db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (member.id,))
-    #     except Exception as e:
-    #         continue
-
-# def update_mogilist():
-#     try:
-#         MOGILIST = {}
-#         pre_ml_string = ''
-#         pre_mllu_string = ''
-#         remove_chars = {
-#             39:None, # ,
-#             91:None, # [
-#             93:None, # ]
-#         }
-#         with DBA.DBAccess() as db:
-#             temp = db.query('SELECT t.tier_id, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
-#         for i in range(len(temp)): # create dictionary {tier_id:[list of players in tier]}
-#             if temp[i][0] in MOGILIST:
-#                 MOGILIST[temp[i][0]].append(temp[i][1])
-#             else:
-#                 MOGILIST[temp[i][0]]=[temp[i][1]]
-#         num_active_mogis = len(MOGILIST.keys())
-#         num_full_mogis = 0
-#         for k,v in MOGILIST.items():
-#             pre_ml_string += f'<#{k}> - ({len(v)}/12)\n'
-#             if len(v) >= 12:
-#                 num_full_mogis +=1
-#             mllu_players = str(v).translate(remove_chars)
-#             pre_mllu_string += f'<#{k}> - ({len(v)}/12) - {mllu_players}\n'
-#         title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n\n'
-#         ml_string = f'{title}{pre_ml_string}'
-#         mllu_string = f'{title}{pre_mllu_string}'
-
-#         ml = client.get_channel(secretly.mogilist_channel)
-#         # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
-#         ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id), client.loop)
-#         asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'{ml_string}'), client.loop)
-
-#         mllu = client.get_channel(secretly.mogilist_lu_channel)
-#         mllu_message = asyncio.run_coroutine_threadsafe(mllu.fetch_message(ml_lu_channel_message_id), client.loop)
-#         asyncio.run_coroutine_threadsafe(mllu_message.result().edit(content=f'{mllu_string}'), client.loop)
-#     except Exception as e:
-#         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('mogilist error', e), client.loop)
-
-# def inactivity_check():
-#     # print('checking inactivity')
-#     unix_now = time.mktime(datetime.datetime.now().timetuple())
-#     try:
-#         with DBA.DBAccess() as db:
-#             temp = db.query('SELECT l.player_id, UNIX_TIMESTAMP(l.last_active), l.tier_id, l.wait_for_activity, p.player_name FROM lineups as l JOIN player as p ON l.player_id = p.player_id WHERE l.can_drop = %s;', (1,))
-#     except Exception as e:
-#         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 1 {secrely.my_discord}', e), client.loop)
-#         return
-#     for i in range(len(temp)):
-#         name = temp[i][4]
-#         unix_difference = unix_now - temp[i][1]
-#         # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
-#         if unix_difference < 900: # if it has been less than 15 minutes
-#             if unix_difference > 600: # if it has been more than 10 minutes
-#                 channel = client.get_channel(temp[i][2])
-#                 if temp[i][3] == 0: # false we are not waiting for activity
-#                     message = f'<@{temp[i][0]}> Type anything in the chat in the next 5 minutes to keep your spot in the mogi.'
-#                     asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=300), client.loop)
-#                     # set wait_for_activity = 1 means the ping was already sent.
-#                     try:
-#                         with DBA.DBAccess() as db:
-#                             db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0])) # we are waiting for activity
-#                     except Exception as e:
-#                         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 2 {secrely.my_discord}', e), client.loop)
-#                         return
-#             else: # has not been at least 10 minutes yet
-#                 continue # does this make it faster? idk
-#         elif unix_difference > 1200: # if its been more than 20 minutes
-#             # Drop player
-#             try:
-#                 with DBA.DBAccess() as db:
-#                     db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
-#             except Exception as e:
-#                 asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'{secrely.my_discord} inactivity_check - cannot delete from lineup',f'{temp[i][0]} | {temp[i][1]} | {temp[i][2]} | {e}'), client.loop)
-#                 return
-#             # Send message
-#             channel = client.get_channel(temp[i][2])
-#             message = f'{name} has been removed from the mogi due to inactivity'
-#             asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
-#         else:
-#             continue
-
-# def lounge_threads():
-#     time.sleep(30)
-#     while(True):
-#         pass
-#         # update_mogilist()
-#         # inactivity_check()
-#         # mogi_media_check()
-#         # time.sleep(15)
-
-
-# poll_thread = threading.Thread(target=lounge_threads)
-# poll_thread.start()
 
 
 @client.event
@@ -410,17 +216,27 @@ async def on_raw_reaction_add(payload):
             # Join
             try:
                 if str(payload.emoji) == '✅':
-                    with DBA.DBAccess() as db:
-                        # Set record to accepted
-                        db.execute('UPDATE player_name_request SET was_accepted = %s WHERE embed_message_id = %s;', (1, int(payload.message_id)))
-                        # Change the db username
-                        db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[i][2], message_ids[i][1]))
-                        # Change the discord username
+                    try:
+                        with DBA.DBAccess() as db:
+                            # Set record to accepted
+                            db.execute('UPDATE player_name_request SET was_accepted = %s WHERE embed_message_id = %s;', (1, int(payload.message_id)))
+                            # Change the db username
+                            db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (message_ids[i][2], message_ids[i][1]))
+                            # Change the discord username
+                    except Exception as e:
+                        await send_raw_to_debug_channel('Name change exception 2', e)
+                        pass
                     member = guild.get_member(message_ids[i][1])
-                    await member.send(f'Your name change [{message_ids[i][2]}] has been approved.')
-                    # Delete the embed message
-                    await message.delete()
-                    await member.edit(nick=str(message_ids[i][2]))
+                    try:
+                        await member.send(f'Your name change [{message_ids[i][2]}] has been approved.')
+                    except Exception as e:
+                        await send_raw_to_debug_channel('Name change exception 3', e)
+                        pass
+                    try:
+                        await member.edit(nick=str(message_ids[i][2]))
+                    except Exception as e:
+                        await send_raw_to_debug_channel('Name change exception 4', e)
+                        pass
                 elif str(payload.emoji) == '❌':
                     with DBA.DBAccess() as db:
                         # Remove the db record
@@ -436,6 +252,8 @@ async def on_raw_reaction_add(payload):
                 pass
         try:
             await message.remove_reaction(payload.emoji, member)
+            # Delete the embed message
+            await message.delete()
         except Exception:
             pass
     return
@@ -774,101 +592,6 @@ async def l(
     response = f'{response}\n\n\nYou can type `/l` again in 30 seconds'
     await ctx.respond(response, delete_after=30)
     return
-
-# does not matter to put sub in lineups table
-# /sub
-# @client.slash_command(
-#     name='sub',
-#     description='Sub out a player',
-#     # guild_ids=Lounge
-# )
-# async def sub(
-#     ctx,
-#     leaving_player: discord.Option(discord.Member, 'Leaving player', required=True),
-#     subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
-#     ):
-#     await ctx.defer()
-#     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-#     if lounge_ban:
-#         await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
-#         return
-#     else:
-#         pass
-#     # Same player
-#     if leaving_player.id == subbing_player.id:
-#         await ctx.respond('<:bruh:1006883398607978537>')
-#         return
-#     # Player was already in lineup, got subbed out
-#     with DBA.DBAccess() as db:
-#         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (subbing_player.id,))
-#         if temp:
-#             if temp[0][0] == subbing_player.id:
-#                 await ctx.respond('Player cannot sub into a mogi after being subbed out.')
-#                 return
-#         else:
-#             pass
-#     # Player exists
-#     a = await check_if_uid_exists(leaving_player.id)
-#     if a:
-#         pass
-#     else:
-#         await ctx.respond('Use `/verify <mkc link>` to register for Lounge')
-#         return
-#     b = await check_if_uid_exists(subbing_player.id)
-#     if b:
-#         pass
-#     else:
-#         await ctx.respond(f'{subbing_player.name} is not registered for Lounge')
-#         return
-#     x = await check_if_mogi_is_ongoing(ctx)
-#     if x:
-#         pass
-#     else:
-#         await ctx.respond('Mogi has not started')
-#         return
-#     # Only players in the mogi can sub out others
-#     y = await check_if_uid_in_first_12_of_tier(ctx.author.id, ctx.channel.id)
-#     if y:
-#         pass
-#     else:
-#         await ctx.respond('You are not in the mogi. You cannot sub out another player')
-#         return
-#     z = await check_if_uid_in_specific_tier(leaving_player.id, ctx.channel.id)
-#     if z:
-#         pass
-#     else:
-#         await ctx.respond(f'<@{leaving_player.id}> is not in this mogi.')
-#         return
-#     try:
-#         with DBA.DBAccess() as db:
-#             first_12 = db.query('SELECT player_id FROM (SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12) as l WHERE player_id = %s;', (ctx.channel.id, subbing_player.id))
-#             if first_12: # if there are players in lineup (first 12)
-#                 if first_12[0][0] == subbing_player.id: # if subbing is already in lineup (first 12)
-#                     await ctx.respond(f'{subbing_player.mention} is already in this mogi')
-#                     return
-#                 else:
-#                     pass
-#             try:
-#                 leaving_player_name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (leaving_player.id,))[0][0]
-#                 subbing_player_name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (subbing_player.id,))[0][0]
-#                 teams_string = db.query('SELECT teams_string FROM tier WHERE tier_id = %s;', (ctx.channel.id,))[0][0]
-#                 teams_string = teams_string.replace(leaving_player_name, subbing_player_name)
-#                 teams_string += f'\n\n`EDITED`: `{leaving_player_name}` -> `{subbing_player_name}`'
-#                 db.execute('DELETE FROM lineups WHERE player_id = %s;', (subbing_player.id,))
-#                 db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
-#                 db.execute('UPDATE tier SET teams_string = %s WHERE tier_id = %s;', (teams_string, ctx.channel.id))
-#             except Exception:
-#                 await ctx.respond(f'``Error 42:`` FATAL ERROR - {secretly.my_discord} help!!!')
-#                 return
-#     except Exception as e:
-#         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
-#         await send_to_debug_channel(ctx, f'/sub error 19 {e}')
-#         return
-#     with DBA.DBAccess() as db:
-#         db.execute('INSERT INTO sub_leaver (player_id, tier_id) VALUES (%s, %s);', (leaving_player.id, ctx.channel.id))
-#     await ctx.respond(f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}>')
-#     await send_to_sub_log(ctx, f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}> in {ctx.channel.mention}')
-#     return
 
 # /esn
 @client.slash_command(
@@ -2969,12 +2692,13 @@ async def check_if_mkc_user_id_used(mkc_user_id):
 async def check_if_player_exists(ctx):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM player WHERE player_id = %s;', (ctx.author.id, ))
-            if temp[0][0] == ctx.author.id:
+            pid = db.query('SELECT player_id FROM player WHERE player_id = %s;', (ctx.author.id, ))[0][0]
+            if pid == ctx.author.id:
                 return True
             else:
                 return False
     except Exception as e:
+        await send_to_debug_channel(ctx, f'{e}')
         return False
 
 async def check_if_uid_exists(uid):
@@ -3349,3 +3073,319 @@ async def peak_mmr_wrapper(input):
     return (f'<span foreground="Yellow1"><i>{input}</i></span>')
 
 client.run(secretly.token)
+
+# old crap below...
+
+
+
+
+
+
+# # Initialize the RANK_ID_LIST
+# with DBA.DBAccess() as db:
+#     temp = db.query('SELECT rank_id FROM ranks WHERE rank_id > %s;', (0,))
+#     for i in range(len(temp)):
+#         RANK_ID_LIST.append(temp[i][0])
+
+
+
+
+
+
+
+# does not matter to put sub in lineups table
+# /sub
+# @client.slash_command(
+#     name='sub',
+#     description='Sub out a player',
+#     # guild_ids=Lounge
+# )
+# async def sub(
+#     ctx,
+#     leaving_player: discord.Option(discord.Member, 'Leaving player', required=True),
+#     subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
+#     ):
+#     await ctx.defer()
+#     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+#     if lounge_ban:
+#         await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+#         return
+#     else:
+#         pass
+#     # Same player
+#     if leaving_player.id == subbing_player.id:
+#         await ctx.respond('<:bruh:1006883398607978537>')
+#         return
+#     # Player was already in lineup, got subbed out
+#     with DBA.DBAccess() as db:
+#         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (subbing_player.id,))
+#         if temp:
+#             if temp[0][0] == subbing_player.id:
+#                 await ctx.respond('Player cannot sub into a mogi after being subbed out.')
+#                 return
+#         else:
+#             pass
+#     # Player exists
+#     a = await check_if_uid_exists(leaving_player.id)
+#     if a:
+#         pass
+#     else:
+#         await ctx.respond('Use `/verify <mkc link>` to register for Lounge')
+#         return
+#     b = await check_if_uid_exists(subbing_player.id)
+#     if b:
+#         pass
+#     else:
+#         await ctx.respond(f'{subbing_player.name} is not registered for Lounge')
+#         return
+#     x = await check_if_mogi_is_ongoing(ctx)
+#     if x:
+#         pass
+#     else:
+#         await ctx.respond('Mogi has not started')
+#         return
+#     # Only players in the mogi can sub out others
+#     y = await check_if_uid_in_first_12_of_tier(ctx.author.id, ctx.channel.id)
+#     if y:
+#         pass
+#     else:
+#         await ctx.respond('You are not in the mogi. You cannot sub out another player')
+#         return
+#     z = await check_if_uid_in_specific_tier(leaving_player.id, ctx.channel.id)
+#     if z:
+#         pass
+#     else:
+#         await ctx.respond(f'<@{leaving_player.id}> is not in this mogi.')
+#         return
+#     try:
+#         with DBA.DBAccess() as db:
+#             first_12 = db.query('SELECT player_id FROM (SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12) as l WHERE player_id = %s;', (ctx.channel.id, subbing_player.id))
+#             if first_12: # if there are players in lineup (first 12)
+#                 if first_12[0][0] == subbing_player.id: # if subbing is already in lineup (first 12)
+#                     await ctx.respond(f'{subbing_player.mention} is already in this mogi')
+#                     return
+#                 else:
+#                     pass
+#             try:
+#                 leaving_player_name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (leaving_player.id,))[0][0]
+#                 subbing_player_name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (subbing_player.id,))[0][0]
+#                 teams_string = db.query('SELECT teams_string FROM tier WHERE tier_id = %s;', (ctx.channel.id,))[0][0]
+#                 teams_string = teams_string.replace(leaving_player_name, subbing_player_name)
+#                 teams_string += f'\n\n`EDITED`: `{leaving_player_name}` -> `{subbing_player_name}`'
+#                 db.execute('DELETE FROM lineups WHERE player_id = %s;', (subbing_player.id,))
+#                 db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
+#                 db.execute('UPDATE tier SET teams_string = %s WHERE tier_id = %s;', (teams_string, ctx.channel.id))
+#             except Exception:
+#                 await ctx.respond(f'``Error 42:`` FATAL ERROR - {secretly.my_discord} help!!!')
+#                 return
+#     except Exception as e:
+#         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
+#         await send_to_debug_channel(ctx, f'/sub error 19 {e}')
+#         return
+#     with DBA.DBAccess() as db:
+#         db.execute('INSERT INTO sub_leaver (player_id, tier_id) VALUES (%s, %s);', (leaving_player.id, ctx.channel.id))
+#     await ctx.respond(f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}>')
+#     await send_to_sub_log(ctx, f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}> in {ctx.channel.mention}')
+#     return
+
+
+
+
+
+
+
+
+# OLD MULTITHREAD CODE
+# "threading in python is a bit of a lie, python has a global interpreter lock which means that even if you have multiple threads running, 
+# it can only run one thread at a time so if you have two threads running, then python in the background just switches between them"
+# - Vike 10/19/2022
+# "i delet multi thred"
+# - me
+# # Not async because of concurrent futures
+# def get_live_streamers(temp):
+#     list_of_streams = []
+#     for i in range(0, len(temp)):
+#         streamer_name = temp[i][0]
+#         if streamer_name is None:
+#             continue
+#         else:
+#             streamer_name = str(streamer_name).strip().lower()
+#         body = {
+#             'client_id': secretly.twitch_client_id,
+#             'client_secret': secretly.twitch_client_secret,
+#             "grant_type": 'client_credentials'
+#         }
+#         r = requests.post('https://id.twitch.tv/oauth2/token', body)
+#         #data output
+#         keys = r.json()
+#         #print(keys)
+#         headers = {
+#             'Client-ID': secretly.twitch_client_id,
+#             'Authorization': 'Bearer ' + keys['access_token']
+#         }
+#         #print(headers)
+#         stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
+#         stream_data = stream.json()
+#         try:
+#             if len(stream_data['data']) == 1:
+#                 is_live = True
+#                 streamer_name = stream_data['data'][0]['user_name']
+#                 stream_title = stream_data['data'][0]['title']
+#                 stream_thumbnail_url = stream_data['data'][0]['thumbnail_url']
+#                 list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
+#             else:
+#                 is_live = False
+#                 stream_title = ""
+#                 stream_thumbnail_url = ""
+#                 list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
+#         except Exception as e:
+#             continue
+
+#         # name, title, image, is_live, db_mogimediamessageid, db_player_id
+        
+#     return list_of_streams
+
+# def mogi_media_check():
+    # try:
+    #     with DBA.DBAccess() as db:
+    #         temp = db.query('SELECT p.twitch_link, p.mogi_media_message_id, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.can_drop = 0;', ())
+    # except Exception:
+    #     return
+
+    # with concurrent.futures.ThreadPoolExecutor() as executor:
+    #     future = executor.submit(get_live_streamers, temp)
+    #     streams = future.result()
+    # # print(f'future.result from thread executor: {streams}')
+    # for stream in streams:
+    #     try:
+    #         # If live
+    #         if stream[3]:
+    #             # If no mogi media sent yet
+    #             if stream[4] is None:
+    #                 member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
+    #                 member = member_future.result()
+    #                 embed = discord.Embed(title=stream[0], description=stream[1], color=discord.Color.purple())
+    #                 embed.add_field(name='Link', value=f'https://twitch.tv/{stream[0]}', inline=False)
+    #                 embed.set_image(url=stream[2])
+    #                 embed.set_thumbnail(url=member.display_avatar)
+    #                 mogi_media = client.get_channel(mogi_media_channel_id)
+    #                 temp_val = asyncio.run_coroutine_threadsafe(mogi_media.send(embed=embed), client.loop)
+    #                 mogi_media_message = temp_val.result()
+    #                 with DBA.DBAccess() as db:
+    #                     db.execute('UPDATE player SET mogi_media_message_id = %s WHERE player_id = %s;', (mogi_media_message.id, member.id))
+    #         # If not live
+    #         else:
+    #             if stream[4] > 0: 
+    #                 member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
+    #                 member = member_future.result()               
+    #                 channel = client.get_channel(mogi_media_channel_id)
+    #                 temp_message = asyncio.run_coroutine_threadsafe(channel.fetch_message(stream[4]), client.loop)
+    #                 message = temp_message.result()
+    #                 asyncio.run_coroutine_threadsafe(message.delete(), client.loop)
+    #                 with DBA.DBAccess() as db:
+    #                     db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (member.id,))
+    #     except Exception as e:
+    #         continue
+
+# def update_mogilist():
+#     try:
+#         MOGILIST = {}
+#         pre_ml_string = ''
+#         pre_mllu_string = ''
+#         remove_chars = {
+#             39:None, # ,
+#             91:None, # [
+#             93:None, # ]
+#         }
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT t.tier_id, p.player_name FROM tier t INNER JOIN lineups l ON t.tier_id = l.tier_id INNER JOIN player p ON l.player_id = p.player_id WHERE p.player_id > %s;', (1,))
+#         for i in range(len(temp)): # create dictionary {tier_id:[list of players in tier]}
+#             if temp[i][0] in MOGILIST:
+#                 MOGILIST[temp[i][0]].append(temp[i][1])
+#             else:
+#                 MOGILIST[temp[i][0]]=[temp[i][1]]
+#         num_active_mogis = len(MOGILIST.keys())
+#         num_full_mogis = 0
+#         for k,v in MOGILIST.items():
+#             pre_ml_string += f'<#{k}> - ({len(v)}/12)\n'
+#             if len(v) >= 12:
+#                 num_full_mogis +=1
+#             mllu_players = str(v).translate(remove_chars)
+#             pre_mllu_string += f'<#{k}> - ({len(v)}/12) - {mllu_players}\n'
+#         title = f'There are {num_active_mogis} active mogi and {num_full_mogis} full mogi.\n\n'
+#         ml_string = f'{title}{pre_ml_string}'
+#         mllu_string = f'{title}{pre_mllu_string}'
+
+#         ml = client.get_channel(secretly.mogilist_channel)
+#         # returns a Future object. need to get the .result() of the Future (which is the Discord.message object)
+#         ml_message = asyncio.run_coroutine_threadsafe(ml.fetch_message(ml_channel_message_id), client.loop)
+#         asyncio.run_coroutine_threadsafe(ml_message.result().edit(content=f'{ml_string}'), client.loop)
+
+#         mllu = client.get_channel(secretly.mogilist_lu_channel)
+#         mllu_message = asyncio.run_coroutine_threadsafe(mllu.fetch_message(ml_lu_channel_message_id), client.loop)
+#         asyncio.run_coroutine_threadsafe(mllu_message.result().edit(content=f'{mllu_string}'), client.loop)
+#     except Exception as e:
+#         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel('mogilist error', e), client.loop)
+
+# def inactivity_check():
+#     # print('checking inactivity')
+#     unix_now = time.mktime(datetime.datetime.now().timetuple())
+#     try:
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT l.player_id, UNIX_TIMESTAMP(l.last_active), l.tier_id, l.wait_for_activity, p.player_name FROM lineups as l JOIN player as p ON l.player_id = p.player_id WHERE l.can_drop = %s;', (1,))
+#     except Exception as e:
+#         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 1 {secrely.my_discord}', e), client.loop)
+#         return
+#     for i in range(len(temp)):
+#         name = temp[i][4]
+#         unix_difference = unix_now - temp[i][1]
+#         # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
+#         if unix_difference < 900: # if it has been less than 15 minutes
+#             if unix_difference > 600: # if it has been more than 10 minutes
+#                 channel = client.get_channel(temp[i][2])
+#                 if temp[i][3] == 0: # false we are not waiting for activity
+#                     message = f'<@{temp[i][0]}> Type anything in the chat in the next 5 minutes to keep your spot in the mogi.'
+#                     asyncio.run_coroutine_threadsafe(channel.send(message, delete_after=300), client.loop)
+#                     # set wait_for_activity = 1 means the ping was already sent.
+#                     try:
+#                         with DBA.DBAccess() as db:
+#                             db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0])) # we are waiting for activity
+#                     except Exception as e:
+#                         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 2 {secrely.my_discord}', e), client.loop)
+#                         return
+#             else: # has not been at least 10 minutes yet
+#                 continue # does this make it faster? idk
+#         elif unix_difference > 1200: # if its been more than 20 minutes
+#             # Drop player
+#             try:
+#                 with DBA.DBAccess() as db:
+#                     db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
+#             except Exception as e:
+#                 asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'{secrely.my_discord} inactivity_check - cannot delete from lineup',f'{temp[i][0]} | {temp[i][1]} | {temp[i][2]} | {e}'), client.loop)
+#                 return
+#             # Send message
+#             channel = client.get_channel(temp[i][2])
+#             message = f'{name} has been removed from the mogi due to inactivity'
+#             asyncio.run_coroutine_threadsafe(channel.send(message), client.loop)
+#         else:
+#             continue
+
+# def lounge_threads():
+#     time.sleep(30)
+#     while(True):
+#         pass
+#         # update_mogilist()
+#         # inactivity_check()
+#         # mogi_media_check()
+#         # time.sleep(15)
+
+
+# poll_thread = threading.Thread(target=lounge_threads)
+# poll_thread.start()
+
+
+
+
+
+
+
