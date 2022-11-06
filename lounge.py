@@ -1627,7 +1627,7 @@ async def teams(ctx):
 # /zstrikes
 @client.slash_command(
     name='zstrikes',
-    description='See your strikes',
+    description='See strikes for a specific player',
     #guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -1902,8 +1902,10 @@ async def zstrike(
     if y:
         await ctx.respond('Invalid reason')
         return
-    else:
-        pass
+    player_is_placement = await check_if_uid_is_placement(player.id)
+    if player_is_placement:
+        await ctx.respond('Cannot strike a placement player')
+        return
     # Send info to strikes table
     mmr_penalty = abs(mmr_penalty)
     # Update player MMR
@@ -2036,6 +2038,10 @@ async def zmmr_penalty(
         pass
     else:
         await ctx.respond('Player not found')
+        return
+    player_is_placement = await check_if_uid_is_placement(player.id)
+    if player_is_placement:
+        await ctx.respond('Cannot strike a placement player')
         return
     try:
         with DBA.DBAccess() as db:
@@ -2745,6 +2751,18 @@ async def check_if_uid_is_lounge_banned(uid):
             return temp[0][0]
     except Exception as e:
         return False
+
+async def check_if_uid_is_placement(uid):
+    try:
+        with DBA.DBAccess() as db:
+            mmr = db.query('SELECT mmr FROM player WHERE player_id = %s;', (uid,))[0][0]
+        if mmr is None:
+            return True
+        elif mmr >= 0:
+            return False
+    except Exception as e:
+        await send_raw_to_debug_channel('Check if uid is placement error:', e)
+        return True
 
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
