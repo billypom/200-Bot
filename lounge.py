@@ -1916,7 +1916,7 @@ async def zstrike(
     with DBA.DBAccess() as db:
         temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
         if temp[0][0] is None:
-            mmr = mmr_penalty
+            mmr = mmr_penalty # super punished for leaving ur 1st match?
         else:
             mmr = temp[0][0]
     with DBA.DBAccess() as db:
@@ -2041,7 +2041,7 @@ async def zmmr_penalty(
         return
     player_is_placement = await check_if_uid_is_placement(player.id)
     if player_is_placement:
-        await ctx.respond('Cannot strike a placement player')
+        await ctx.respond('Cannot apply mmr penalty to a placement player')
         return
     try:
         with DBA.DBAccess() as db:
