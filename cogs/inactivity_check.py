@@ -28,7 +28,7 @@ class inactivity_check(commands.Cog):
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT l.player_id, UNIX_TIMESTAMP(l.last_active), l.tier_id, l.wait_for_activity, p.player_name FROM lineups as l JOIN player as p ON l.player_id = p.player_id WHERE l.can_drop = %s;', (1,))
         except Exception as e:
-            await self.send_raw_to_debug_channel(f'inactivity_check error 1 {secrely.my_discord}', e)
+            await self.send_raw_to_debug_channel(f'inactivity_check error 1 {secretly.my_discord}', e)
             return
         for i in range(len(temp)):
             name = temp[i][4]
