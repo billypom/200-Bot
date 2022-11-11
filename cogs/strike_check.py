@@ -29,7 +29,13 @@ class strike_check(commands.Cog):
         except Exception as e:
             await self.send_raw_to_debug_channel(f'strike_check error 1 {secretly.my_discord}', e)
             return
-        await self.send_raw_to_debug_channel(f'strike_check pass', str(temp))
+        await self.send_raw_to_debug_channel(f'Strikes expiring today by strike_id', str(temp))
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('UPDATE strike SET is_active = %s WHERE expiration_date < %s;', (0, current_time))
+        except Exception as e:
+            await self.send_raw_to_debug_channel(f'strike_check error 2 {secretly.my_discord}', e)
+            return
 
     @check.before_loop
     async def before_check(self):
