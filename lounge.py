@@ -2183,7 +2183,15 @@ async def zchange_discord_account(
     await ctx.respond(f'Successfully moved player `{old_discord_id}` -> `{new_discord_id}`')
     return
 
-
+@client.slash_command(
+    name='zreload_cogs',
+    description='[DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING]'
+)
+@commands.has_any_role(ADMIN_ROLE_ID)
+async def zreload_cogs(ctx):
+    for extension in initial_extensions:
+        client.reload_extension(extension)
+        await send_raw_to_debug_channel('cog reloaded', extension)
 
 
 

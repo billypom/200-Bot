@@ -62,7 +62,7 @@ CREATE TABLE strike (
     reason varchar(32),
     mmr_penalty int,
     is_active boolean default 1,
-    create_date TIMESTAMP default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    create_date TIMESTAMP default CURRENT_TIMESTAMP NOT NULL,
     expiration_date TIMESTAMP NOT NULL,
     CONSTRAINT strikepk PRIMARY KEY (strike_id),
     CONSTRAINT strikefk FOREIGN KEY (player_id) REFERENCES player(player_id)
