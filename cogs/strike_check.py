@@ -25,7 +25,7 @@ class strike_check(commands.Cog):
         current_time = datetime.datetime.now()
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT strike_id FROM strike WHERE expiration_date < %s;', (current_time,))
+                temp = db.query('SELECT strike_id FROM strike WHERE expiration_date < %s AND is_active = %s;', (current_time, 1))
         except Exception as e:
             await self.send_raw_to_debug_channel(f'strike_check error 1 {secretly.my_discord}', e)
             return
