@@ -23,10 +23,9 @@ class strike_check(commands.Cog):
     @tasks.loop(hours=24)
     async def check(self):
         current_time = datetime.datetime.now()
-        min_date = current_time - datetime.timedelta(days=30)
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT strike_id FROM strike WHERE expiration_date < %s;', (min_date,))
+                temp = db.query('SELECT strike_id FROM strike WHERE expiration_date < %s;', (current_time,))
         except Exception as e:
             await self.send_raw_to_debug_channel(f'strike_check error 1 {secretly.my_discord}', e)
             return
