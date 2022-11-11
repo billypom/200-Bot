@@ -2187,7 +2187,7 @@ async def zchange_discord_account(
     name='zreload_cogs',
     description='[DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING]'
 )
-@commands.has_any_role(ADMIN_ROLE_ID)
+@commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
 async def zreload_cogs(ctx):
     for extension in initial_extensions:
         client.reload_extension(extension)
