@@ -1318,6 +1318,10 @@ async def stats(
         return
     else:
         pass
+    tier_chats = [1010662448715546706,1010662628793786448,1010663000987934771,1010663109536534539]
+    if ctx.channel.id in tier_chats:
+        await ctx.respond('`/stats` is not available in tier channels.')
+        return
     mmr_history = [] #
     score_history = [] #
     mogi_id_history = [] #
