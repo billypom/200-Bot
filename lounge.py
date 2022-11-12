@@ -2192,6 +2192,7 @@ async def zreload_cogs(ctx):
     for extension in initial_extensions:
         client.reload_extension(extension)
         await send_raw_to_debug_channel('cog reloaded', extension)
+    await ctx.respond('Cogs reloaded successfully')
 
 
 
