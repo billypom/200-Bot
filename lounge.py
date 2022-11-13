@@ -24,20 +24,19 @@ import pykakasi
 from korean_romanizer.romanizer import Romanizer
 import operator
 
-Lounge = [461383953937596416]
-mogi_media_channel_id = 1005091507604312074
+Lounge = secretly.Lounge
 # mogi_media_message_id = 1005205285817831455
 TIER_ID_LIST = list()
-RANK_ID_LIST = [791874714434797589, 794262638518730772, 794262898423627857, 794262916627038258, 794262925098745858, 794262959084797984, 794263467581374524, 970028275789365368, 846497627508047872]
-MAX_PLAYERS_IN_MOGI = 12
-SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = 604800
-NAME_CHANGE_DELTA_LIMIT = 5184000
-REPORTER_ROLE_ID = 872770141606273034
-ADMIN_ROLE_ID = 461388423572357130
-UPDATER_ROLE_ID = 461461018971996162
-CHAT_RESTRICTED_ROLE_ID = 845084987417559040
-LOUNGELESS_ROLE_ID = 463868896743522304
-PLACEMENT_ROLE_ID = 846497627508047872
+RANK_ID_LIST = secretly.RANK_ID_LIST
+MAX_PLAYERS_IN_MOGI = secretly.MAX_PLAYERS_IN_MOGI
+SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = secretly.SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT
+NAME_CHANGE_DELTA_LIMIT = secretly.NAME_CHANGE_DELTA_LIMIT
+REPORTER_ROLE_ID = secretly.REPORTER_ROLE_ID
+ADMIN_ROLE_ID = secretly.ADMIN_ROLE_ID
+UPDATER_ROLE_ID = secretly.UPDATER_ROLE_ID
+CHAT_RESTRICTED_ROLE_ID = secretly.CHAT_RESTRICTED_ROLE_ID
+LOUNGELESS_ROLE_ID = secretly.LOUNGELESS_ROLE_ID
+PLACEMENT_ROLE_ID = secretly.PLACEMENT_ROLE_ID
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -467,7 +466,7 @@ async def c(
         # return
     
     # Check for squad queue channel
-    if ctx.channel.id == 965286774098260029:
+    if ctx.channel.id == secretly.squad_queue_channel:
         await ctx.respond('Use !c to join squad queue')
         return
 
@@ -1201,7 +1200,7 @@ async def table(
                 if mogi_media_message_id is None:
                     pass
                 else:
-                    channel = client.get_channel(mogi_media_channel_id)
+                    channel = client.get_channel(secretly.mogi_media_channel_id)
                     message = await channel.fetch_message(mogi_media_message_id)
                     await message.delete()
 
@@ -1318,8 +1317,7 @@ async def stats(
         return
     else:
         pass
-    tier_chats = [1010662448715546706,1010662628793786448,1010663000987934771,1010663109536534539]
-    if ctx.channel.id in tier_chats:
+    if ctx.channel.id in secretly.tier_chats:
         await ctx.respond('`/stats` is not available in tier channels.')
         return
     mmr_history = [] #
@@ -3299,7 +3297,7 @@ client.run(secretly.token)
     #                 embed.add_field(name='Link', value=f'https://twitch.tv/{stream[0]}', inline=False)
     #                 embed.set_image(url=stream[2])
     #                 embed.set_thumbnail(url=member.display_avatar)
-    #                 mogi_media = client.get_channel(mogi_media_channel_id)
+    #                 mogi_media = client.get_channel(secretly.mogi_media_channel_id)
     #                 temp_val = asyncio.run_coroutine_threadsafe(mogi_media.send(embed=embed), client.loop)
     #                 mogi_media_message = temp_val.result()
     #                 with DBA.DBAccess() as db:
@@ -3309,7 +3307,7 @@ client.run(secretly.token)
     #             if stream[4] > 0: 
     #                 member_future = asyncio.run_coroutine_threadsafe(GUILD.fetch_member(stream[5]), client.loop)
     #                 member = member_future.result()               
-    #                 channel = client.get_channel(mogi_media_channel_id)
+    #                 channel = client.get_channel(secretly.mogi_media_channel_id)
     #                 temp_message = asyncio.run_coroutine_threadsafe(channel.fetch_message(stream[4]), client.loop)
     #                 message = temp_message.result()
     #                 asyncio.run_coroutine_threadsafe(message.delete(), client.loop)
