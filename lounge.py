@@ -257,6 +257,16 @@ async def on_raw_reaction_add(payload):
             pass
     return
 
+@client.slash_command(
+    name='qwe',
+    description='qwe',
+)
+async def qwe(ctx):
+    await ctx.defer(ephemeral=True)
+    channel = client.get_channel(ctx.channel.id)
+    await channel.send(f'qwe')
+    await ctx.respond('qwe')
+    return
 
 
 # /verify <link>

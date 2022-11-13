@@ -6,8 +6,8 @@ import DBA
 import secretly
 import math
 
-ml_channel_message_id = 1010644370954924052
-ml_lu_channel_message_id = 1010644338499403937
+ml_channel_message_id = secretly.ml_channel_message_id
+ml_lu_channel_message_id = secretly.ml_lu_channel_message_id
 
 class update_mogilist(commands.Cog):
     def __init__(self, client):

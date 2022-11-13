@@ -6,13 +6,13 @@ import DBA
 import secretly
 import requests
 
-Lounge = [461383953937596416]
+Lounge = secretly.Lounge
 
 class mogi_media_check(commands.Cog):
     def __init__(self, client):
         self.mogi_media.start()
         self.client = client
-        self.mogi_media_channel_id = 1005091507604312074
+        self.mogi_media_channel_id = secretly.mogi_media_channel_id
 
     async def send_raw_to_debug_channel(self, anything, error):
         channel = self.client.get_channel(secretly.debug_channel)
