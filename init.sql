@@ -106,7 +106,7 @@ CREATE TABLE player_name_request(
     requested_name varchar(16),
     was_accepted boolean default 0,
     embed_message_id bigint unsigned,
-    create_date TIMESTAMP default CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP NOT NULL,
+    create_date TIMESTAMP default CURRENT_TIMESTAMP,
     CONSTRAINT playernamerequestpk PRIMARY KEY (id),
     CONSTRAINT playernamerequestfk FOREIGN KEY (player_id) REFERENCES player(player_id)
 );
@@ -119,6 +119,18 @@ CREATE TABLE sub_leaver(
     CONSTRAINT subleaversfk1 FOREIGN KEY (player_id) REFERENCES player(player_id),
     CONSTRAINT subleaversfk2 FOREIGN KEY (tier_id) REFERENCES tier(tier_id)
 );
+
+CREATE TABLE suggestion(
+    id int unsigned auto_increment,
+    content varchar(1000),
+    was_accepted boolean default NULL,
+    author_id bigint unsigned,
+    create_date TIMESTAMP default CURRENT_TIMESTAMP,
+    CONSTRAINT suggestionpk PRIMARY KEY (id)
+);
+-- null = suggestion sent but not responded to
+-- 0 = suggestion denied
+-- 1 = suggestion approved
 
 insert into ranks (rank_id, rank_name, mmr_min, mmr_max, placement_mmr)
 values (791874714434797589, 'Grandmaster', 11000, 99999, NULL),

@@ -1636,6 +1636,37 @@ async def teams(ctx):
         response = "Use `/teams` in a tier channel"
     await ctx.respond(response)
 
+@client.slash_command(
+    name='suggest',
+    description='Suggest an improvement for the Lounge (1000 characters max)'
+)
+async def suggest(
+    ctx,
+    message: discord.Option(str, 'Type your suggestion', required=True)
+    ):
+    await ctx.defer()
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+        return
+    else:
+        pass
+    x = await check_if_banned_characters(message)
+    if x:
+        await ctx.respond(f'Oops! There was an error with your suggestion. Try using less symbols :P')
+        return
+    with DBA.DBAccess() as db:
+        db.execute('INSERT INTO suggestion (content, author_id) VALUES (%s, %s);', (message, ctx.author.id))
+        suggestion_id = db.query('SELECT id FROM suggestion WHERE author_id = %s AND content = %s', (ctx.author.id, message))[0][0]
+    response_message = await send_to_suggestion_voting_channel(ctx, suggestion_id, message)
+    request_message_id = request_message.id
+    await request_message.add_reaction('⬆️')
+    await request_message.add_reaction('⬇️')
+
+    
+
+
+
 # /zstrikes
 @client.slash_command(
     name='zstrikes',
@@ -2250,7 +2281,7 @@ async def set_player_roles(ctx):
         except Exception as e:
             await send_to_debug_channel(ctx, f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')
             pass
-        return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`. Please check your role and use `/mmr` to make sure you have your MMR from Season 4'
+        return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`. Please check your role and use `/mmr` to make sure you have your MMR from Season 4. \n\nIf your MMR did not transfer, contact {secretly.my_discord}. If you play a mogi before we resolve your issue, your mmr will be locked in from your placement match.'
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'
@@ -2869,6 +2900,21 @@ async def send_to_name_change_log(ctx, id, message):
     embed.set_thumbnail(url=ctx.author.avatar.url)
     x = await channel.send(content=None, embed=embed)
     return x
+
+async def send_to_suggestion_voting_channel(ctx, suggestion_id, message):
+    channel = client.get_channel(secretly.suggestion_voting_channel)
+    embed = discord.Embed(title='Suggestion', description=f'', color = discord.Color.blurple())
+    embed.add_field(name=f'#{suggestion_id}', value=message, inline=False)
+    embed.set_thumbnail(url=ctx.author.avatar.url)
+    x = await channel.send(content=None, embed=embed)
+    return x
+
+async def send_to_suggestion_log_channel(ctx, suggestion_id, message, decision):
+    channel = client.get_channel(secretly.suggestion_log_channel)
+    if decision:
+        embed = discord.Embed(title='Suggestion Approved', description=f'', color=discord.Color.green())
+    else:
+        embed = discord.Embed(title='Suggestion Denied', description=f'', color=discord.Color.red())
 
 async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
     channel = client.get_channel(secretly.ip_match_channel)
