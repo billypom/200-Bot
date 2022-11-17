@@ -1716,7 +1716,7 @@ async def deny(
         await send_raw_to_debug_channel('/deny_suggestion error 2', e)
 
     await send_to_suggestion_log_channel(ctx, suggestion_id, crap[0][2], 0, crap[0][1], ctx.author.id, reason)
-    await ctx.respond(f'Suggestion #{suggestion_id} approved')
+    await ctx.respond(f'Suggestion #{suggestion_id} denied')
 
 # /zstrikes
 @client.slash_command(
