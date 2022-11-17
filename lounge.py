@@ -1482,7 +1482,7 @@ async def stats(
 
     rgb_flag = f'rgb({red},{green},{blue})'
     correct = subprocess.run([f'convert', rank_filename, '-fill', rgb_flag, '-tint', '100', stats_rank_filename])
-    # f=discord.File(rank_filename, filename='rank.jpg')
+    f=discord.File(rank_filename, filename='rank.jpg')
     sf=discord.File(stats_rank_filename, filename='stats_rank.jpg')
 
     embed = discord.Embed(title=f'{title}', description=f'[{player_name}](https://200-lounge.com/player/{player_name})', color = discord.Color.from_rgb(red, green, blue)) # website link
