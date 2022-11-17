@@ -257,6 +257,7 @@ async def on_raw_reaction_add(payload):
             pass
     return
 
+# /qwe
 @client.slash_command(
     name='qwe',
     description='qwe',
@@ -265,7 +266,7 @@ async def qwe(ctx):
     await ctx.defer(ephemeral=True)
     channel = client.get_channel(ctx.channel.id)
     await channel.send(f'qwe')
-    await ctx.respond('qwe')
+    await ctx.respond('<#1041162013038092313>')
     return
 
 
@@ -1640,6 +1641,7 @@ async def teams(ctx):
     name='suggest',
     description='Suggest an improvement for the Lounge (1000 characters max)'
 )
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def suggest(
     ctx,
     message: discord.Option(str, 'Type your suggestion', required=True)
@@ -2281,7 +2283,7 @@ async def set_player_roles(ctx):
         except Exception as e:
             await send_to_debug_channel(ctx, f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')
             pass
-        return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`. Please check your role and use `/mmr` to make sure you have your MMR from Season 4. \n\nIf your MMR did not transfer, contact {secretly.my_discord}. If you play a mogi before we resolve your issue, your mmr will be locked in from your placement match.'
+        return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`\n\n**Returning players from Season 4**, '
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'
