@@ -125,6 +125,8 @@ CREATE TABLE suggestion(
     content varchar(1000),
     was_accepted boolean default NULL,
     author_id bigint unsigned,
+    admin_id bigint unsigned,
+    reason varchar(1000),
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
     CONSTRAINT suggestionpk PRIMARY KEY (id)
 );

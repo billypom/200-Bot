@@ -1637,16 +1637,16 @@ async def teams(ctx):
         response = "Use `/teams` in a tier channel"
     await ctx.respond(response)
 
+# /suggest
 @client.slash_command(
     name='suggest',
     description='Suggest an improvement for the Lounge (1000 characters max)'
 )
-@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def suggest(
     ctx,
     message: discord.Option(str, 'Type your suggestion', required=True)
     ):
-    await ctx.defer()
+    await ctx.defer(ephemeral=True)
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
         await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
@@ -1660,14 +1660,63 @@ async def suggest(
     with DBA.DBAccess() as db:
         db.execute('INSERT INTO suggestion (content, author_id) VALUES (%s, %s);', (message, ctx.author.id))
         suggestion_id = db.query('SELECT id FROM suggestion WHERE author_id = %s AND content = %s', (ctx.author.id, message))[0][0]
-    response_message = await send_to_suggestion_voting_channel(ctx, suggestion_id, message)
+    request_message = await send_to_suggestion_voting_channel(ctx, suggestion_id, message)
     request_message_id = request_message.id
     await request_message.add_reaction('⬆️')
     await request_message.add_reaction('⬇️')
+    await ctx.respond('Your suggestion has been submitted.')
 
+# /approve_suggestion
+@client.slash_command(
+    name='approve_suggestion',
+    description='Approve a suggestion by ID'
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def approve(
+    ctx,
+    suggestion_id: discord.Option(int, 'Suggestion ID', required=True),
+    reason: discord.Option(str, 'Type your reason (1000 characters max)', required=True)
+    ):
+    await ctx.defer()
+    try:
+        with DBA.DBAccess() as db:
+            crap = db.query('SELECT id, author_id, content FROM suggestion WHERE id = %s;', (suggestion_id, ))
+    except Exception as e:
+        await send_raw_to_debug_channel('/approve_suggestion error 1', e)
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE suggestion SET reason = %s, was_accepted = %s WHERE id = %s', (reason, 1, suggestion_id))
+    except Exception as e:
+        await send_raw_to_debug_channel('/approve_suggestion error 2', e)
     
+    await send_to_suggestion_log_channel(ctx, suggestion_id, crap[0][2], 1, crap[0][1], ctx.author.id, reason)
+    await ctx.respond(f'Suggestion #{suggestion_id} approved')
 
+# /deny_suggestion
+@client.slash_command(
+    name='deny_suggestion',
+    description='Deny a suggestion by ID'
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def deny(
+    ctx,
+    suggestion_id: discord.Option(int, 'Suggestion ID', required=True),
+    reason: discord.Option(str, 'Type your reason (1000 characters max)', required=True)
+    ):
+    await ctx.defer()
+    try:
+        with DBA.DBAccess() as db:
+            crap = db.query('SELECT id, author_id, content FROM suggestion WHERE id = %s;', (suggestion_id, ))
+    except Exception as e:
+        await send_raw_to_debug_channel('/deny_suggestion error 1', e)
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE suggestion SET reason = %s, was_accepted = %s WHERE id = %s', (reason, 0, suggestion_id))
+    except Exception as e:
+        await send_raw_to_debug_channel('/deny_suggestion error 2', e)
 
+    await send_to_suggestion_log_channel(ctx, suggestion_id, crap[0][2], 0, crap[0][1], ctx.author.id, reason)
+    await ctx.respond(f'Suggestion #{suggestion_id} approved')
 
 # /zstrikes
 @client.slash_command(
@@ -2907,16 +2956,23 @@ async def send_to_suggestion_voting_channel(ctx, suggestion_id, message):
     channel = client.get_channel(secretly.suggestion_voting_channel)
     embed = discord.Embed(title='Suggestion', description=f'', color = discord.Color.blurple())
     embed.add_field(name=f'#{suggestion_id}', value=message, inline=False)
-    embed.set_thumbnail(url=ctx.author.avatar.url)
+    embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
     x = await channel.send(content=None, embed=embed)
     return x
 
-async def send_to_suggestion_log_channel(ctx, suggestion_id, message, decision):
+async def send_to_suggestion_log_channel(ctx, suggestion_id, message, decision, author_id, admin_id, reason):
     channel = client.get_channel(secretly.suggestion_log_channel)
+    member = GUILD.get_member(author_id)
     if decision:
-        embed = discord.Embed(title='Suggestion Approved', description=f'', color=discord.Color.green())
+        embed = discord.Embed(title=f'Suggestion #{suggestion_id} Approved', description=f'', color=discord.Color.green())
     else:
-        embed = discord.Embed(title='Suggestion Denied', description=f'', color=discord.Color.red())
+        embed = discord.Embed(title=f'Suggestion #{suggestion_id} Denied', description=f'', color=discord.Color.red())
+    embed.set_author(name=member.display_name, icon_url=member.avatar.url)
+    embed.add_field(name='Suggestion', value=message, inline=False)
+    embed.add_field(name=f'Reason from {ctx.author.display_name}', value=reason)
+    x = await channel.send(content=None, embed=embed)
+    return x
+    
 
 async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
     channel = client.get_channel(secretly.ip_match_channel)
