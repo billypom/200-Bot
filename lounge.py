@@ -1670,7 +1670,7 @@ async def suggest(
 # /approve_suggestion
 @client.slash_command(
     name='approve_suggestion',
-    description='Approve a suggestion by ID'
+    description='Approve a suggestion by ID',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -2282,7 +2282,7 @@ async def zchange_discord_account(
 
 @client.slash_command(
     name='zreload_cogs',
-    description='[DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING]'
+    description='[DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING]',
     guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
