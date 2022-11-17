@@ -261,6 +261,7 @@ async def on_raw_reaction_add(payload):
 @client.slash_command(
     name='qwe',
     description='qwe',
+    guild_ids=Lounge
 )
 async def qwe(ctx):
     await ctx.defer(ephemeral=True)
