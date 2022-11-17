@@ -266,7 +266,7 @@ async def qwe(ctx):
     await ctx.defer(ephemeral=True)
     channel = client.get_channel(ctx.channel.id)
     await channel.send(f'qwe')
-    await ctx.respond('<#1041162013038092313>')
+    await ctx.respond('qwe')
     return
 
 
@@ -274,7 +274,7 @@ async def qwe(ctx):
 @client.slash_command(
     name='verify',
     description='Verify your MKC account',
-    # guild_ids=Lounge
+    guild_ids=Lounge
 )
 async def verify(
     ctx, 
@@ -410,7 +410,7 @@ async def verify(
 @client.slash_command(
     name='c',
     description='🙋 Can up for a mogi',
-    # guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.cooldown(1, 3, commands.BucketType.user)
 async def c(
@@ -517,7 +517,7 @@ async def c(
 @client.slash_command(
     name='d',
     description='Drop from the mogi',
-    # guild_ids=Lounge
+    guild_ids=Lounge
 )
 async def d(
     ctx,
@@ -576,7 +576,7 @@ async def d(
 @client.slash_command(
     name='l',
     description='Show the mogi list',
-    # guild_ids=Lounge
+    guild_ids=Lounge
 )
 # @commands.command(aliases=['list'])
 @commands.cooldown(1, 30, commands.BucketType.user)
@@ -607,7 +607,7 @@ async def l(
 @client.slash_command(
     name='esn',
     description='End (mogi) Start New (mogi)',
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 async def esn(ctx):
     await ctx.defer()
@@ -804,7 +804,7 @@ async def name(
 @client.slash_command(
     name='table',
     description='Submit a table',
-    # guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_role(REPORTER_ROLE_ID)
 async def table(
@@ -1611,7 +1611,7 @@ async def strikes(ctx):
 @client.slash_command(
     name='teams',
     description='See the teams in the ongoing mogi',
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 async def teams(ctx):
     await ctx.defer()
@@ -1640,7 +1640,8 @@ async def teams(ctx):
 # /suggest
 @client.slash_command(
     name='suggest',
-    description='Suggest an improvement for the Lounge (1000 characters max)'
+    description='Suggest an improvement for the Lounge (1000 characters max)',
+    guild_ids=Lounge
 )
 async def suggest(
     ctx,
@@ -1670,6 +1671,7 @@ async def suggest(
 @client.slash_command(
     name='approve_suggestion',
     description='Approve a suggestion by ID'
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def approve(
@@ -1695,7 +1697,8 @@ async def approve(
 # /deny_suggestion
 @client.slash_command(
     name='deny_suggestion',
-    description='Deny a suggestion by ID'
+    description='Deny a suggestion by ID',
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def deny(
@@ -1722,7 +1725,7 @@ async def deny(
 @client.slash_command(
     name='zstrikes',
     description='See strikes for a specific player',
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zstrikes(ctx,
@@ -1790,7 +1793,7 @@ async def zstrikes(ctx,
 @client.slash_command(
     name='zcancel_mogi',
     description='Cancel an ongoing mogi [Admin only]',
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zcancel_mogi(ctx):
@@ -1821,7 +1824,7 @@ async def zcancel_mogi(ctx):
 @client.slash_command(
     name="zrevert",
     description="Undo a table [Admin only]",
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zrevert(
@@ -1917,7 +1920,7 @@ async def zrevert(
 @client.slash_command(
     name="zswapscore",
     description="Swap the score of two players on the same team [Admin only]",
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zswapscore(
@@ -1973,7 +1976,7 @@ async def zswapscore(
 @client.slash_command(
     name='zstrike',
     description='Add strike & -mmr penalty to a player [Admin only]',
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zstrike(
@@ -2038,7 +2041,7 @@ async def zstrike(
 @client.slash_command(
     name='zhostban',
     description='Add hostban to a player [Admin only]',
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zhostban(
@@ -2067,7 +2070,7 @@ async def zhostban(
 @client.slash_command(
     name='zrestrict',
     description='Chat restrict a player [Admin only]',
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zrestrict(
@@ -2093,7 +2096,7 @@ async def zrestrict(
 @client.slash_command(
     name='zloungeless',
     description='Apply the loungeless role [Admin only]',
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zloungeless(
@@ -2118,7 +2121,7 @@ async def zloungeless(
 @client.slash_command(
     name='zmmr_penalty',
     description='Give a player an MMR penalty, with no strike [Admin only]',
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zmmr_penalty(
@@ -2153,7 +2156,7 @@ async def zmmr_penalty(
 @client.slash_command(
     name='zsendmsg',
     description='bot send message here',
-    #guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID)
 async def zsendmsg(ctx):
@@ -2166,7 +2169,7 @@ async def zsendmsg(ctx):
 @client.slash_command(
     name='zreduce_loss',
     description='Reduce the loss for 1 player in 1 mogi',
-    # guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zreduce_loss(ctx,
@@ -2223,7 +2226,7 @@ async def zreduce_loss(ctx,
 @client.slash_command(
     name='zchange_discord_account',
     description='Change a players discord account [Admin only] [Developer mode required]',
-    # guild_ids=Lounge
+    guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID)
 async def zchange_discord_account(
@@ -2280,6 +2283,7 @@ async def zchange_discord_account(
 @client.slash_command(
     name='zreload_cogs',
     description='[DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING]'
+    guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
 async def zreload_cogs(ctx):
