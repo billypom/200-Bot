@@ -2314,7 +2314,7 @@ async def set_player_roles(ctx):
                     remove_rank = guild.get_role(rank[0])
                     await member.remove_roles(remove_rank)
             await member.add_roles(role)
-            return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`. Please check your role and use `/mmr` to make sure you have your MMR from Season 4'
+            return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`\n\n⚠️**Returning players from Season 4**⚠️\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer. Playing your placement match before the S4 MMR transfer will lock your MMR'
             
 
         with DBA.DBAccess() as db:
@@ -2336,7 +2336,7 @@ async def set_player_roles(ctx):
         except Exception as e:
             await send_to_debug_channel(ctx, f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')
             pass
-        return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`\n\n**Returning players from Season 4**, '
+        return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`\n\n⚠️**Returning players from Season 4**⚠️\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer. Playing your placement match before the S4 MMR transfer will lock your MMR'
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'
