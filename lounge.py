@@ -1314,13 +1314,49 @@ async def table(
 )
 async def stats(
     ctx,
-    tier: discord.Option(discord.TextChannel, description='Which tier?', required=False),
-    player: discord.Option(discord.Member, description='Which player?', required=False),
+    # tier: discord.Option(discord.TextChannel, description='Which tier?', required=False),
+    tier: discord.Option(str, description='Which tier? (a, b, c, all, sq)', required=False),
+    player: discord.Option(str, description='Which player?', required=False),
+    # player: discord.Option(discord.Member, description='Which player?', required=False),
     last: discord.Option(int, description='How many mogis?', required=False)
     ):
+    # Validate strings.
+    if tier is None:
+       pass
+    else: # User entered a value, so check it
+        bad = await check_if_banned_characters(tier)
+        if bad:
+            await ctx.respond("Invalid tier")
+            await send_to_verification_log(ctx, tier, discord.Color.blurple(), vlog_msg.error1)
+            return
+        # Retrieve tier ID and api request the discord.TextChannel object
+        try:
+            with DBA.DBAccess() as db:
+                tier_id = db.query('SELECT tier_id FROM tier WHERE tier_name = %s;', (tier,))[0][0]
+        except Exception as e: # bad input 2 - no tier by that name
+            await ctx.respond("Invalid tier")
+            return
+    if player is None:
+        pass
+    else:
+        bad = await check_if_banned_characters(player)
+        if bad:
+            await ctx.respond("Invalid player")
+            await send_to_verification_log(ctx, player, discord.Color.blurple(), vlog_msg.error1)
+            return
+        # Retrieve player ID and api request the discord.Member object
+        try:
+            with DBA.DBAccess() as db:
+                player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
+        except Exception as e: # bad input 2 - no player by that name
+            await ctx.respond('Invalid player')
+            return
     if last is None:
         number_of_mogis = 999999
     else:
+        if last < 0:
+            await ctx.respond('Cannot have negative amount of matches.')
+            return
         number_of_mogis = last
     await ctx.defer()
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
@@ -1349,7 +1385,7 @@ async def stats(
     if player is None:
         my_player_id = ctx.author.id
     else:
-        my_player_id = player.id
+        my_player_id = player_id
     # Create matplotlib MMR history graph
     try: # Checks for valid player
         with DBA.DBAccess() as db:
@@ -1387,10 +1423,10 @@ async def stats(
                     else:
                         last_10_losses += 1
         partner_average = await get_partner_avg(my_player_id, number_of_mogis)
-    elif tier.id in TIER_ID_LIST:
+    elif tier_id in TIER_ID_LIST:
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, tier.id, number_of_mogis))
+                temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, tier_id, number_of_mogis))
                 for i in range(len(temp)):
                     mmr_history.append(temp[i][0])
                     score_history.append(temp[i][1])
@@ -1405,7 +1441,7 @@ async def stats(
             await send_to_debug_channel(ctx, f'/stats not played in tier | {e}')
             await ctx.respond(f'You have not played in {tier.mention}')
             return
-        partner_average = await get_partner_avg(my_player_id, number_of_mogis, tier.id)
+        partner_average = await get_partner_avg(my_player_id, number_of_mogis, tier_id)
     else:
         await ctx.respond(f'``Error 30:`` {tier.mention} is not a valid tier')
         return
@@ -1454,7 +1490,7 @@ async def stats(
     if tier is None:
         pass
     else:
-        title+=f' | {tier.name}'
+        title+=f' | tier-{tier}'
     if last is None:
         pass
     else:
@@ -1477,8 +1513,8 @@ async def stats(
     if mmr >= 11000:
         red, green, blue = 163, 2, 44
 
-    rank_filename = '/home/lounge/200-Lounge-Mogi-Bot/images/rank.png'
-    stats_rank_filename = '/home/lounge/200-Lounge-Mogi-Bot/images/stats_rank.png'
+    rank_filename = './images/rank.png'
+    stats_rank_filename = './images/stats_rank.png'
 
     rgb_flag = f'rgb({red},{green},{blue})'
     correct = subprocess.run([f'convert', rank_filename, '-fill', rgb_flag, '-tint', '100', stats_rank_filename])
