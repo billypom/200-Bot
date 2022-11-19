@@ -2413,6 +2413,7 @@ async def create_player(ctx, mkc_user_id, country_code):
                 temp_name+=char
                 count+=1
             insert_name = temp_name
+        altered_name = str(insert_name).replace(" ", "-")
         
         f = open('/home/lounge/200-Lounge-Mogi-Bot/200lounge.csv',encoding='utf-8-sig') # f is our filename as string
         lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
@@ -2421,7 +2422,6 @@ async def create_player(ctx, mkc_user_id, country_code):
             name = line[0]
             if name.lower() == (ctx.author.display_name).lower():
                 altered_name = str(insert_name).replace(" ", "-")
-                name_was_altered = True
                 mmr = int(line[2])
                 with DBA.DBAccess() as db:
                     ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
@@ -2439,14 +2439,7 @@ async def create_player(ctx, mkc_user_id, country_code):
                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, insert_name, mkc_user_id, country_code))
             member = await GUILD.fetch_member(ctx.author.id)
             # change player nick name on join
-            if name_was_altered:
-                if altered_name == "":
-                    await member.edit(nick=str(insert_name))
-                else:
-                    await member.edit(nick=str(altered_name))
-            else:
-                await member.edit(nick=str(insert_name))
-                
+            await member.edit(nick=str(altered_name))
             role = GUILD.get_role(PLACEMENT_ROLE_ID)
             await member.add_roles(role)
             return 'Verified & registered successfully'
