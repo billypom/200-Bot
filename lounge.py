@@ -1161,7 +1161,8 @@ async def table(
                 # Dont go below 0 mmr
                 # Keep mogi history clean - chart doesn't go below 0
                 if my_player_new_mmr < 0:
-                    my_player_mmr_change = my_player_mmr
+                    # if someone gets negative mmr, it is always a loss. add L :pensive:
+                    my_player_mmr_change = (my_player_mmr)*-1
                     my_player_new_mmr = 0
 
                 # Start creating string for MMR table
