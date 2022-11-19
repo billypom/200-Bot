@@ -2253,7 +2253,7 @@ async def zreduce_loss(ctx,
     adjusted_mmr = int(math.floor(reverted_player_mmr + adjusted_mmr_change))
     try:
         with DBA.DBAccess() as db:
-            db.execute('UPDATE player_mogi SET mmr_change = %s WHERE player_id = %s AND mogi_id = %s;', (adjusted_mmr_change, player.id, mogi_id))
+            db.execute('UPDATE player_mogi SET mmr_change = %s, new_mmr = %s WHERE player_id = %s AND mogi_id = %s;', (adjusted_mmr_change, adjusted_mmr, player.id, mogi_id))
             db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (adjusted_mmr, player.id))
     except Exception as e:
         await send_to_debug_channel(ctx, f'player: {player} | mogi id: {mogi_id} | reduction: {reduction} | {e}')
