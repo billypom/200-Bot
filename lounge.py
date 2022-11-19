@@ -3225,7 +3225,7 @@ async def grandmaster_wrapper(input):
 
 async def master_wrapper(input):
     # return (f'[2;40m[2;37m{input}[0m[2;40m[0m')
-    return (f'<span foreground="black">{input}</span>')
+    return (f'<span foreground="BlueViolet">{input}</span>')
 
 async def diamond_wrapper(input):
     # return (f'[0;2m[0;34m{input}[0m[0m')
