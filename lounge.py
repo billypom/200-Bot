@@ -37,6 +37,8 @@ UPDATER_ROLE_ID = secretly.UPDATER_ROLE_ID
 CHAT_RESTRICTED_ROLE_ID = secretly.CHAT_RESTRICTED_ROLE_ID
 LOUNGELESS_ROLE_ID = secretly.LOUNGELESS_ROLE_ID
 PLACEMENT_ROLE_ID = secretly.PLACEMENT_ROLE_ID
+CATEGORIES_MESSAGE_ID = secretly.CATEGORIES_MESSAGE_ID
+SQ_HELPER_CHANNEL_ID = secretly.SQ_HELPER_CHANNEL_ID
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -850,14 +852,14 @@ async def table(
             player_id_list_check.append(temp[0][0])
 
     # Check for if mogi has started
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
-            players_in_lineup_count = temp[0][0]
-    except Exception as e:
-        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}. {e}')
-        await send_to_debug_channel(ctx, f'/table Error 18: {e}')
-        return
+    # try:
+    #     with DBA.DBAccess() as db:
+    #         temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
+    #         players_in_lineup_count = temp[0][0]
+    # except Exception as e:
+    #     await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}. {e}')
+    #     await send_to_debug_channel(ctx, f'/table Error 18: {e}')
+    #     return
     # does not matter when u make table anymore
     # if players_in_lineup_count < 12:
         # await ctx.respond('Mogi has not started. Cannot create a table now')
@@ -2380,6 +2382,8 @@ async def set_player_roles(ctx):
 
 # Cool&Create
 async def create_player(ctx, mkc_user_id, country_code):
+    name_was_altered = False # track if we found their old name and had to alter it to fit new criteria
+    altered_name = ""
     x = await check_if_player_exists(ctx)
     if x:
         return 'Player already registered'
@@ -2417,6 +2421,7 @@ async def create_player(ctx, mkc_user_id, country_code):
             name = line[0]
             if name.lower() == (ctx.author.display_name).lower():
                 altered_name = str(insert_name).replace(" ", "-")
+                name_was_altered = True
                 mmr = int(line[2])
                 with DBA.DBAccess() as db:
                     ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
@@ -2433,6 +2438,15 @@ async def create_player(ctx, mkc_user_id, country_code):
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, insert_name, mkc_user_id, country_code))
             member = await GUILD.fetch_member(ctx.author.id)
+            # change player nick name on join
+            if name_was_altered:
+                if altered_name == "":
+                    await member.edit(nick=str(insert_name))
+                else:
+                    await member.edit(nick=str(altered_name))
+            else:
+                await member.edit(nick=str(insert_name))
+                
             role = GUILD.get_role(PLACEMENT_ROLE_ID)
             await member.add_roles(role)
             return 'Verified & registered successfully'
