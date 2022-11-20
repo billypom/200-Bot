@@ -2240,20 +2240,22 @@ async def zreduce_loss(ctx,
     multiplier = int(reduce[0])/int(reduce[1])
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mmr_change FROM player_mogi WHERE player_id = %s AND mogi_id = %s;', (player.id, mogi_id))
+            temp = db.query('SELECT mmr_change, prev_mmr FROM player_mogi WHERE player_id = %s AND mogi_id = %s;', (player.id, mogi_id))
             temp2 = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
             mmr_change = temp[0][0]
+            prev_mmr = temp[0][1]
             mmr = temp2[0][0]
     except Exception:
         await ctx.respond('``Error 40:`` tell popuko or try again later')
         return
-    reverse_mmr_change = mmr_change * -1
-    reverted_player_mmr = mmr + reverse_mmr_change
-    adjusted_mmr_change = int(math.floor(mmr_change * multiplier))
-    adjusted_mmr = int(math.floor(reverted_player_mmr + adjusted_mmr_change))
+    reverted_mmr_change = mmr_change * -1 # opposite of mmr_change
+    reverted_mmr = mmr + reverted_mmr_change # temp variable
+    adjusted_mmr_change = int(math.floor(mmr_change * multiplier)) # mmr change * reduction value
+    adjusted_mmr = reverted_mmr + adjusted_mmr_change # player mmr
+    adjusted_new_mmr = int(math.floor(prev_mmr + adjusted_mmr_change)) # pm new_mmr
     try:
         with DBA.DBAccess() as db:
-            db.execute('UPDATE player_mogi SET mmr_change = %s, new_mmr = %s WHERE player_id = %s AND mogi_id = %s;', (adjusted_mmr_change, adjusted_mmr, player.id, mogi_id))
+            db.execute('UPDATE player_mogi SET mmr_change = %s, new_mmr = %s WHERE player_id = %s AND mogi_id = %s;', (adjusted_mmr_change, adjusted_new_mmr, player.id, mogi_id))
             db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (adjusted_mmr, player.id))
     except Exception as e:
         await send_to_debug_channel(ctx, f'player: {player} | mogi id: {mogi_id} | reduction: {reduction} | {e}')
