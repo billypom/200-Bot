@@ -483,13 +483,24 @@ async def c(
     if ctx.channel.id == secretly.squad_queue_channel:
         await ctx.respond('Use !c to join squad queue')
         return
+    
+    if ctx.channel.id in TIER_ID_LIST:
+        pass
+    else:
+        tiers = ''
+        for i in TIER_ID_LIST:
+            if i == secretly.squad_queue_channel:
+                continue
+            tiers += f'<#{i}> '
+        await ctx.respond(f'`/c` only works in tier channels.\n\n{tiers}')
+        return
 
     # Add player to lineup
     try:
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
     except Exception as e:
-        await ctx.respond(f'``Error 16:`` Something went wrong! Contact {secretly.my_discord}.')
+        await ctx.respond(f'``Error 16:`` Try `/verify`.')
         await send_to_debug_channel(ctx, f'/c error 16 unable to join {e}')
         return
     await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
@@ -676,7 +687,7 @@ async def votes(ctx):
     if is_ongoing:
         pass
     else:
-        await ctx.respond('The mogi has not started.')
+        await ctx.respond('The vote has not started.')
         return
     vote_dict = {}
     return_string = ""
