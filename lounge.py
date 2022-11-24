@@ -430,26 +430,6 @@ async def c(
     else:
         pass
 
-    # does not matter if they got subbed. can wherever whenever
-    # Player was already in lineup, got subbed out
-    # with DBA.DBAccess() as db:
-    #     temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (ctx.author.id,))
-    #     if temp:
-    #         if temp[0][0] == ctx.author.id:
-    #             await ctx.respond('Please wait for the mogi you left to finish')
-    #             return
-    #     else:
-    #         pass
-
-    # does not matter. can wherever whenever
-    # x = await check_if_uid_in_any_active_tier(ctx.author.id)
-    # if x:
-    #     # await ctx.respond('``Error 11:`` You are already in a mogi. Use /d to drop before canning up again.')
-    #     await ctx.respond('``Error 11:`` You are in an active mogi already')
-    #     return
-    # else:
-    #     pass
-
     # Get the current lineup count - only players that were not in the last mogi (mogi_start_time not null)
     try:
         with DBA.DBAccess() as db:
@@ -503,8 +483,8 @@ async def c(
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
     except Exception as e:
-        await ctx.respond(f'``Error 16:`` Try `/verify`.')
-        await send_to_debug_channel(ctx, f'/c error 16 unable to join {e}')
+        await ctx.respond(f'``Error 16:`` Player not registered.\nTry `/verify`.')
+        # await send_to_debug_channel(ctx, f'/c error 16 unable to join {e}')
         return
     await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
     channel = client.get_channel(ctx.channel.id)
