@@ -265,10 +265,13 @@ async def on_raw_reaction_add(payload):
     description='qwe',
     guild_ids=Lounge
 )
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def qwe(ctx):
+    guild = client.get_guild(Lounge[0])
+    role = guild.get_role(791874714434797589)
     await ctx.defer(ephemeral=True)
     channel = client.get_channel(ctx.channel.id)
-    await channel.send(f'qwe')
+    await channel.send(f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`')
     await ctx.respond('qwe')
     return
 
@@ -2403,7 +2406,7 @@ async def set_player_roles(ctx):
                     remove_rank = guild.get_role(rank[0])
                     await member.remove_roles(remove_rank)
             await member.add_roles(role)
-            return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`\n\n⚠️**Returning players from Season 4**⚠️\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer. Playing your placement match before the S4 MMR transfer will lock your MMR'
+            return f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
             
 
         with DBA.DBAccess() as db:
@@ -2425,7 +2428,7 @@ async def set_player_roles(ctx):
         except Exception as e:
             await send_to_debug_channel(ctx, f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')
             pass
-        return f'Welcome back to 200cc Lounge. You have been given the role: `{role}`\n\n⚠️**Returning players from Season 4**⚠️\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer. Playing your placement match before the S4 MMR transfer will lock your MMR'
+        return f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
     except Exception as e:
         await send_to_debug_channel(ctx, e)
         return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'
