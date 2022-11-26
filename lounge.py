@@ -276,6 +276,145 @@ async def qwe(ctx):
     return
 
 
+@client.slash_command(
+    name='manually_verify_banned_player',
+    description='Receive the OK from MKC staff before using this',
+    guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def manually_verify_banned_player(
+    ctx,
+    player_id: discord.Option(str, 'Player to be verified', required=True),
+    message: discord.Option(str, 'MKC Link', required=True)
+    ):
+    await ctx.defer(ephemeral=True)
+    try:
+        player_id = int(player_id)
+    except Exception as e:
+        await ctx.respond('Invalid player_id')
+        return
+    x = await check_if_uid_exists(player_id)
+    if x:
+        lounge_ban = await check_if_uid_is_lounge_banned(player_id)
+        if lounge_ban:
+            await ctx.respond(f'This player is Lounge Banned.\nUnban date: <t:{lounge_ban}:F>')
+            return
+        else:
+            await ctx.respond(f'<@{player_id}> already exists. They should be able to `/verify` their own account.')
+            return
+    else:
+        pass
+    # Regex on https://www.mariokartcentral.com/mkc/registry/players/930
+    if 'registry' in message:
+        regex_pattern = 'players/\d*'
+        regex_pattern2 = 'users/\d*'
+        if re.search(regex_pattern, str(message)):
+            regex_group = re.search(regex_pattern, message)
+            x = regex_group.group()
+            reg_array = re.split('/', x)
+            mkc_player_id = reg_array[len(reg_array)-1]
+        elif re.search(regex_pattern2, str(message)):
+            regex_group = re.search(regex_pattern2, message)
+            x = regex_group.group()
+            reg_array = re.split('/', x)
+            mkc_player_id = reg_array[len(reg_array)-1]
+        else:
+            await ctx.respond('``Error 65:`` Oops! Something went wrong. Check your link or try again later')
+            return
+    # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
+    elif 'forums' in message:
+        regex_pattern = 'members/.*\.\d*'
+        regex_pattern2 = 'members/\d*'
+        if re.search(regex_pattern, str(message)):
+            regex_group = re.search(regex_pattern, message)
+            x = regex_group.group()
+            temp = re.split('\.|/', x)
+            mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
+        elif re.search(regex_pattern2, str(message)):
+            regex_group = re.search(regex_pattern2, message)
+            x = regex_group.group()
+            temp = re.split('\.|/', x)
+            mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
+        else:
+            # player doesnt exist on forums
+            await ctx.respond('``Error 66:`` Oops! Something went wrong. Check your link or try again later')
+            return
+    else:
+        await ctx.respond('``Error 67:`` Oops! Something went wrong. Check your link or try again later')
+        return
+    # Make sure player_id was received properly
+    if mkc_player_id != -1:
+        pass
+    else:
+        await ctx.respond('``Error 68:`` Oops! Something went wrong. Check your link or try again later')
+        return
+    # Request registry data
+    mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
+    mkc_user_id = mkc_registry_data[0]
+    country_code = mkc_registry_data[1]
+    is_banned = mkc_registry_data[2]
+
+    if is_banned == -1:
+        # Wrong link probably?
+        await ctx.respond('``Error 69:`` Oops! Something went wrong. Check your link or try again later')
+        return
+    else:
+        pass
+    # Check for shared ips
+    # Check for last seen date
+    # If last seen in the last week? pass else: send message (please log in to your mkc account and retry)
+    mkc_forum_data = await mkc_request_forum_info(mkc_user_id)
+    last_seen_unix_timestamp = float(mkc_forum_data[0])
+    # name.mkc_user_id
+    user_matches_list = mkc_forum_data[1]
+    
+    # Check if seen in last week
+    if mkc_forum_data[0] != -1:
+        dtobject_now = datetime.datetime.now()
+        unix_now = time.mktime(dtobject_now.timetuple())
+        seconds_since_last_login = unix_now - last_seen_unix_timestamp
+        if seconds_since_last_login > SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT:
+            verify_description = vlog_msg.error5
+            verify_color = discord.Color.red()
+            await ctx.respond('``Error 70:`` Contact the player you are trying to verify. Have them log into their MKC account, then retry. \n\nIf they are still being refused verification, have them click this link then try again: https://www.mariokartcentral.com/forums/index.php?members/popuko.154/')
+            await send_to_verification_log(ctx, message, verify_color, verify_description)
+            return
+        else:
+            pass
+    else:
+        verify_description = vlog_msg.error7
+        verify_color = discord.Color.red()
+        await ctx.respond('``Error 71:`` Oops! Something went wrong. Check your link or try again later')
+        await send_to_verification_log(ctx, message, verify_color, verify_description)
+        return
+    if user_matches_list:
+        verify_color = discord.Color.teal()
+        await send_to_ip_match_log(ctx, message, verify_color, user_matches_list)
+    # All clear. Roll out.
+    verify_description = vlog_msg.success
+    verify_color = discord.Color.green()
+    # Check if someone has verified as this user before...
+    x = await check_if_mkc_user_id_used(mkc_user_id)
+    if x:
+        await ctx.respond(f'``Error 72: Duplicate player`` This MKC Link is already in use. ')
+        verify_description = vlog_msg.error4
+        verify_color = discord.Color.red()
+        await send_to_verification_log(ctx, f'<@{player_id}> -> {message}', verify_color, verify_description)
+        return
+    else:
+        y = await set_uid_chat_restricted(player_id)
+        if y:
+            pass
+        else:
+            await ctx.respond(f'Could not assign chat restriction to <@{player_id}>. Abandoning player verification')
+            return
+        member = await GUILD.fetch_member(player_id)
+        x = await create_player(member, mkc_user_id, country_code)
+        await ctx.respond(x)
+        await send_to_verification_log(ctx, f'<@{player_id}> -> {message}', verify_color, verify_description)
+        return
+    
+
 # /verify <link>
 @client.slash_command(
     name='verify',
@@ -407,7 +546,8 @@ async def verify(
         await send_to_verification_log(ctx, message, verify_color, verify_description)
         return
     else:
-        x = await create_player(ctx, mkc_user_id, country_code)
+        member = await GUILD.fetch_member(ctx.author.id)
+        x = await create_player(member, mkc_user_id, country_code)
         await ctx.respond(x)
         await send_to_verification_log(ctx, message, verify_color, verify_description)
         return
@@ -2367,6 +2507,16 @@ async def zreload_cogs(ctx):
 
 
 
+# takes a uid, returns True for completed. returns False for error
+async def set_uid_chat_restricted(uid):
+    try:
+        member = await GUILD.fetch_member(uid)
+        role = GUILD.get_role(CHAT_RESTRICTED_ROLE_ID)
+        await member.add_roles(role)
+        return True
+    except Exception as e:
+        await send_raw_to_debug_channel('Could not set uid to chat restricted', uid)
+        return False
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(ctx):
@@ -2414,14 +2564,14 @@ async def set_player_roles(ctx):
         return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'
 
 # Cool&Create
-async def create_player(ctx, mkc_user_id, country_code):
+async def create_player(member, mkc_user_id, country_code):
     name_was_altered = False # track if we found their old name and had to alter it to fit new criteria
     altered_name = ""
-    x = await check_if_player_exists(ctx)
+    x = await check_if_uid_exists(member.id)
     if x:
         return 'Player already registered'
     else:
-        insert_name = await jp_kr_romanize(str(ctx.author.display_name))
+        insert_name = await jp_kr_romanize(str(member.display_name))
         # if insert name contains non alphanumerics, return error
         name_still_exists = True
         count = 0
@@ -2448,29 +2598,27 @@ async def create_player(ctx, mkc_user_id, country_code):
             insert_name = temp_name
         altered_name = str(insert_name).replace(" ", "-")
         
-        f = open('/home/lounge/200-Lounge-Mogi-Bot/200lounge.csv',encoding='utf-8-sig') # f is our filename as string
+        f = open('./200lounge.csv',encoding='utf-8-sig') # f is our filename as string
         lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
         f.close()
         for line in lines:
             name = line[0]
-            if name.lower() == (ctx.author.display_name).lower():
+            if name.lower() == (member.display_name).lower():
                 altered_name = str(insert_name).replace(" ", "-")
                 mmr = int(line[2])
                 with DBA.DBAccess() as db:
                     ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
                 for i in range(len(ranks)):
                     if mmr > int(ranks[i][1]) and mmr < int(ranks[i][2]):
-                        member = GUILD.get_member(ctx.author.id)
                         role = GUILD.get_role(ranks[i][0])
                         await member.add_roles(role)
                         with DBA.DBAccess() as db:
-                            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (ctx.author.id, altered_name, mkc_user_id, country_code, ranks[i][0], mmr, mmr))
+                            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, ranks[i][0], mmr, mmr))
                         return f'Verified & registered successfully - Assigned {role}'
 
         try:
             with DBA.DBAccess() as db:
-                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (ctx.author.id, insert_name, mkc_user_id, country_code))
-            member = await GUILD.fetch_member(ctx.author.id)
+                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (member.id, insert_name, mkc_user_id, country_code))
             # change player nick name on join
             await member.edit(nick=str(altered_name))
             role = GUILD.get_role(PLACEMENT_ROLE_ID)
@@ -3010,8 +3158,8 @@ async def send_to_danger_debug_channel(ctx, message, verify_color, verify_descri
 async def send_raw_to_debug_channel(anything, error):
     channel = client.get_channel(secretly.debug_channel)
     embed = discord.Embed(title='Error', description='>.<', color = discord.Color.yellow())
-    embed.add_field(name='anything: ', value=anything, inline=False)
-    embed.add_field(name='Error: ', value=str(error), inline=False)
+    embed.add_field(name='Anything: ', value=anything, inline=False)
+    embed.add_field(name='Info: ', value=str(error), inline=False)
     await channel.send(content=None, embed=embed)
 
 async def send_to_sub_log(ctx, message):

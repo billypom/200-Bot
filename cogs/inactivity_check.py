@@ -36,7 +36,7 @@ class inactivity_check(commands.Cog):
                 unix_difference = unix_now - temp[i][1]
             except Exception as e:
                 # await self.send_raw_to_debug_channel(f'inactivity_check error dev1 {secretly.my_discord}', e)
-                print('im devving?')
+                # print('im devving?')
                 return
             # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
             if unix_difference < 900: # if it has been less than 15 minutes
