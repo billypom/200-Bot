@@ -277,12 +277,12 @@ async def qwe(ctx):
 
 
 @client.slash_command(
-    name='manually_verify_banned_player',
+    name='zmanually_verify_banned_player',
     description='Receive the OK from MKC staff before using this',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-async def manually_verify_banned_player(
+async def zmanually_verify_banned_player(
     ctx,
     player_id: discord.Option(str, 'Player to be verified', required=True),
     message: discord.Option(str, 'MKC Link', required=True)
