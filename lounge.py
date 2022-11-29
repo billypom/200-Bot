@@ -1409,7 +1409,7 @@ async def table(
                             member = await guild.fetch_member(player[0])
                             await member.remove_roles(current_role)
                             await member.add_roles(new_role)
-                            await results_channel.send(f'<@{player[0]}> has been promoted to {new_role}')
+                            await results_channel.send(f'<@{player[0]}> has been promoted to {new_role}!')
                             with DBA.DBAccess() as db:
                                 db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (rank_id, player[0]))
                             my_player_new_rank += f'+ {new_role}'
