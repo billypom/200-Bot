@@ -628,7 +628,7 @@ async def c(
         return
     await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
     channel = client.get_channel(ctx.channel.id)
-    await channel.send(f'{ctx.author.display_name} has joined the mogi!')
+    await channel.send(f'{ctx.author.display_name} has joined the mogi!', delete_after=300)
     count+=1
     # Check for full lineup
     if count == MAX_PLAYERS_IN_MOGI:

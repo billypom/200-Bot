@@ -65,7 +65,7 @@ class inactivity_check(commands.Cog):
                 # Send message
                 channel = self.client.get_channel(temp[i][2])
                 message = f'{name} has been removed from the mogi due to inactivity'
-                await channel.send(message)
+                await channel.send(message, delete_after=300)
             else:
                 continue
     
