@@ -3036,7 +3036,7 @@ async def check_if_player_exists(ctx):
             else:
                 return False
     except Exception as e:
-        await send_to_debug_channel(ctx, f'check_if_player_exists exception: {e}')
+        # await send_to_debug_channel(ctx, f'check_if_player_exists exception: {e}')
         return False
 
 async def check_if_uid_exists(uid):
