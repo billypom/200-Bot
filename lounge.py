@@ -521,7 +521,7 @@ async def verify(
             verify_description = vlog_msg.error5
             verify_color = discord.Color.red()
             await ctx.respond('``Error 5:`` Please log in to your MKC account, then retry. \n\nIf you are still being refused verification, click this link then try again: https://www.mariokartcentral.com/forums/index.php?members/popuko.154/')
-            await send_to_verification_log(ctx, message, verify_color, verify_description)
+            # await send_to_verification_log(ctx, message, verify_color, verify_description)
             return
         else:
             pass
@@ -529,7 +529,7 @@ async def verify(
         verify_description = vlog_msg.error7
         verify_color = discord.Color.red()
         await ctx.respond('``Error 6:`` Oops! Something went wrong. Check your link or try again later')
-        await send_to_verification_log(ctx, message, verify_color, verify_description)
+        await send_to_verification_log(ctx, f'Error 6: {message}', verify_color, verify_description)
         return
     if user_matches_list:
         verify_color = discord.Color.teal()
@@ -543,7 +543,7 @@ async def verify(
         await ctx.respond(f'``Error 10: Duplicate player`` If you think this is a mistake, please contact {secretly.my_discord} immediately. ')
         verify_description = vlog_msg.error4
         verify_color = discord.Color.red()
-        await send_to_verification_log(ctx, message, verify_color, verify_description)
+        await send_to_verification_log(ctx, f'Error 10: {message}', verify_color, verify_description)
         return
     else:
         member = await GUILD.fetch_member(ctx.author.id)
@@ -2560,7 +2560,7 @@ async def set_player_roles(ctx):
             pass
         return f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
     except Exception as e:
-        await send_to_debug_channel(ctx, e)
+        await send_to_debug_channel(ctx, f'set_player_roles exception: {e}')
         return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'
 
 # Cool&Create
@@ -3036,7 +3036,7 @@ async def check_if_player_exists(ctx):
             else:
                 return False
     except Exception as e:
-        await send_to_debug_channel(ctx, f'{e}')
+        await send_to_debug_channel(ctx, f'check_if_player_exists exception: {e}')
         return False
 
 async def check_if_uid_exists(uid):
