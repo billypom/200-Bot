@@ -45,7 +45,8 @@ client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge'))
 # manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
 # send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
 
-initial_extensions = ['cogs.inactivity_check', 'cogs.update_mogilist', 'cogs.mogi_media_check', 'cogs.strike_check']
+# initial_extensions = ['cogs.inactivity_check', 'cogs.update_mogilist', 'cogs.mogi_media_check', 'cogs.strike_check']
+initial_extensions = ['cogs.strike_check']
 for extension in initial_extensions:
     client.load_extension(extension)
 
@@ -258,162 +259,6 @@ async def on_raw_reaction_add(payload):
         except Exception:
             pass
     return
-
-# /qwe
-@client.slash_command(
-    name='qwe',
-    description='qwe',
-    guild_ids=Lounge
-)
-@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-async def qwe(ctx):
-    guild = client.get_guild(Lounge[0])
-    role = guild.get_role(791874714434797589)
-    await ctx.defer(ephemeral=True)
-    channel = client.get_channel(ctx.channel.id)
-    await channel.send(f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`')
-    await ctx.respond('qwe')
-    return
-
-
-@client.slash_command(
-    name='zmanually_verify_banned_player',
-    description='Receive the OK from MKC staff before using this',
-    guild_ids=Lounge
-)
-@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-async def zmanually_verify_banned_player(
-    ctx,
-    player_id: discord.Option(str, 'Player to be verified', required=True),
-    message: discord.Option(str, 'MKC Link', required=True)
-    ):
-    await ctx.defer(ephemeral=True)
-    try:
-        player_id = int(player_id)
-    except Exception as e:
-        await ctx.respond('Invalid player_id')
-        return
-    x = await check_if_uid_exists(player_id)
-    if x:
-        lounge_ban = await check_if_uid_is_lounge_banned(player_id)
-        if lounge_ban:
-            await ctx.respond(f'This player is Lounge Banned.\nUnban date: <t:{lounge_ban}:F>')
-            return
-        else:
-            await ctx.respond(f'<@{player_id}> already exists. They should be able to `/verify` their own account.')
-            return
-    else:
-        pass
-    # Regex on https://www.mariokartcentral.com/mkc/registry/players/930
-    if 'registry' in message:
-        regex_pattern = 'players/\d*'
-        regex_pattern2 = 'users/\d*'
-        if re.search(regex_pattern, str(message)):
-            regex_group = re.search(regex_pattern, message)
-            x = regex_group.group()
-            reg_array = re.split('/', x)
-            mkc_player_id = reg_array[len(reg_array)-1]
-        elif re.search(regex_pattern2, str(message)):
-            regex_group = re.search(regex_pattern2, message)
-            x = regex_group.group()
-            reg_array = re.split('/', x)
-            mkc_player_id = reg_array[len(reg_array)-1]
-        else:
-            await ctx.respond('``Error 65:`` Oops! Something went wrong. Check your link or try again later')
-            return
-    # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
-    elif 'forums' in message:
-        regex_pattern = 'members/.*\.\d*'
-        regex_pattern2 = 'members/\d*'
-        if re.search(regex_pattern, str(message)):
-            regex_group = re.search(regex_pattern, message)
-            x = regex_group.group()
-            temp = re.split('\.|/', x)
-            mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
-        elif re.search(regex_pattern2, str(message)):
-            regex_group = re.search(regex_pattern2, message)
-            x = regex_group.group()
-            temp = re.split('\.|/', x)
-            mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
-        else:
-            # player doesnt exist on forums
-            await ctx.respond('``Error 66:`` Oops! Something went wrong. Check your link or try again later')
-            return
-    else:
-        await ctx.respond('``Error 67:`` Oops! Something went wrong. Check your link or try again later')
-        return
-    # Make sure player_id was received properly
-    if mkc_player_id != -1:
-        pass
-    else:
-        await ctx.respond('``Error 68:`` Oops! Something went wrong. Check your link or try again later')
-        return
-    # Request registry data
-    mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
-    mkc_user_id = mkc_registry_data[0]
-    country_code = mkc_registry_data[1]
-    is_banned = mkc_registry_data[2]
-
-    if is_banned == -1:
-        # Wrong link probably?
-        await ctx.respond('``Error 69:`` Oops! Something went wrong. Check your link or try again later')
-        return
-    else:
-        pass
-    # Check for shared ips
-    # Check for last seen date
-    # If last seen in the last week? pass else: send message (please log in to your mkc account and retry)
-    mkc_forum_data = await mkc_request_forum_info(mkc_user_id)
-    last_seen_unix_timestamp = float(mkc_forum_data[0])
-    # name.mkc_user_id
-    user_matches_list = mkc_forum_data[1]
-    
-    # Check if seen in last week
-    if mkc_forum_data[0] != -1:
-        dtobject_now = datetime.datetime.now()
-        unix_now = time.mktime(dtobject_now.timetuple())
-        seconds_since_last_login = unix_now - last_seen_unix_timestamp
-        if seconds_since_last_login > SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT:
-            verify_description = vlog_msg.error5
-            verify_color = discord.Color.red()
-            await ctx.respond('``Error 70:`` Contact the player you are trying to verify. Have them log into their MKC account, then retry. \n\nIf they are still being refused verification, have them click this link then try again: https://www.mariokartcentral.com/forums/index.php?members/popuko.154/')
-            await send_to_verification_log(ctx, message, verify_color, verify_description)
-            return
-        else:
-            pass
-    else:
-        verify_description = vlog_msg.error7
-        verify_color = discord.Color.red()
-        await ctx.respond('``Error 71:`` Oops! Something went wrong. Check your link or try again later')
-        await send_to_verification_log(ctx, message, verify_color, verify_description)
-        return
-    if user_matches_list:
-        verify_color = discord.Color.teal()
-        await send_to_ip_match_log(ctx, message, verify_color, user_matches_list)
-    # All clear. Roll out.
-    verify_description = vlog_msg.success
-    verify_color = discord.Color.green()
-    # Check if someone has verified as this user before...
-    x = await check_if_mkc_user_id_used(mkc_user_id)
-    if x:
-        await ctx.respond(f'``Error 72: Duplicate player`` This MKC Link is already in use. ')
-        verify_description = vlog_msg.error4
-        verify_color = discord.Color.red()
-        await send_to_verification_log(ctx, f'<@{player_id}> -> {message}', verify_color, verify_description)
-        return
-    else:
-        y = await set_uid_chat_restricted(player_id)
-        if y:
-            pass
-        else:
-            await ctx.respond(f'Could not assign chat restriction to <@{player_id}>. Abandoning player verification')
-            return
-        member = await GUILD.fetch_member(player_id)
-        x = await create_player(member, mkc_user_id, country_code)
-        await ctx.respond(x)
-        await send_to_verification_log(ctx, f'<@{player_id}> -> {message}', verify_color, verify_description)
-        return
-    
 
 # /verify <link>
 @client.slash_command(
@@ -2504,6 +2349,161 @@ async def zreload_cogs(ctx):
         await send_raw_to_debug_channel('cog reloaded', extension)
     await ctx.respond('Cogs reloaded successfully')
 
+# /qwe
+@client.slash_command(
+    name='qwe',
+    description='qwe',
+    guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def qwe(ctx):
+    guild = client.get_guild(Lounge[0])
+    role = guild.get_role(791874714434797589)
+    await ctx.defer(ephemeral=True)
+    channel = client.get_channel(ctx.channel.id)
+    await channel.send(f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`')
+    await ctx.respond('qwe')
+    return
+
+
+@client.slash_command(
+    name='zmanually_verify_banned_player',
+    description='Receive the OK from MKC staff before using this',
+    guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zmanually_verify_banned_player(
+    ctx,
+    player_id: discord.Option(str, 'Player to be verified', required=True),
+    message: discord.Option(str, 'MKC Link', required=True)
+    ):
+    await ctx.defer(ephemeral=True)
+    try:
+        player_id = int(player_id)
+    except Exception as e:
+        await ctx.respond('Invalid player_id')
+        return
+    x = await check_if_uid_exists(player_id)
+    if x:
+        lounge_ban = await check_if_uid_is_lounge_banned(player_id)
+        if lounge_ban:
+            await ctx.respond(f'This player is Lounge Banned.\nUnban date: <t:{lounge_ban}:F>')
+            return
+        else:
+            await ctx.respond(f'<@{player_id}> already exists. They should be able to `/verify` their own account.')
+            return
+    else:
+        pass
+    # Regex on https://www.mariokartcentral.com/mkc/registry/players/930
+    if 'registry' in message:
+        regex_pattern = 'players/\d*'
+        regex_pattern2 = 'users/\d*'
+        if re.search(regex_pattern, str(message)):
+            regex_group = re.search(regex_pattern, message)
+            x = regex_group.group()
+            reg_array = re.split('/', x)
+            mkc_player_id = reg_array[len(reg_array)-1]
+        elif re.search(regex_pattern2, str(message)):
+            regex_group = re.search(regex_pattern2, message)
+            x = regex_group.group()
+            reg_array = re.split('/', x)
+            mkc_player_id = reg_array[len(reg_array)-1]
+        else:
+            await ctx.respond('``Error 65:`` Oops! Something went wrong. Check your link or try again later')
+            return
+    # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
+    elif 'forums' in message:
+        regex_pattern = 'members/.*\.\d*'
+        regex_pattern2 = 'members/\d*'
+        if re.search(regex_pattern, str(message)):
+            regex_group = re.search(regex_pattern, message)
+            x = regex_group.group()
+            temp = re.split('\.|/', x)
+            mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
+        elif re.search(regex_pattern2, str(message)):
+            regex_group = re.search(regex_pattern2, message)
+            x = regex_group.group()
+            temp = re.split('\.|/', x)
+            mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp)-1])
+        else:
+            # player doesnt exist on forums
+            await ctx.respond('``Error 66:`` Oops! Something went wrong. Check your link or try again later')
+            return
+    else:
+        await ctx.respond('``Error 67:`` Oops! Something went wrong. Check your link or try again later')
+        return
+    # Make sure player_id was received properly
+    if mkc_player_id != -1:
+        pass
+    else:
+        await ctx.respond('``Error 68:`` Oops! Something went wrong. Check your link or try again later')
+        return
+    # Request registry data
+    mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
+    mkc_user_id = mkc_registry_data[0]
+    country_code = mkc_registry_data[1]
+    is_banned = mkc_registry_data[2]
+
+    if is_banned == -1:
+        # Wrong link probably?
+        await ctx.respond('``Error 69:`` Oops! Something went wrong. Check your link or try again later')
+        return
+    else:
+        pass
+    # Check for shared ips
+    # Check for last seen date
+    # If last seen in the last week? pass else: send message (please log in to your mkc account and retry)
+    mkc_forum_data = await mkc_request_forum_info(mkc_user_id)
+    last_seen_unix_timestamp = float(mkc_forum_data[0])
+    # name.mkc_user_id
+    user_matches_list = mkc_forum_data[1]
+    
+    # Check if seen in last week
+    if mkc_forum_data[0] != -1:
+        dtobject_now = datetime.datetime.now()
+        unix_now = time.mktime(dtobject_now.timetuple())
+        seconds_since_last_login = unix_now - last_seen_unix_timestamp
+        if seconds_since_last_login > SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT:
+            verify_description = vlog_msg.error5
+            verify_color = discord.Color.red()
+            await ctx.respond('``Error 70:`` Contact the player you are trying to verify. Have them log into their MKC account, then retry. \n\nIf they are still being refused verification, have them click this link then try again: https://www.mariokartcentral.com/forums/index.php?members/popuko.154/')
+            await send_to_verification_log(ctx, message, verify_color, verify_description)
+            return
+        else:
+            pass
+    else:
+        verify_description = vlog_msg.error7
+        verify_color = discord.Color.red()
+        await ctx.respond('``Error 71:`` Oops! Something went wrong. Check your link or try again later')
+        await send_to_verification_log(ctx, message, verify_color, verify_description)
+        return
+    if user_matches_list:
+        verify_color = discord.Color.teal()
+        await send_to_ip_match_log(ctx, message, verify_color, user_matches_list)
+    # All clear. Roll out.
+    verify_description = vlog_msg.success
+    verify_color = discord.Color.green()
+    # Check if someone has verified as this user before...
+    x = await check_if_mkc_user_id_used(mkc_user_id)
+    if x:
+        await ctx.respond(f'``Error 72: Duplicate player`` This MKC Link is already in use. ')
+        verify_description = vlog_msg.error4
+        verify_color = discord.Color.red()
+        await send_to_verification_log(ctx, f'<@{player_id}> -> {message}', verify_color, verify_description)
+        return
+    else:
+        y = await set_uid_chat_restricted(player_id)
+        if y:
+            pass
+        else:
+            await ctx.respond(f'Could not assign chat restriction to <@{player_id}>. Abandoning player verification')
+            return
+        member = await GUILD.fetch_member(player_id)
+        x = await create_player(member, mkc_user_id, country_code)
+        await ctx.respond(x)
+        await send_to_verification_log(ctx, f'<@{player_id}> -> {message}', verify_color, verify_description)
+        return
+    
 
 
 
