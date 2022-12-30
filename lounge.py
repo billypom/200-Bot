@@ -552,333 +552,401 @@ async def verify(
         await send_to_verification_log(ctx, message, verify_color, verify_description)
         return
 
-# /c
-@client.slash_command(
-    name='c',
-    description='🙋 Can up for a mogi',
-    guild_ids=Lounge
-)
-@commands.cooldown(1, 3, commands.BucketType.user)
-async def c(
-    ctx,
-    ):
-    await ctx.defer(ephemeral=True)
-    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-    if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
-        return
-    else:
-        pass
+# # /c
+# @client.slash_command(
+#     name='c',
+#     description='🙋 Can up for a mogi',
+#     guild_ids=Lounge
+# )
+# @commands.cooldown(1, 3, commands.BucketType.user)
+# async def c(
+#     ctx,
+#     ):
+#     await ctx.defer(ephemeral=True)
+#     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+#     if lounge_ban:
+#         await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+#         return
+#     else:
+#         pass
 
-    # Get the current lineup count - only players that were not in the last mogi (mogi_start_time not null)
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s AND mogi_start_time is NULL;', (ctx.channel.id,))
-            count = temp[0][0]
-    except Exception as e:
-        await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}.')
-        await send_to_debug_channel(ctx, f'/c error 18 lineup not found? {e}')
-        return
-    # await send_to_debug_channel(ctx, f'count: {count}')
+#     # Get the current lineup count - only players that were not in the last mogi (mogi_start_time not null)
+#     try:
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s AND mogi_start_time is NULL;', (ctx.channel.id,))
+#             count = temp[0][0]
+#     except Exception as e:
+#         await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}.')
+#         await send_to_debug_channel(ctx, f'/c error 18 lineup not found? {e}')
+#         return
+#     # await send_to_debug_channel(ctx, f'count: {count}')
 
-    # ADDITIONAL SUBS SHOULD BE ABLE TO JOIN NEXT MOGI
-    # if count == MAX_PLAYERS_IN_MOGI:
-    #     await ctx.respond('Mogi is full')
-    #     return
+#     # ADDITIONAL SUBS SHOULD BE ABLE TO JOIN NEXT MOGI
+#     # if count == MAX_PLAYERS_IN_MOGI:
+#     #     await ctx.respond('Mogi is full')
+#     #     return
 
-    # Check for canning in same tier
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
-        if temp:
-            if temp[0][0] == ctx.author.id:
-                await ctx.respond('You are already in the mogi')
-                return
-            else:
-                pass
-    except Exception as e:
-        pass
-        # await ctx.respond(f'``Error 46:`` Something went wrong! Contact {secretly.my_discord}.')
-        # await send_to_debug_channel(ctx, e)
-        # return
+#     # Check for canning in same tier
+#     try:
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
+#         if temp:
+#             if temp[0][0] == ctx.author.id:
+#                 await ctx.respond('You are already in the mogi')
+#                 return
+#             else:
+#                 pass
+#     except Exception as e:
+#         pass
+#         # await ctx.respond(f'``Error 46:`` Something went wrong! Contact {secretly.my_discord}.')
+#         # await send_to_debug_channel(ctx, e)
+#         # return
     
-    # Check for squad queue channel
-    if ctx.channel.id == secretly.squad_queue_channel:
-        await ctx.respond('Use !c to join squad queue')
-        return
+#     # Check for squad queue channel
+#     if ctx.channel.id == secretly.squad_queue_channel:
+#         await ctx.respond('Use !c to join squad queue')
+#         return
     
-    if ctx.channel.id in TIER_ID_LIST:
-        pass
-    else:
-        tiers = ''
-        for i in TIER_ID_LIST:
-            if i == secretly.squad_queue_channel:
-                continue
-            tiers += f'<#{i}> '
-        await ctx.respond(f'`/c` only works in tier channels.\n\n{tiers}')
-        return
+#     if ctx.channel.id in TIER_ID_LIST:
+#         pass
+#     else:
+#         tiers = ''
+#         for i in TIER_ID_LIST:
+#             if i == secretly.squad_queue_channel:
+#                 continue
+#             tiers += f'<#{i}> '
+#         await ctx.respond(f'`/c` only works in tier channels.\n\n{tiers}')
+#         return
 
-    # Add player to lineup
-    try:
-        with DBA.DBAccess() as db:
-            db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
-    except Exception as e:
-        await ctx.respond(f'``Error 16:`` Player not registered.\nTry `/verify`.')
-        # await send_to_debug_channel(ctx, f'/c error 16 unable to join {e}')
-        return
-    await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
-    channel = client.get_channel(ctx.channel.id)
-    await channel.send(f'{ctx.author.display_name} has joined the mogi!', delete_after=300)
-    count+=1
-    # Check for full lineup
-    if count == MAX_PLAYERS_IN_MOGI:
-        # start the mogi, vote on format, create teams
-        mogi_started_successfully = await start_mogi(ctx)
-        if mogi_started_successfully == 1:
-            pass
-            # Chooses a host. Says the start time
-        elif mogi_started_successfully == 0:
-            channel = client.get_channel(ctx.channel.id)
-            await channel.send(f'``Error 45:`` Failed to start mogi. {secretly.my_discord}!!!!!!!!!!!!')
-            return
-        elif mogi_started_successfully == 2:
-            channel = client.get_channel(ctx.channel.id)
-            await channel.send(f'``Error 54:`` Failed to start mogi. {secretly.my_discord}!!!!!!!!!!!!!!')
-            return
-    elif count == 6 or count == 11:
-        channel = client.get_channel(ctx.channel.id)
-        await channel.send(f'@here +{12-count}')
-    return
+#     # Add player to lineup
+#     try:
+#         with DBA.DBAccess() as db:
+#             db.execute('INSERT INTO lineups (player_id, tier_id, last_active) values (%s, %s, %s);', (ctx.author.id, ctx.channel.id, datetime.datetime.now()))
+#     except Exception as e:
+#         await ctx.respond(f'``Error 16:`` Player not registered.\nTry `/verify`.')
+#         # await send_to_debug_channel(ctx, f'/c error 16 unable to join {e}')
+#         return
+#     await ctx.respond('You have joined the mogi! You can /d in `15 seconds`')
+#     channel = client.get_channel(ctx.channel.id)
+#     await channel.send(f'{ctx.author.display_name} has joined the mogi!', delete_after=300)
+#     count+=1
+#     # Check for full lineup
+#     if count == MAX_PLAYERS_IN_MOGI:
+#         # start the mogi, vote on format, create teams
+#         mogi_started_successfully = await start_mogi(ctx)
+#         if mogi_started_successfully == 1:
+#             pass
+#             # Chooses a host. Says the start time
+#         elif mogi_started_successfully == 0:
+#             channel = client.get_channel(ctx.channel.id)
+#             await channel.send(f'``Error 45:`` Failed to start mogi. {secretly.my_discord}!!!!!!!!!!!!')
+#             return
+#         elif mogi_started_successfully == 2:
+#             channel = client.get_channel(ctx.channel.id)
+#             await channel.send(f'``Error 54:`` Failed to start mogi. {secretly.my_discord}!!!!!!!!!!!!!!')
+#             return
+#     elif count == 6 or count == 11:
+#         channel = client.get_channel(ctx.channel.id)
+#         await channel.send(f'@here +{12-count}')
+#     return
 
-# /d
-@client.slash_command(
-    name='d',
-    description='Drop from the mogi',
-    guild_ids=Lounge
-)
-async def d(
-    ctx,
-    ):
-    await ctx.defer(ephemeral=True)
-    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-    if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
-        return
-    else:
-        pass
+# # /d
+# @client.slash_command(
+#     name='d',
+#     description='Drop from the mogi',
+#     guild_ids=Lounge
+# )
+# async def d(
+#     ctx,
+#     ):
+#     await ctx.defer(ephemeral=True)
+#     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+#     if lounge_ban:
+#         await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+#         return
+#     else:
+#         pass
 
-    # does not matter. can wherever whenever
-    # Player was already in lineup, got subbed out
-    # with DBA.DBAccess() as db:
-    #     temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (ctx.author.id,))
-    #     if temp:
-    #         if temp[0][0] == ctx.author.id:
-    #             await ctx.respond('Please wait for the mogi you left to finish')
-    #             return
-    #     else:
-    #         pass
-    x = await check_if_uid_in_specific_tier(ctx.author.id, ctx.channel.id)
-    if x:
-        y = await check_if_uid_can_drop(ctx.author.id)
-        if y:
-            pass
-        else:
-            await ctx.respond('You cannot drop from an ongoing mogi')
-            return
-        # No try block - check is above...
-        with DBA.DBAccess() as db:
-            tier_temp = db.query('SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s AND t.tier_id = %s;', (ctx.author.id, ctx.channel.id))
-        try:
-            with DBA.DBAccess() as db:
-                db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
-                await ctx.respond(f'You have dropped from tier {tier_temp[0][1]}')
-        except Exception as e:
-            await send_to_debug_channel(ctx, f'/d error 17 cant leave lineup {e}')
-            await ctx.respond(f'``Error 17:`` Oops! Something went wrong. Contact {secretly.my_discord}')
-            return
-        try:
-            with DBA.DBAccess() as db:
-                temp = db.query('SELECT player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
-                channel = client.get_channel(tier_temp[0][0])
-                await channel.send(f'{temp[0][0]} has dropped from the lineup')
-        except Exception as e:
-            await send_to_debug_channel(ctx, f'/d big error...WHAT! 1 {e}')
-            # i should never ever see this...
-        return
-    else:
-        await ctx.respond('You are not in a mogi')
-        return
+#     # does not matter. can wherever whenever
+#     # Player was already in lineup, got subbed out
+#     # with DBA.DBAccess() as db:
+#     #     temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (ctx.author.id,))
+#     #     if temp:
+#     #         if temp[0][0] == ctx.author.id:
+#     #             await ctx.respond('Please wait for the mogi you left to finish')
+#     #             return
+#     #     else:
+#     #         pass
+#     x = await check_if_uid_in_specific_tier(ctx.author.id, ctx.channel.id)
+#     if x:
+#         y = await check_if_uid_can_drop(ctx.author.id)
+#         if y:
+#             pass
+#         else:
+#             await ctx.respond('You cannot drop from an ongoing mogi')
+#             return
+#         # No try block - check is above...
+#         with DBA.DBAccess() as db:
+#             tier_temp = db.query('SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s AND t.tier_id = %s;', (ctx.author.id, ctx.channel.id))
+#         try:
+#             with DBA.DBAccess() as db:
+#                 db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
+#                 await ctx.respond(f'You have dropped from tier {tier_temp[0][1]}')
+#         except Exception as e:
+#             await send_to_debug_channel(ctx, f'/d error 17 cant leave lineup {e}')
+#             await ctx.respond(f'``Error 17:`` Oops! Something went wrong. Contact {secretly.my_discord}')
+#             return
+#         try:
+#             with DBA.DBAccess() as db:
+#                 temp = db.query('SELECT player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
+#                 channel = client.get_channel(tier_temp[0][0])
+#                 await channel.send(f'{temp[0][0]} has dropped from the lineup')
+#         except Exception as e:
+#             await send_to_debug_channel(ctx, f'/d big error...WHAT! 1 {e}')
+#             # i should never ever see this...
+#         return
+#     else:
+#         await ctx.respond('You are not in a mogi')
+#         return
 
-# /l
-@client.slash_command(
-    name='l',
-    description='Show the mogi list',
-    guild_ids=Lounge
-)
-# @commands.command(aliases=['list'])
-@commands.cooldown(1, 30, commands.BucketType.user)
-async def l(
-    ctx
-    ):
-    await ctx.defer()
-    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-    if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
-        return
-    else:
-        pass
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query("SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC;", (ctx.channel.id,))
-    except Exception as e:
-        await ctx.respond(f'``Error 20:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
-        return
-    response = '`Mogi List`:'
-    for i in range(len(temp)):
-        response = f'{response}\n`{i+1}.` {temp[i][0]}'
-    response = f'{response}\n\n\nYou can type `/l` again in 30 seconds'
-    await ctx.respond(response, delete_after=30)
-    return
+# # /l
+# @client.slash_command(
+#     name='l',
+#     description='Show the mogi list',
+#     guild_ids=Lounge
+# )
+# # @commands.command(aliases=['list'])
+# @commands.cooldown(1, 30, commands.BucketType.user)
+# async def l(
+#     ctx
+#     ):
+#     await ctx.defer()
+#     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+#     if lounge_ban:
+#         await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+#         return
+#     else:
+#         pass
+#     try:
+#         with DBA.DBAccess() as db:
+#             temp = db.query("SELECT p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC;", (ctx.channel.id,))
+#     except Exception as e:
+#         await ctx.respond(f'``Error 20:`` Oops! Something went wrong. Please contact {secretly.my_discord}')
+#         return
+#     response = '`Mogi List`:'
+#     for i in range(len(temp)):
+#         response = f'{response}\n`{i+1}.` {temp[i][0]}'
+#     response = f'{response}\n\n\nYou can type `/l` again in 30 seconds'
+#     await ctx.respond(response, delete_after=30)
+#     return
 
-# /esn
-@client.slash_command(
-    name='esn',
-    description='End (mogi) Start New (mogi)',
-    guild_ids=Lounge
-)
-async def esn(ctx):
-    await ctx.defer()
-    # Delete player records in this tier where they already played mogi (mogi_start_time not null)
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT UNIX_TIMESTAMP(mogi_start_time) FROM lineups WHERE tier_id = %s AND can_drop = 0 ORDER BY create_date DESC LIMIT %s;', (ctx.channel.id, 1))
-        mogi_start_time = temp[0][0]
-    except Exception as e:
-        # await send_to_debug_channel(ctx, f'esn error 1: {e}')
-        await ctx.respond('`Error 62:` Mogi has not started')
-        return
-    unix_now = await get_unix_time_now()
-    minutes_since_start = math.floor((unix_now - mogi_start_time)/60)
-    if minutes_since_start > 25:
-        pass
-    else:
-        await ctx.respond(f'Please wait {25 - minutes_since_start} more minutes to use `/esn`')
-        return
-    try:
-        with DBA.DBAccess() as db:
-            players = db.query('SELECT player_id FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
-        print(players)
-        for player in players:
-            with DBA.DBAccess() as db:
-                db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id))
-        await ctx.respond('New mogi started')
-    except Exception as e:
-        await send_to_debug_channel(ctx, f'esn error 2: {e}')
-        await ctx.respond('`Error 63:` esners')
-        return
-    # await ctx.respond('`/esn`@here - New mogi started')
+# # /esn
+# @client.slash_command(
+#     name='esn',
+#     description='End (mogi) Start New (mogi)',
+#     guild_ids=Lounge
+# )
+# async def esn(ctx):
+#     await ctx.defer()
+#     # Delete player records in this tier where they already played mogi (mogi_start_time not null)
+#     try:
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT UNIX_TIMESTAMP(mogi_start_time) FROM lineups WHERE tier_id = %s AND can_drop = 0 ORDER BY create_date DESC LIMIT %s;', (ctx.channel.id, 1))
+#         mogi_start_time = temp[0][0]
+#     except Exception as e:
+#         # await send_to_debug_channel(ctx, f'esn error 1: {e}')
+#         await ctx.respond('`Error 62:` Mogi has not started')
+#         return
+#     unix_now = await get_unix_time_now()
+#     minutes_since_start = math.floor((unix_now - mogi_start_time)/60)
+#     if minutes_since_start > 25:
+#         pass
+#     else:
+#         await ctx.respond(f'Please wait {25 - minutes_since_start} more minutes to use `/esn`')
+#         return
+#     try:
+#         with DBA.DBAccess() as db:
+#             players = db.query('SELECT player_id FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
+#         print(players)
+#         for player in players:
+#             with DBA.DBAccess() as db:
+#                 db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id))
+#         await ctx.respond('New mogi started')
+#     except Exception as e:
+#         await send_to_debug_channel(ctx, f'esn error 2: {e}')
+#         await ctx.respond('`Error 63:` esners')
+#         return
+#     # await ctx.respond('`/esn`@here - New mogi started')
 
-    # try:
-    #     with DBA.DBAccess() as db:
-    #         temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
-    #     if len(temp) == 12:
-    #         pass
-    #     else:
-    #         await ctx.respond('There is no mogi being played in this tier.')
-    #         return
-    # except Exception as e:
-    #     await send_to_debug_channel(ctx, f'Cancel Error Check: {e}')
-    #     return
-    # # Delete from lineups & sub_leaver
-    # try:
-    #     with DBA.DBAccess() as db:
-    #         db.execute('DELETE FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
-    #         # db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (ctx.channel.id,))
-    #     await ctx.respond('The mogi has been cancelled')
-    # except Exception as e:
-    #     await send_to_debug_channel(ctx, f'Cancel Error Deletion:{e}')
-    #     return
+#     # try:
+#     #     with DBA.DBAccess() as db:
+#     #         temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
+#     #     if len(temp) == 12:
+#     #         pass
+#     #     else:
+#     #         await ctx.respond('There is no mogi being played in this tier.')
+#     #         return
+#     # except Exception as e:
+#     #     await send_to_debug_channel(ctx, f'Cancel Error Check: {e}')
+#     #     return
+#     # # Delete from lineups & sub_leaver
+#     # try:
+#     #     with DBA.DBAccess() as db:
+#     #         db.execute('DELETE FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
+#     #         # db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (ctx.channel.id,))
+#     #     await ctx.respond('The mogi has been cancelled')
+#     # except Exception as e:
+#     #     await send_to_debug_channel(ctx, f'Cancel Error Deletion:{e}')
+#     #     return
 
-@client.slash_command(
-    name='votes',
-    description='See the current votes',
-    guild_ids=Lounge
-)
-async def votes(ctx):
-    await ctx.defer()
-    is_ongoing = await check_if_mogi_is_ongoing(ctx)
-    if is_ongoing:
-        pass
-    else:
-        await ctx.respond('The vote has not started.')
-        return
-    vote_dict = {}
-    return_string = ""
-    remove_chars = {
-        39:None, # '
-        91:None, # [
-        93:None, # ]
-    }
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT p.player_name, l.vote FROM player as p JOIN lineups as l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-        # print(f'temp: {temp}')
-        vote_dict = {1:[],2:[],3:[],4:[],6:[]}
-        for player in temp:
-            # print(player)
-            if player[1] in vote_dict:
-                vote_dict[player[1]].append(player[0])
-            else:
-                vote_dict[player[1]] = [player[0]]
-        return_string = f'`FFA:` {vote_dict[1]}\n`2v2:` {vote_dict[2]}\n`3v3:` {vote_dict[3]}\n`4v4:` {vote_dict[4]}\n`6v6:` {vote_dict[6]}'
-        return_string = return_string.translate(remove_chars)
-    except Exception as e:
-        await send_to_debug_channel(ctx, f'/votes | {e}')
-        await ctx.respond('`Error 64:` Could not retrieve the votes')
-    await ctx.respond(return_string)
+# @client.slash_command(
+#     name='votes',
+#     description='See the current votes',
+#     guild_ids=Lounge
+# )
+# async def votes(ctx):
+#     await ctx.defer()
+#     is_ongoing = await check_if_mogi_is_ongoing(ctx)
+#     if is_ongoing:
+#         pass
+#     else:
+#         await ctx.respond('The vote has not started.')
+#         return
+#     vote_dict = {}
+#     return_string = ""
+#     remove_chars = {
+#         39:None, # '
+#         91:None, # [
+#         93:None, # ]
+#     }
+#     try:
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT p.player_name, l.vote FROM player as p JOIN lineups as l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+#         # print(f'temp: {temp}')
+#         vote_dict = {1:[],2:[],3:[],4:[],6:[]}
+#         for player in temp:
+#             # print(player)
+#             if player[1] in vote_dict:
+#                 vote_dict[player[1]].append(player[0])
+#             else:
+#                 vote_dict[player[1]] = [player[0]]
+#         return_string = f'`FFA:` {vote_dict[1]}\n`2v2:` {vote_dict[2]}\n`3v3:` {vote_dict[3]}\n`4v4:` {vote_dict[4]}\n`6v6:` {vote_dict[6]}'
+#         return_string = return_string.translate(remove_chars)
+#     except Exception as e:
+#         await send_to_debug_channel(ctx, f'/votes | {e}')
+#         await ctx.respond('`Error 64:` Could not retrieve the votes')
+#     await ctx.respond(return_string)
 
-# /fc
-@client.slash_command(
-    name='fc',
-    description='Display or set your friend code',
-    # guild_ids=Lounge
-)
-async def fc(
-    ctx,
-    fc: discord.Option(str, 'XXXX-XXXX-XXXX', required=False)):
-    if fc == None:
-        await ctx.defer()
-        lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-        if lounge_ban:
-            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
-            return
-        else:
-            pass
-        try:
-            with DBA.DBAccess() as db:
-                temp = db.query('SELECT fc FROM player WHERE player_id = %s;', (ctx.author.id, ))
-                await ctx.respond(temp[0][0])
-        except Exception as e:
-            await ctx.respond('``Error 12:`` No friend code found. Use ``/fc XXXX-XXXX-XXXX`` to set.')
-    else:
-        await ctx.defer(ephemeral=True)
-        lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-        if lounge_ban:
-            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
-            return
-        else:
-            pass
-        y = await check_if_banned_characters(fc)
-        if y:
-            await send_to_verification_log(ctx, fc, discord.Color.blurple(), vlog_msg.error1)
-            return '``Error 13:`` Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
-        x = await check_if_player_exists(ctx)
-        if x:
-            pass
-        else:
-            return '``Error 25:`` Player does not exist. Use `/verify <mkc link>` to register with the Lounge.'
-        confirmation_msg = await update_friend_code(ctx, fc)
-        await ctx.respond(confirmation_msg)
+# # /fc
+# @client.slash_command(
+#     name='fc',
+#     description='Display or set your friend code',
+#     # guild_ids=Lounge
+# )
+# async def fc(
+#     ctx,
+#     fc: discord.Option(str, 'XXXX-XXXX-XXXX', required=False)):
+#     if fc == None:
+#         await ctx.defer()
+#         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+#         if lounge_ban:
+#             await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+#             return
+#         else:
+#             pass
+#         try:
+#             with DBA.DBAccess() as db:
+#                 temp = db.query('SELECT fc FROM player WHERE player_id = %s;', (ctx.author.id, ))
+#                 await ctx.respond(temp[0][0])
+#         except Exception as e:
+#             await ctx.respond('``Error 12:`` No friend code found. Use ``/fc XXXX-XXXX-XXXX`` to set.')
+#     else:
+#         await ctx.defer(ephemeral=True)
+#         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+#         if lounge_ban:
+#             await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+#             return
+#         else:
+#             pass
+#         y = await check_if_banned_characters(fc)
+#         if y:
+#             await send_to_verification_log(ctx, fc, discord.Color.blurple(), vlog_msg.error1)
+#             return '``Error 13:`` Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
+#         x = await check_if_player_exists(ctx)
+#         if x:
+#             pass
+#         else:
+#             return '``Error 25:`` Player does not exist. Use `/verify <mkc link>` to register with the Lounge.'
+#         confirmation_msg = await update_friend_code(ctx, fc)
+#         await ctx.respond(confirmation_msg)
+
+# # /twitch
+# @client.slash_command(
+#     name='twitch',
+#     description='Link your Twitch stream - Enter your Username',
+#     #guild_ids=Lounge
+# )
+# async def twitch(
+#     ctx,
+#     username: discord.Option(str, 'Enter your twitch username - your mogi streams will appear in the media channel', required=True)
+#     ):
+#     await ctx.defer(ephemeral=True)
+#     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+#     if lounge_ban:
+#         await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+#         return
+#     else:
+#         pass
+#     x = await check_if_player_exists(ctx)
+#     if x:
+#         pass
+#     else:
+#         await ctx.respond('Use `/verify` to register with Lounge')
+#         return
+#     y = await check_if_banned_characters(username)
+#     if y:
+#         await ctx.respond("Invalid twitch username")
+#         await send_to_verification_log(ctx, username, discord.Color.blurple(), vlog_msg.error1)
+#         return
+#     if len(str(username)) > 25:
+#         await ctx.respond("Invalid twitch username")
+#         return
+#     try:
+#         with DBA.DBAccess() as db:
+#             db.execute("UPDATE player SET twitch_link = %s WHERE player_id = %s;", (str(username), ctx.author.id))
+#             await ctx.respond("Twitch username updated.")
+#     except Exception:
+#         await ctx.respond("``Error 33:`` Player not found. Use ``/verify <mkc link>`` to register with Lounge")
+
+# # /teams
+# @client.slash_command(
+#     name='teams',
+#     description='See the teams in the ongoing mogi',
+#     guild_ids=Lounge
+# )
+# async def teams(ctx):
+#     await ctx.defer()
+#     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+#     if lounge_ban:
+#         await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+#         return
+#     else:
+#         pass
+#     x = await check_if_mogi_is_ongoing(ctx)
+#     if x:
+#         pass
+#     else:
+#         await ctx.respond('There is no ongoing mogi')
+#     try:
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT teams_string FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+#             if temp:
+#                 response = temp[0][0]
+#             else:
+#                 response = "Use `/teams` in a tier channel"
+#     except Exception as e:
+#         response = "Use `/teams` in a tier channel"
+#     await ctx.respond(response)
 
 # /name
 @client.slash_command(
@@ -1743,44 +1811,6 @@ async def mmr(ctx):
     await ctx.respond(f'`MMR:` {mmr} | `Rank:` {rank_name}. If this looks wrong, try the `/verify` command.')
     return
 
-# /twitch
-@client.slash_command(
-    name='twitch',
-    description='Link your Twitch stream - Enter your Username',
-    #guild_ids=Lounge
-)
-async def twitch(
-    ctx,
-    username: discord.Option(str, 'Enter your twitch username - your mogi streams will appear in the media channel', required=True)
-    ):
-    await ctx.defer(ephemeral=True)
-    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-    if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
-        return
-    else:
-        pass
-    x = await check_if_player_exists(ctx)
-    if x:
-        pass
-    else:
-        await ctx.respond('Use `/verify` to register with Lounge')
-        return
-    y = await check_if_banned_characters(username)
-    if y:
-        await ctx.respond("Invalid twitch username")
-        await send_to_verification_log(ctx, username, discord.Color.blurple(), vlog_msg.error1)
-        return
-    if len(str(username)) > 25:
-        await ctx.respond("Invalid twitch username")
-        return
-    try:
-        with DBA.DBAccess() as db:
-            db.execute("UPDATE player SET twitch_link = %s WHERE player_id = %s;", (str(username), ctx.author.id))
-            await ctx.respond("Twitch username updated.")
-    except Exception:
-        await ctx.respond("``Error 33:`` Player not found. Use ``/verify <mkc link>`` to register with Lounge")
-
 # /strikes
 @client.slash_command(
     name='strikes',
@@ -1816,36 +1846,6 @@ async def strikes(ctx):
         pass
     await ctx.respond('You have no strikes')
     return
-
-# /teams
-@client.slash_command(
-    name='teams',
-    description='See the teams in the ongoing mogi',
-    guild_ids=Lounge
-)
-async def teams(ctx):
-    await ctx.defer()
-    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-    if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
-        return
-    else:
-        pass
-    x = await check_if_mogi_is_ongoing(ctx)
-    if x:
-        pass
-    else:
-        await ctx.respond('There is no ongoing mogi')
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT teams_string FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
-            if temp:
-                response = temp[0][0]
-            else:
-                response = "Use `/teams` in a tier channel"
-    except Exception as e:
-        response = "Use `/teams` in a tier channel"
-    await ctx.respond(response)
 
 # /suggest
 @client.slash_command(
