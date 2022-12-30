@@ -1124,14 +1124,14 @@ async def table(
         # Create mogi
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO mogi (mogi_format, tier_id) values (%s, %s);', (mogi_format, ctx.channel.id))
-        await send_raw_to_debug_channel('Mogi created', f'{mogi_format} | {ctx.channel.id}')
+        # await send_raw_to_debug_channel('Mogi created', f'{mogi_format} | {ctx.channel.id}')
         # Get the results channel and tier name for later use
         with DBA.DBAccess() as db:
             temp = db.query('SELECT results_id, tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
             db_results_channel = temp[0][0]
             tier_name = temp[0][1]
         results_channel = client.get_channel(db_results_channel)
-        await send_raw_to_debug_channel('Results channel acquired', f'{results_channel}')
+        # await send_raw_to_debug_channel('Results channel acquired', f'{results_channel}')
 
         # Pre MMR table calculate
         value_table = list()
@@ -1159,7 +1159,7 @@ async def table(
                             pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
                 working_list.append(pre_mmr)
             value_table.append(working_list)
-        await send_raw_to_debug_channel('MMR calculated', 'value table loaded')
+        # await send_raw_to_debug_channel('MMR calculated', 'value table loaded')
 
         # # DEBUG
         # print(f'\nprinting value table:\n')
@@ -1187,7 +1187,7 @@ async def table(
         mmr_table_string += f'PLACE |       NAME       |  MMR  |  +/-  | NEW MMR |  RANKUPS\n'
 
         for team in sorted_list:
-            await send_raw_to_debug_channel('Updating team', team)
+            # await send_raw_to_debug_channel('Updating team', team)
             my_player_place = team[len(team)-2]
             string_my_player_place = str(my_player_place)
             for idx, player in enumerate(team):
@@ -1350,7 +1350,7 @@ async def table(
                 formatted_my_player_new_rank = await new_rank_wrapper(string_my_player_new_rank, my_player_new_mmr)
                 mmr_table_string += f'{formatted_my_player_new_rank}'
                 string_my_player_place = ''
-        await send_raw_to_debug_channel('TEAMS UPDATED', 'Success')
+        # await send_raw_to_debug_channel('TEAMS UPDATED', 'Success')
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
