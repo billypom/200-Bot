@@ -3177,7 +3177,10 @@ async def send_to_name_change_log(ctx, id, message):
     embed.add_field(name='Current Name: ', value=ctx.author.display_name, inline=False)
     embed.add_field(name='New Name: ', value=str(message), inline=False)
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
-    embed.set_thumbnail(url=ctx.author.avatar.url)
+    try:
+        embed.set_thumbnail(url=ctx.author.avatar.url)
+    except Exception:
+        pass
     x = await channel.send(content=None, embed=embed)
     return x
 
