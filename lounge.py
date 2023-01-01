@@ -3188,7 +3188,10 @@ async def send_to_suggestion_voting_channel(ctx, suggestion_id, message):
     channel = client.get_channel(secretly.suggestion_voting_channel)
     embed = discord.Embed(title='Suggestion', description=f'', color = discord.Color.blurple())
     embed.add_field(name=f'#{suggestion_id}', value=message, inline=False)
-    embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
+    try:
+        embed.set_author(name=ctx.author.display_name, icon_url=ctx.author.avatar.url)
+    except Exception:
+        embed.set_author(name=ctx.author.display_name)
     x = await channel.send(content=None, embed=embed)
     return x
 
