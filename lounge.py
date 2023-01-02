@@ -1161,8 +1161,9 @@ async def table(
                             pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_x_mmr-team_y_mmr)/9998)**MULTIPLIER_SPECIAL)
                         else: #team_x_placement < team_y_placement
                             pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
-                working_list.append(round(pre_mmr,14))
+                working_list.append(pre_mmr)
             value_table.append(working_list)
+            print(f'working list {idx}: {working_list}')
         await send_raw_to_debug_channel('MMR calculated', 'value table loaded')
 
         # # DEBUG
