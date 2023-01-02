@@ -126,7 +126,7 @@ async def on_application_command_error(ctx, error):
         embed.add_field(name='Error: ', value=str(error), inline=False)
         embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
         await channel.send(content=None, embed=embed)
-        await ctx.respond(f'Sorry! An unknown error occurred. Contact {secretly.my_discord} if you think this is a mistake.')
+        await ctx.respond(f'Sorry! An unknown error occurred. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')
         # print(traceback.format_exc())
         raise error
         return
@@ -385,7 +385,7 @@ async def verify(
     # Check if someone has verified as this user before...
     x = await check_if_mkc_user_id_used(mkc_user_id)
     if x:
-        await ctx.respond(f'``Error 10: Duplicate player`` If you think this is a mistake, please contact {secretly.my_discord} immediately. ')
+        await ctx.respond(f'``Error 10:`` Oops! Something went wrong. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')
         verify_description = vlog_msg.error4
         verify_color = discord.Color.red()
         await send_to_verification_log(ctx, f'Error 10: {message}', verify_color, verify_description)
@@ -874,7 +874,7 @@ async def name(
             await request_message.add_reaction('❌')
         except Exception as e:
             await send_to_debug_channel(ctx, f'Tried name: {name} |\n{e}')
-            await ctx.respond(f'``Error 44:`` Oops! Something went wrong. Please try again or contact {secretly.my_discord}')
+            await ctx.respond(f'``Error 44:`` Oops! Something went wrong. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')
             return
         try:
             with DBA.DBAccess() as db:
@@ -883,7 +883,7 @@ async def name(
             return
         except Exception as e:
             await send_to_debug_channel(ctx, f'Tried name: {name} |\n{e}')
-            await ctx.respond(f'``Error 35:`` Oops! Something went wrong. Please try again or contact {secretly.my_discord}')
+            await ctx.respond(f'``Error 35:`` Oops! Something went wrong. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')
             return
 
 # /table
@@ -2565,7 +2565,7 @@ async def set_player_roles(ctx):
         return f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
     except Exception as e:
         await send_to_debug_channel(ctx, f'set_player_roles exception: {e}')
-        return f'``Error 29:`` Could not re-enter the lounge. Please contact {secretly.my_discord}.'
+        return f'``Error 29:`` Could not re-enter the lounge. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
 
 # Cool&Create
 async def create_player(member, mkc_user_id, country_code):
@@ -2589,7 +2589,7 @@ async def create_player(member, mkc_user_id, country_code):
                 name_still_exists = False
             count +=1
             if count == 16:
-                return f'``Error 39:`` Oops! An unlikely error occured. Contact {secretly.my_discord} if you think this is a mistake.'
+                return f'``Error 39:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
         # Handle name too long
         if len(insert_name) > 16:
             temp_name = ""
@@ -2601,22 +2601,24 @@ async def create_player(member, mkc_user_id, country_code):
                 count+=1
             insert_name = temp_name
         
-        f = open('200lounge.csv',encoding='utf-8-sig') # f is our filename as string
-        lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
-        f.close()
-        for line in lines:
-            name = line[0]
-            if name.lower() == (member.display_name).lower():
-                mmr = int(line[2])
-                with DBA.DBAccess() as db:
-                    ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
-                for i in range(len(ranks)):
-                    if mmr > int(ranks[i][1]) and mmr < int(ranks[i][2]):
-                        role = GUILD.get_role(ranks[i][0])
-                        await member.add_roles(role)
-                        with DBA.DBAccess() as db:
-                            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, ranks[i][0], mmr, mmr))
-                        return f'Verified & registered successfully - Assigned {role}'
+        with open('200lounge.csv', 'rt', encoding='utf-8-sig') as f: # f is our filename as string
+            lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
+        if len(lines) > 0:
+            for line in lines:
+                name = line[0]
+                if name.lower() == (member.display_name).lower():
+                    mmr = int(line[2])
+                    with DBA.DBAccess() as db:
+                        ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
+                    for i in range(len(ranks)):
+                        if mmr > int(ranks[i][1]) and mmr < int(ranks[i][2]):
+                            role = GUILD.get_role(ranks[i][0])
+                            await member.add_roles(role)
+                            with DBA.DBAccess() as db:
+                                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, ranks[i][0], mmr, mmr))
+                            return f'Verified & registered successfully - Assigned {role}'
+        else:
+            return f'``Error 75:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
         # replace spaces with dashes
         altered_name = str(insert_name).replace(" ", "-")
         try:
@@ -2629,7 +2631,7 @@ async def create_player(member, mkc_user_id, country_code):
             return 'Verified & registered successfully'
         except Exception as e:
             await send_raw_to_debug_channel(f'create_player error 14', {e})
-            return f'``Error 14:`` Oops! An unlikely error occured. Contact {secretly.my_discord} if you think this is a mistake.'
+            return f'``Error 14:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
             # 1. a player trying to use someone elses link (could be banned player)
             # 2. a genuine player locked from usage by another player (banned player might have locked them out)
             # 3. someone is verifying multiple times
