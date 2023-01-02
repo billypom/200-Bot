@@ -1007,6 +1007,14 @@ async def table(
         await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, 4, or 6.')
         return
 
+    # Get the highest MMR ever
+    try:
+        with DBA.DBAccess() as db:
+            h = db.query('SELECT max(mmr) from player where player_id > %s;',(0,))
+            highest_mmr = h[0][0]
+    except Exception as e:
+        await ctx.respond(f'``Error 76:`` `/table` error. Make a <#{secretly.support_channel}> if you need assistance.')
+
     # Initialize a list so we can group players and scores together
     player_score_chunked_list = list()
     for i in range(0, len(score_list), 2):
@@ -1151,7 +1159,7 @@ async def table(
                     team_y_mmr = team_y[len(team_y)-2]
                     team_y_placement = team_y[len(team_y)-1]
                     if team_x_placement == team_y_placement:
-                        pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/20000)**2)**(1/3))**2)
+                        pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/highest_mmr)**2)**(1/3))**2)
                         # print(f'1pre mmr: {pre_mmr}')
                         if team_x_mmr >= team_y_mmr:
                             pass
@@ -1159,10 +1167,10 @@ async def table(
                             pre_mmr = pre_mmr * -1
                     else:
                         if team_x_placement > team_y_placement:
-                            pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_x_mmr-team_y_mmr)/20000)**MULTIPLIER_SPECIAL)
+                            pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_x_mmr-team_y_mmr)/highest_mmr)**MULTIPLIER_SPECIAL)
                             # print(f'2pre mmr: {pre_mmr} | teamx:{team_x_mmr} | teamy:{team_y_mmr} ')
                         else: #team_x_placement < team_y_placement
-                            pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/20000)**MULTIPLIER_SPECIAL)
+                            pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/highest_mmr)**MULTIPLIER_SPECIAL)
                             # print(f'3pre mmr: {pre_mmr} | teamx:{team_x_mmr} | teamy:{team_y_mmr} ')
                 working_list.append(pre_mmr)
             value_table.append(working_list)
@@ -1179,7 +1187,7 @@ async def table(
             temp_value = 0.0
             for pre_mmr_list in value_table:
                 # print(f'{idx}pre mmr list')
-                print(pre_mmr_list)
+                # print(pre_mmr_list)
                 for idx2, value in enumerate(pre_mmr_list):
                     if idx == idx2:
                         temp_value += value
