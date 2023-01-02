@@ -2621,14 +2621,14 @@ async def create_player(member, mkc_user_id, country_code):
         altered_name = str(insert_name).replace(" ", "-")
         try:
             with DBA.DBAccess() as db:
-                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (member.id, insert_name, mkc_user_id, country_code))
+                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, PLACEMENT_ROLE_ID))
             # change player nick name on join
             await member.edit(nick=str(altered_name))
             role = GUILD.get_role(PLACEMENT_ROLE_ID)
             await member.add_roles(role)
             return 'Verified & registered successfully'
         except Exception as e:
-            await send_to_debug_channel(ctx, f'create_player error 14 {e}')
+            await send_raw_to_debug_channel(f'create_player error 14', {e})
             return f'``Error 14:`` Oops! An unlikely error occured. Contact {secretly.my_discord} if you think this is a mistake.'
             # 1. a player trying to use someone elses link (could be banned player)
             # 2. a genuine player locked from usage by another player (banned player might have locked them out)
