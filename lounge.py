@@ -1111,14 +1111,14 @@ async def table(
     query_string = urllib.parse.quote(lorenzi_query)
     url = f'https://gb.hlorenzi.com/table.png?data={query_string}'
     response = requests.get(url, stream=True)
-    with open(f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}table.png', 'wb') as out_file:
+    with open(f'./images/{hex(ctx.author.id)}table.png', 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     del response
 
     # Ask for table confirmation
     table_view = Confirm(ctx.author.id)
     channel = client.get_channel(ctx.channel.id)
-    await channel.send(file=discord.File(f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}table.png'), delete_after=300)
+    await channel.send(file=discord.File(f'./images/{hex(ctx.author.id)}table.png'), delete_after=300)
     await channel.send('Is this table correct? :thinking:', view=table_view, delete_after=300)
     await table_view.wait()
     if table_view.value is None:
@@ -1151,35 +1151,41 @@ async def table(
                     team_y_mmr = team_y[len(team_y)-2]
                     team_y_placement = team_y[len(team_y)-1]
                     if team_x_placement == team_y_placement:
-                        pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/9998)**2)**(1/3))**2)
+                        pre_mmr = (SPECIAL_TEAMS_INTEGER*((((team_x_mmr - team_y_mmr)/20000)**2)**(1/3))**2)
+                        # print(f'1pre mmr: {pre_mmr}')
                         if team_x_mmr >= team_y_mmr:
                             pass
                         else: #team_x_mmr < team_y_mmr:
                             pre_mmr = pre_mmr * -1
                     else:
                         if team_x_placement > team_y_placement:
-                            pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_x_mmr-team_y_mmr)/9998)**MULTIPLIER_SPECIAL)
+                            pre_mmr = (1 + OTHER_SPECIAL_INT*(1 + (team_x_mmr-team_y_mmr)/20000)**MULTIPLIER_SPECIAL)
+                            # print(f'2pre mmr: {pre_mmr} | teamx:{team_x_mmr} | teamy:{team_y_mmr} ')
                         else: #team_x_placement < team_y_placement
-                            pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/9998)**MULTIPLIER_SPECIAL)
+                            pre_mmr = -(1 + OTHER_SPECIAL_INT*(1 + (team_y_mmr-team_x_mmr)/20000)**MULTIPLIER_SPECIAL)
+                            # print(f'3pre mmr: {pre_mmr} | teamx:{team_x_mmr} | teamy:{team_y_mmr} ')
                 working_list.append(pre_mmr)
             value_table.append(working_list)
-            print(f'working list {idx}: {working_list}')
+            # print(f'working list {idx}: {working_list}')
         await send_raw_to_debug_channel('MMR calculated', 'value table loaded')
 
         # # DEBUG
-        print(f'\nprinting value table:\n')
-        for _list in value_table:
-            print(_list)
+        # print(f'\nprinting value table:\n')
+        # for _list in value_table:
+        #     print(_list)
 
         # Actually calculate the MMR
         for idx, team in enumerate(sorted_list):
             temp_value = 0.0
             for pre_mmr_list in value_table:
+                # print(f'{idx}pre mmr list')
+                print(pre_mmr_list)
                 for idx2, value in enumerate(pre_mmr_list):
                     if idx == idx2:
                         temp_value += value
                     else:
                         pass
+            # print(f'appending {temp_value}+={value} | {idx} | {idx2}')
             team.append(math.floor(temp_value))
 
         # Create mmr table string
@@ -1231,12 +1237,15 @@ async def table(
                         temp = db.query('SELECT rank_id FROM ranks WHERE placement_mmr = %s;', (my_player_mmr,))
                         init_rank = temp[0][0]
                         db.execute('UPDATE player SET base_mmr = %s, rank_id = %s WHERE player_id = %s;', (my_player_mmr, init_rank, player[0]))
-                    discord_member = await GUILD.fetch_member(player[0])
-                    init_role = GUILD.get_role(init_rank)
-                    placement_role = GUILD.get_role(PLACEMENT_ROLE_ID)
-                    await discord_member.add_roles(init_role)
-                    await discord_member.remove_roles(placement_role)
-                    await results_channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
+                    try:
+                        discord_member = await GUILD.fetch_member(player[0])
+                        init_role = GUILD.get_role(init_rank)
+                        placement_role = GUILD.get_role(PLACEMENT_ROLE_ID)
+                        await discord_member.add_roles(init_role)
+                        await discord_member.remove_roles(placement_role)
+                        await results_channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
+                    except Exception as e:
+                        await send_raw_to_debug_channel(f'{player[0]} did not stick around long enough to be placed',e)
 
                 # if is_sub: # Subs only gain on winning team
                 #     if team[len(team)-1] < 0:
@@ -1359,13 +1368,13 @@ async def table(
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
-        mmr_filename = f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}mmr.jpg'
+        mmr_filename = f'./images/{hex(ctx.author.id)}mmr.jpg'
         # correct = subprocess.run(['convert', '-background', 'gray21', '-fill', 'white', pango_string, mmr_filename], check=True, text=True)
         correct = subprocess.run(['convert', '-background', 'None', '-fill', 'white', pango_string, 'mkbg.jpg', '-compose', 'DstOver', '-layers', 'flatten', mmr_filename], check=True, text=True)
         # '+swap', '-compose', 'Over', '-composite', '-quality', '100',
         # '-fill', '#00000040', '-draw', 'rectangle 0,0 570,368',
         f=discord.File(mmr_filename, filename='mmr.jpg')
-        sf=discord.File(f'/home/lounge/200-Lounge-Mogi-Bot/images/{hex(ctx.author.id)}table.png', filename='table.jpg')
+        sf=discord.File(f'./images/{hex(ctx.author.id)}table.png', filename='table.jpg')
 
         # Create embed
         embed2 = discord.Embed(title=f'Tier {tier_name.upper()} Results', color = discord.Color.blurple())
