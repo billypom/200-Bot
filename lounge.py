@@ -927,12 +927,16 @@ async def table(
     #print(f'score list: {score_list}')
     player_list_check = []
     player_id_list_check = []
-    for i in range(0, len(score_list), 2):
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (score_list[i],))
-            player_list_check.append(score_list[i])
-            score_list[i] = temp[0][0]
-            player_id_list_check.append(temp[0][0])
+    try:
+        for i in range(0, len(score_list), 2):
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (score_list[i],))
+                player_list_check.append(score_list[i])
+                score_list[i] = temp[0][0]
+                player_id_list_check.append(temp[0][0])
+    except Exception as e:
+        await ctx.respond(f'``Error 73:`` Invalid input. There must be 12 players and 12 scores.')
+        return
 
     # Check for if mogi has started
     # try:
@@ -2596,7 +2600,6 @@ async def create_player(member, mkc_user_id, country_code):
                 temp_name+=char
                 count+=1
             insert_name = temp_name
-        altered_name = str(insert_name).replace(" ", "-")
         
         f = open('200lounge.csv',encoding='utf-8-sig') # f is our filename as string
         lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
@@ -2604,7 +2607,6 @@ async def create_player(member, mkc_user_id, country_code):
         for line in lines:
             name = line[0]
             if name.lower() == (member.display_name).lower():
-                altered_name = str(insert_name).replace(" ", "-")
                 mmr = int(line[2])
                 with DBA.DBAccess() as db:
                     ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
@@ -2615,7 +2617,8 @@ async def create_player(member, mkc_user_id, country_code):
                         with DBA.DBAccess() as db:
                             db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, ranks[i][0], mmr, mmr))
                         return f'Verified & registered successfully - Assigned {role}'
-
+        # replace spaces with dashes
+        altered_name = str(insert_name).replace(" ", "-")
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code) VALUES (%s, %s, %s, %s);', (member.id, insert_name, mkc_user_id, country_code))
