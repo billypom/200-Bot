@@ -281,8 +281,11 @@ async def verify(
             return
         else:
             pass
-        response = await set_player_roles(ctx)
-        await ctx.respond(response)
+        response = await set_player_roles(ctx.author.id)
+        if response:
+            await ctx.respond(f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{response[0]}>\n`{response[1]} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`')
+        else:
+            await ctx.respond(f'``Error 29:`` Could not re-enter the lounge. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')        
         return
     else:
         pass
@@ -1136,14 +1139,14 @@ async def table(
         # Create mogi
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO mogi (mogi_format, tier_id) values (%s, %s);', (mogi_format, ctx.channel.id))
-        await send_raw_to_debug_channel('Mogi created' , f'{mogi_format} | {ctx.channel.id}')
+        ##########await send_raw_to_debug_channel('Mogi created' , f'{mogi_format} | {ctx.channel.id}')
         # Get the results channel and tier name for later use
         with DBA.DBAccess() as db:
             temp = db.query('SELECT results_id, tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
             db_results_channel = temp[0][0]
             tier_name = temp[0][1]
         results_channel = client.get_channel(db_results_channel)
-        await send_raw_to_debug_channel('Results channel acquired', f'{results_channel}')
+        #############await send_raw_to_debug_channel('Results channel acquired', f'{results_channel}')
 
         # Pre MMR table calculate
         value_table = list()
@@ -1175,7 +1178,7 @@ async def table(
                 working_list.append(pre_mmr)
             value_table.append(working_list)
             # print(f'working list {idx}: {working_list}')
-        await send_raw_to_debug_channel('MMR calculated', 'value table loaded')
+        ############await send_raw_to_debug_channel('MMR calculated', 'value table loaded')
 
         # # DEBUG
         # print(f'\nprinting value table:\n')
@@ -1206,7 +1209,7 @@ async def table(
         mmr_table_string += f'PLACE |       NAME       |  MMR  |  +/-  | NEW MMR |  RANKUPS\n'
 
         for team in sorted_list:
-            await send_raw_to_debug_channel('Updating team', team)
+            ###########await send_raw_to_debug_channel('Updating team', team)
             my_player_place = team[len(team)-2]
             string_my_player_place = str(my_player_place)
             for idx, player in enumerate(team):
@@ -1372,7 +1375,7 @@ async def table(
                 formatted_my_player_new_rank = await new_rank_wrapper(string_my_player_new_rank, my_player_new_mmr)
                 mmr_table_string += f'{formatted_my_player_new_rank}'
                 string_my_player_place = ''
-        await send_raw_to_debug_channel('TEAMS UPDATED', 'Success')
+        ###########await send_raw_to_debug_channel('TEAMS UPDATED', 'Success')
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
         pango_string = f'pango:<tt>{mmr_table_string}</tt>'
@@ -2225,6 +2228,7 @@ async def zmmr_penalty(
                 new_mmr = 1
             db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (new_mmr, player.id))
         await ctx.respond(f'{player.mention} has been given a {mmr_penalty} mmr penalty')
+        await set_player_roles(player.id)
     except Exception as e:
         await send_to_debug_channel(ctx, f'/zmmr_penalty error 38 {e}')
         await ctx.respond('`Error 38:` Could not apply penalty')
@@ -2541,14 +2545,14 @@ async def set_uid_chat_restricted(uid):
         return False
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
-async def set_player_roles(ctx):
+async def set_player_roles(uid):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_name, mmr FROM player WHERE player_id = %s;', (ctx.author.id,))
+            temp = db.query('SELECT player_name, mmr FROM player WHERE player_id = %s;', (uid,))
         player_name = temp[0][0]
         mmr = temp[0][1]
         guild = client.get_guild(Lounge[0])
-        member = await guild.fetch_member(ctx.author.id)
+        member = await guild.fetch_member(uid)
         if mmr is None:
             role = guild.get_role(PLACEMENT_ROLE_ID)
             with DBA.DBAccess() as db:
@@ -2558,7 +2562,7 @@ async def set_player_roles(ctx):
                     remove_rank = guild.get_role(rank[0])
                     await member.remove_roles(remove_rank)
             await member.add_roles(role)
-            return f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
+            return (role.id, role)
             
 
         with DBA.DBAccess() as db:
@@ -2578,12 +2582,12 @@ async def set_player_roles(ctx):
         try:
             await member.edit(nick=str(player_name))
         except Exception as e:
-            await send_to_debug_channel(ctx, f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')
+            await send_raw_to_debug_channel(f'<@{uid}>', f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')
             pass
-        return f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
+        return (role.id, role)
     except Exception as e:
-        await send_to_debug_channel(ctx, f'set_player_roles exception: {e}')
-        return f'``Error 29:`` Could not re-enter the lounge. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
+        await send_raw_to_debug_channel(f'<@{uid}>', f'set_player_roles exception: {e}')
+        return False
 
 # Cool&Create
 async def create_player(member, mkc_user_id, country_code):
