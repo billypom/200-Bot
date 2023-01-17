@@ -342,9 +342,8 @@ async def verify(
     if is_banned:
         # Is banned
         verify_description = vlog_msg.error3
-        verify_color = discord.Color.red()
         await ctx.respond('``Error 7:`` Oops! Something went wrong. Check your link or try again later')
-        await send_to_verification_log(ctx, message, verify_color, verify_description)
+        await send_to_verification_log(ctx, message, verify_description)
         return
     elif is_banned == -1:
         # Wrong link probably?
@@ -367,9 +366,8 @@ async def verify(
         seconds_since_last_login = unix_now - last_seen_unix_timestamp
         if seconds_since_last_login > SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT:
             verify_description = vlog_msg.error5
-            verify_color = discord.Color.red()
             await ctx.respond('``Error 5:`` Please log in to your MKC account, then retry. \n\nIf you are still being refused verification, click this link then try again: https://www.mariokartcentral.com/forums/index.php?members/popuko.154/')
-            # await send_to_verification_log(ctx, message, verify_color, verify_description)
+            # await send_to_verification_log(ctx, message, verify_description)
             return
         else:
             pass
@@ -377,7 +375,7 @@ async def verify(
         verify_description = vlog_msg.error7
         verify_color = discord.Color.red()
         await ctx.respond('``Error 6:`` Oops! Something went wrong. Check your link or try again later')
-        await send_to_verification_log(ctx, f'Error 6: {message}', verify_color, verify_description)
+        await send_to_verification_log(ctx, f'Error 6: {message}', verify_description)
         return
     if user_matches_list:
         verify_color = discord.Color.teal()
@@ -391,13 +389,13 @@ async def verify(
         await ctx.respond(f'``Error 10:`` Oops! Something went wrong. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')
         verify_description = vlog_msg.error4
         verify_color = discord.Color.red()
-        await send_to_verification_log(ctx, f'Error 10: {message}', verify_color, verify_description)
+        await send_to_verification_log(ctx, f'Error 10: {message}', verify_description)
         return
     else:
         member = await GUILD.fetch_member(ctx.author.id)
         x = await create_player(member, mkc_user_id, country_code)
         await ctx.respond(x)
-        await send_to_verification_log(ctx, message, verify_color, verify_description)
+        await send_to_verification_log(ctx, message, verify_description)
         return
 
 # # /c
@@ -718,7 +716,7 @@ async def verify(
 #             pass
 #         y = await check_if_banned_characters(fc)
 #         if y:
-#             await send_to_verification_log(ctx, fc, discord.Color.blurple(), vlog_msg.error1)
+#             await send_to_verification_log(ctx, fc, vlog_msg.error1)
 #             return '``Error 13:`` Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
 #         x = await check_if_player_exists(ctx)
 #         if x:
@@ -754,7 +752,7 @@ async def verify(
 #     y = await check_if_banned_characters(username)
 #     if y:
 #         await ctx.respond("Invalid twitch username")
-#         await send_to_verification_log(ctx, username, discord.Color.blurple(), vlog_msg.error1)
+#         await send_to_verification_log(ctx, username, vlog_msg.error1)
 #         return
 #     if len(str(username)) > 25:
 #         await ctx.respond("Invalid twitch username")
@@ -827,7 +825,7 @@ async def name(
         return
     x = await check_if_banned_characters(name)
     if x:
-        await send_to_verification_log(ctx, name, discord.Color.blurple(), vlog_msg.error1)
+        await send_to_verification_log(ctx, name, vlog_msg.error1)
         await ctx.respond('You cannot use this name')
         return
     else:
@@ -910,7 +908,7 @@ async def table(
         pass
     bad = await check_if_banned_characters(str(scores))
     if bad:
-        await send_to_verification_log(ctx, scores, discord.Color.blurple(), vlog_msg.error1)
+        await send_to_verification_log(ctx, scores, vlog_msg.error1)
         await ctx.respond(f'``Error 32:`` Invalid input. There must be 12 players and 12 scores.')
         return
 
@@ -1438,7 +1436,7 @@ async def stats(
         bad = await check_if_banned_characters(tier)
         if bad:
             await ctx.respond("Invalid tier")
-            await send_to_verification_log(ctx, tier, discord.Color.blurple(), vlog_msg.error1)
+            await send_to_verification_log(ctx, tier, vlog_msg.error1)
             return
         # Retrieve tier ID and api request the discord.TextChannel object
         try:
@@ -1453,7 +1451,7 @@ async def stats(
         bad = await check_if_banned_characters(player)
         if bad:
             await ctx.respond("Invalid player")
-            await send_to_verification_log(ctx, player, discord.Color.blurple(), vlog_msg.error1)
+            await send_to_verification_log(ctx, player, vlog_msg.error1)
             return
         # Retrieve player ID and api request the discord.Member object
         try:
@@ -2013,14 +2011,14 @@ async def zswapscore(
     x = await check_if_banned_characters(player1)
     if x:
         await ctx.respond("Invalid player1 name")
-        await send_to_verification_log(ctx, player1, discord.Color.blurple(), vlog_msg.error1)
+        await send_to_verification_log(ctx, player1, vlog_msg.error1)
         return
     else:
         pass
     y = await check_if_banned_characters(player2)
     if y:
         await ctx.respond("Invalid player2 name")
-        await send_to_verification_log(ctx, player1, discord.Color.blurple(), vlog_msg.error1)
+        await send_to_verification_log(ctx, player1, vlog_msg.error1)
         return
     else:
         pass
@@ -2493,7 +2491,7 @@ async def zmanually_verify_banned_player(
             verify_description = vlog_msg.error5
             verify_color = discord.Color.red()
             await ctx.respond('``Error 70:`` Contact the player you are trying to verify. Have them log into their MKC account, then retry. \n\nIf they are still being refused verification, have them click this link then try again: https://www.mariokartcentral.com/forums/index.php?members/popuko.154/')
-            await send_to_verification_log(ctx, message, verify_color, verify_description)
+            await send_to_verification_log(ctx, message, verify_description)
             return
         else:
             pass
@@ -2501,7 +2499,7 @@ async def zmanually_verify_banned_player(
         verify_description = vlog_msg.error7
         verify_color = discord.Color.red()
         await ctx.respond('``Error 71:`` Oops! Something went wrong. Check your link or try again later')
-        await send_to_verification_log(ctx, message, verify_color, verify_description)
+        await send_to_verification_log(ctx, message, verify_description)
         return
     if user_matches_list:
         verify_color = discord.Color.teal()
@@ -2515,7 +2513,7 @@ async def zmanually_verify_banned_player(
         await ctx.respond(f'``Error 72: Duplicate player`` This MKC Link is already in use. ')
         verify_description = vlog_msg.error4
         verify_color = discord.Color.red()
-        await send_to_verification_log(ctx, f'<@{player_id}> -> {message}', verify_color, verify_description)
+        await send_to_verification_log(ctx, f'<@{player_id}> -> {message}', verify_description)
         return
     else:
         y = await set_uid_chat_restricted(player_id)
@@ -2527,7 +2525,7 @@ async def zmanually_verify_banned_player(
         member = await GUILD.fetch_member(player_id)
         x = await create_player(member, mkc_user_id, country_code)
         await ctx.respond(x)
-        await send_to_verification_log(ctx, f'<@{player_id}> -> {message}', verify_color, verify_description)
+        await send_to_verification_log(ctx, f'<@{player_id}> -> {message}', verify_description)
         return
     
 
@@ -3158,13 +3156,9 @@ async def cancel_mogi(ctx):
 
 # Somebody did a bad
 # ctx | message | discord.Color.red() | my custom message
-async def send_to_verification_log(ctx, message, verify_color, verify_description):
+async def send_to_verification_log(ctx, message, verify_description):
     channel = client.get_channel(secretly.verification_channel)
-    embed = discord.Embed(title='Verification', description=verify_description, color = verify_color)
-    embed.add_field(name='Name: ', value=ctx.author.mention, inline=False)
-    embed.add_field(name='Message: ', value=message, inline=False)
-    embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
-    await channel.send(content=None, embed=embed)
+    await channel.send(f'{verify_description}\n{ctx.author.id} | {ctx.author.mention}\n{message}')
 
 async def send_to_debug_channel(ctx, error):
     channel = client.get_channel(secretly.debug_channel)
@@ -3181,6 +3175,7 @@ async def send_to_danger_debug_channel(ctx, message, verify_color, verify_descri
     embed.add_field(name='Message: ', value=message, inline=False)
     embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
     await channel.send(content=None, embed=embed)
+    await channel.send(f'{secretly.my_discord}')
 
 async def send_raw_to_debug_channel(anything, error):
     channel = client.get_channel(secretly.debug_channel)
