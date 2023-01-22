@@ -852,7 +852,7 @@ async def name(
     else:
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM player_name_request WHERE player_id = %s;', (ctx.author.id,))
+                temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM player_name_request WHERE player_id = %s ORDER BY create_date DESC;', (ctx.author.id,))
                 last_change = temp[0][0]
                 unix_now = await get_unix_time_now()
                 difference = unix_now - last_change
