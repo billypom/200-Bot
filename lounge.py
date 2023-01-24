@@ -3230,7 +3230,6 @@ async def send_to_suggestion_log_channel(ctx, suggestion_id, message, decision, 
     x = await channel.send(content=None, embed=embed)
     return x
     
-
 async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
     channel = client.get_channel(secretly.ip_match_channel)
     embed = discord.Embed(title="Verification", description=f'IP Matches for <@{ctx.author.id}>', color=verify_color)
@@ -3244,9 +3243,7 @@ async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
         await channel.send(content=None, embed=embed)
     except Exception as e:
         await channel.send(f'TOO MANY MATCHES: {e} {user_matches_list}')
-
-
-
+ 
 
 async def mkc_request_forum_info(mkc_user_id):
     with concurrent.futures.ThreadPoolExecutor() as executor:
