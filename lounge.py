@@ -2111,6 +2111,9 @@ async def zstrike(
             db.execute('UPDATE player SET times_strike_limit_reached = %s WHERE player_id = %s;', (temp[0][0], player.id))
         user = await GUILD.fetch_member(player.id)
         await user.add_roles(LOUNGELESS_ROLE)
+        ranks_list = await get_list_of_rank_ids()
+        for rank in ranks_list:
+            await user.remove_roles(rank)
         channel = client.get_channel(secretly.strikes_channel)
         await channel.send(f'{player.mention} has reached 3 strikes. Loungeless role applied\n`# of offenses:` {times_strike_limit_reached}')
     await ctx.respond(f'Strike applied to {player.mention} | Penalty: {mmr_penalty}')
@@ -2373,6 +2376,68 @@ async def zreload_cogs(ctx):
         await send_raw_to_debug_channel('cog reloaded', extension)
     await ctx.respond('Cogs reloaded successfully')
 
+@client.slash_command(
+    name='zforce_player_name',
+    description='Force a player to a new name',
+    guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zforce_player_name(ctx,
+    player: discord.Option(discord.Member, 'Player', required=True),
+    name: discord.Option(str, 'New name', required=True)):
+    await ctx.defer()
+    y = await check_if_uid_exists(player.id)
+    if y:
+        pass
+    else:
+        await ctx.respond('Player does not exist.\nIf you want to change a non-placed players name just use the nickname feature in Discord.')
+        return
+    x = await check_if_banned_characters(name)
+    if x:
+        await send_to_verification_log(ctx, name, vlog_msg.error1)
+        await ctx.respond('You cannot use this name')
+        return
+    else:
+        pass
+    input_name = name
+    name = await jp_kr_romanize(name)
+    name = name.replace(" ", "-")
+    if len(name) > 16:
+        await ctx.respond(f'Your request: {input_name} -> {name} | Name is too long. 16 characters max')
+        return
+    is_name_taken = True
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (name,))
+            if temp[0][0] is None:
+                is_name_taken = False
+            else:
+                is_name_taken = True
+    except Exception as e:
+        is_name_taken = False
+    if is_name_taken:
+        await ctx.respond('Name is taken. Please try again.')
+        return
+    else:
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('UPDATE player SET player_name = %s WHERE player_id = %s;', (name, player.id))
+        except Exception as e:
+            await send_raw_to_debug_channel('Could not force name change...', e)
+            await ctx.respond('`Error 77:` Could not force player name change.')
+            return
+        member = await GUILD.fetch_member(player.id)
+        try:
+            await member.edit(nick=str(name))
+        except Exception as e:
+            await send_raw_to_debug_channel('Could not force name change 2...', e)
+            await ctx.respond('`Error 78:` Could not force player name change.')
+            return
+        await ctx.respond(f'Name changed for user: <@{player.id}>')
+        return
+
+
+
 # /qwe
 @client.slash_command(
     name='qwe',
@@ -2381,12 +2446,13 @@ async def zreload_cogs(ctx):
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def qwe(ctx):
-    guild = client.get_guild(Lounge[0])
-    role = guild.get_role(791874714434797589)
-    await ctx.defer(ephemeral=True)
-    channel = client.get_channel(ctx.channel.id)
-    await channel.send(f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`')
-    await ctx.respond('qwe')
+    # guild = client.get_guild(Lounge[0])
+    # role = guild.get_role(791874714434797589)
+    # await ctx.defer(ephemeral=True)
+    # channel = client.get_channel(ctx.channel.id)
+    # await channel.send(f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`')
+    # await ctx.respond('qwe')
+    await ctx.respond(await get_list_of_rank_ids())
     return
 
 
@@ -2984,6 +3050,17 @@ async def check_if_mogi_is_ongoing(ctx):
         return True
     else:
         return False
+
+async def get_list_of_rank_ids():
+    my_list = []
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT rank_id FROM ranks;', ())
+        for item in temp:
+            my_list.append(item[0])
+        return my_list
+    except Exception:
+        return []
 
 async def check_if_uid_can_drop(uid):
     try:
