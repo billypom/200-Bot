@@ -2108,7 +2108,7 @@ async def zstrike(
         with DBA.DBAccess() as db:
             temp = db.query('SELECT times_strike_limit_reached FROM player WHERE player_id = %s;', (player.id,))
             times_strike_limit_reached = temp[0][0] + 1
-            db.execute('UPDATE player SET times_strike_limit_reached = %s WHERE player_id = %s;', (temp[0][0], player.id))
+            db.execute('UPDATE player SET times_strike_limit_reached = %s WHERE player_id = %s;', (times_strike_limit_reached, player.id))
         user = await GUILD.fetch_member(player.id)
         await user.add_roles(LOUNGELESS_ROLE)
         ranks_list = await get_list_of_rank_ids()
