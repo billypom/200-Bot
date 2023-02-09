@@ -2444,9 +2444,9 @@ async def zmanually_verify_banned_player(
         if lounge_ban:
             await ctx.respond(f'This player is Lounge Banned.\nUnban date: <t:{lounge_ban}:F>')
             return
-        # else:
-        #     await ctx.respond(f'<@{player_id}> already exists. They should be able to `/verify` their own account.')
-        #     return
+        else:
+            await ctx.respond(f'<@{player_id}> already exists. They should be able to `/verify` their own account.')
+            return
     else:
         pass
     # Regex on https://www.mariokartcentral.com/mkc/registry/players/930
@@ -2558,7 +2558,19 @@ async def zmanually_verify_banned_player(
         await ctx.respond(x)
         await send_to_verification_log(ctx, f'<@{player_id}> -> {message}', verify_description)
         return
-    
+
+@client.slash_command(
+    name='zset_player_roles',
+    description='Check for proper player roles',
+    guild_ids=Lounge
+)    
+async def zset_player_roles(
+    ctx,
+    player: discord.Option(discord.Member, 'Leaving player', required=True)):
+    response = await set_player_roles(player.id)
+    if response:
+        await ctx.respond(f'Player roles set for <@{player.id}>')
+        return
 
 
 
