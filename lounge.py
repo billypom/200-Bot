@@ -2610,7 +2610,6 @@ async def set_player_roles(uid):
                                     await member.add_roles(role)
                                     with DBA.DBAccess() as db:
                                         db.execute('UPDATE player set rank_id = %s, mmr = %s, base_mmr = %s WHERE player_id = %s;', (ranks[i][0], mmr, mmr, member.id,))
-                                    return (role.id, role)
             role = guild.get_role(PLACEMENT_ROLE_ID)
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT rank_id FROM ranks;', ())
