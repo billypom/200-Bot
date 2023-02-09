@@ -2595,6 +2595,22 @@ async def set_player_roles(uid):
         guild = client.get_guild(Lounge[0])
         member = await guild.fetch_member(uid)
         if mmr is None:
+            with open('200lounge.csv', 'rt', encoding='utf-8-sig') as f: # f is our filename as string
+                lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
+                if len(lines) > 0:
+                    for line in lines:
+                        name = line[0]
+                        if name.lower() == (member.display_name).lower():
+                            mmr = int(line[2])
+                            with DBA.DBAccess() as db:
+                                ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
+                            for i in range(len(ranks)):
+                                if mmr > int(ranks[i][1]) and mmr < int(ranks[i][2]):
+                                    role = GUILD.get_role(ranks[i][0])
+                                    await member.add_roles(role)
+                                    with DBA.DBAccess() as db:
+                                        db.execute('UPDATE player set (player_id, player_name, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s);', (member.id, altered_name, ranks[i][0], mmr, mmr))
+                                    return (role.id, role)
             role = guild.get_role(PLACEMENT_ROLE_ID)
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT rank_id FROM ranks;', ())
