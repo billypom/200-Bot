@@ -46,7 +46,7 @@ client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge'))
 # send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
 
 # initial_extensions = ['cogs.inactivity_check', 'cogs.update_mogilist', 'cogs.mogi_media_check', 'cogs.strike_check']
-initial_extensions = ['cogs.strike_check']
+initial_extensions = ['cogs.strike_check', 'cogs.unban_check']
 for extension in initial_extensions:
     client.load_extension(extension)
 
@@ -2042,10 +2042,10 @@ async def zstrike(
     if y:
         await ctx.respond('Invalid reason')
         return
-    player_is_placement = await check_if_uid_is_placement(player.id)
-    if player_is_placement:
-        await ctx.respond('Cannot strike a placement player')
-        return
+    # player_is_placement = await check_if_uid_is_placement(player.id)
+    # if player_is_placement:
+    #     await ctx.respond('Cannot strike a placement player')
+    #     return
     # Send info to strikes table
     mmr_penalty = abs(mmr_penalty)
     # Update player MMR
@@ -2062,23 +2062,21 @@ async def zstrike(
     with DBA.DBAccess() as db:
         db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date))
         db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((mmr-mmr_penalty), player.id))
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT COUNT(*) FROM strike WHERE player_id = %s AND is_active = %s;', (player.id, 1))
-        if temp[0][0] is None:
-            num_of_strikes = 0
-        else:
-            num_of_strikes = temp[0][0]
+    num_of_strikes = await get_number_of_strikes(player.id)
     if num_of_strikes >= 3:
         times_strike_limit_reached = 0
         with DBA.DBAccess() as db:
             temp = db.query('SELECT times_strike_limit_reached FROM player WHERE player_id = %s;', (player.id,))
             times_strike_limit_reached = temp[0][0] + 1
-            db.execute('UPDATE player SET times_strike_limit_reached = %s WHERE player_id = %s;', (times_strike_limit_reached, player.id))
+            unban_unix_time = await get_unix_time_now() + 24*60*60*times_strike_limit_reached
+            dt = datetime.datetime.utcfromtimestamp(unban_unix_time).strftime('%Y-%m-%d %H:%M:%S')
+            db.execute('UPDATE player SET times_strike_limit_reached = %s, unban_date = %s WHERE player_id = %s;', (times_strike_limit_reached, dt, player.id))
         user = await GUILD.fetch_member(player.id)
         await user.add_roles(LOUNGELESS_ROLE)
         ranks_list = await get_list_of_rank_ids()
         for rank in ranks_list:
-            await user.remove_roles(rank)
+            bye = GUILD.get_role(rank)
+            await user.remove_roles(bye)
         channel = client.get_channel(secretly.strikes_channel)
         await channel.send(f'{player.mention} has reached 3 strikes. Loungeless role applied\n`# of offenses:` {times_strike_limit_reached}')
     await ctx.respond(f'Strike applied to {player.mention} | Penalty: {mmr_penalty}')
@@ -2411,14 +2409,14 @@ async def zforce_player_name(ctx,
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def qwe(ctx):
-    # guild = client.get_guild(Lounge[0])
-    # role = guild.get_role(791874714434797589)
-    # await ctx.defer(ephemeral=True)
-    # channel = client.get_channel(ctx.channel.id)
-    # await channel.send(f'Welcome back to 200cc Lounge.\n`200ccラウンジにおかえり！`\n\n You have been given the role: <@&{role.id}>\n`{role} が割り当てられています`\n\n- - - - - - - - - - - - - - - -\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`')
-    # await ctx.respond('qwe')
-    await ctx.respond(await get_list_of_rank_ids())
-    return
+    current_time = datetime.datetime.now()
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT strike_id, player_id FROM strike WHERE strike_id < %s;', (5,))
+        for expire in temp:
+            await ctx.respond(expire[0])
+    except Exception:
+        await ctx.respond('broken')
 
 
 @client.slash_command(
@@ -3192,6 +3190,14 @@ async def check_if_uid_is_placement(uid):
 
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
+
+async def get_number_of_strikes(uid):
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT COUNT(*) FROM strike WHERE player_id = %s AND is_active = %s;', (uid, 1))
+        if temp[0][0] is None:
+            return 0
+        else:
+            return temp[0][0]
 
 # Takes in ctx, returns avg partner score
 async def get_partner_avg(uid, number_of_mogis, tier_id='%'):
