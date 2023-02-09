@@ -906,40 +906,19 @@ async def table(
         return
     else:
         pass
-    bad = await check_if_banned_characters(str(scores))
+    # Check scores for bad input
+    bad = await check_if_banned_characters(scores)
     if bad:
         await send_to_verification_log(ctx, scores, vlog_msg.error1)
         await ctx.respond(f'``Error 32:`` Invalid input. There must be 12 players and 12 scores.')
         return
 
-    # Create list
-    score_string = str(scores) #.translate(remove_chars)
-    score_list = score_string.split()
-
-    # Check for 12 players
-    if len(score_list) == 24:
-        pass
-    else:
-        await ctx.respond(f'``Error 26:`` Invalid input. There must be 12 players and 12 scores.')
-        return
-    
-    # Replace playernames with playerids
-
-    #print(f'score list: {score_list}')
-    player_list_check = []
-    player_id_list_check = []
-    try:
-        for i in range(0, len(score_list), 2):
-            with DBA.DBAccess() as db:
-                temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (score_list[i],))
-                player_list_check.append(score_list[i])
-                score_list[i] = temp[0][0]
-                player_id_list_check.append(temp[0][0])
-    except Exception as e:
+    chunked_list = await handle_score_input(scores, mogi_format)
+    if not chunked_list:
         await ctx.respond(f'``Error 73:`` Invalid input. There must be 12 players and 12 scores.')
         return
-
-    # Check for if mogi has started
+    
+    # Check if mogi has started
     # try:
     #     with DBA.DBAccess() as db:
     #         temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
@@ -952,30 +931,6 @@ async def table(
     # if players_in_lineup_count < 12:
         # await ctx.respond('Mogi has not started. Cannot create a table now')
         # return
-
-    
-    
-    # Check for duplicate players
-    has_dupes = await check_for_dupes_in_list(player_list_check)
-    if has_dupes:
-        await ctx.respond('``Error 37:`` You cannot have duplicate players on a table')
-        return
-    
-    # does not matter if players are supposed to be on table
-    # Check if all 12 players are SUPPOSED to be on the table (1st 12 players. You can't just ignore a player and put the 13th player in the mogi without using the /sub command)
-    # for player in player_id_list_check:
-    #     try:
-    #         with DBA.DBAccess() as db:
-    #             temp = db.query('SELECT can_drop FROM lineups WHERE player_id = %s AND tier_id = %s;', (player, ctx.channel.id))
-    #             if temp[0][0] == 0:
-    #                 pass
-    #             else:
-    #                 await ctx.respond(f'``Error 52:`` Unexpected player in lineup. Is there a sub among us? Please use the `/sub` command.\n\nCreate a ticket or contact {secretly.my_discord} if you think this is a mistake.')
-    #                 return
-    #     except Exception as e:
-    #         await ctx.respond(f'``Error 53:`` Oops! Something went wrong. | Unexpected player in lineup. Is there a sub among us? Please use the `/sub` command.\n\nCreate a ticket or contact {secretly.my_discord} if you think this is a mistake.')
-    #         await send_to_debug_channel(ctx, f'/table Error 53: temp: {temp}\ne: {e}')
-    #         return
 
 
     # Check the mogi_format
@@ -1009,23 +964,19 @@ async def table(
         return
 
     # Get the highest MMR ever
+    #   There was a very high integer in the formula for calculating mmr on the original google sheet.
+    #   A comment about how people "never thought anyone could reach 10k mmr" made me think this very high integer was a
+    #       replacement for getting the highest existing mmr (or at least my formula could emulate that high integer 
+    #       with some variance :shrug: its probably fine... no1 going 2 read this)
     try:
         with DBA.DBAccess() as db:
             h = db.query('SELECT max(mmr) from player where player_id > %s;',(0,))
             highest_mmr = h[0][0]
     except Exception as e:
         await ctx.respond(f'``Error 76:`` `/table` error. Make a <#{secretly.support_channel}> if you need assistance.')
-
-    # Initialize a list so we can group players and scores together
-    player_score_chunked_list = list()
-    for i in range(0, len(score_list), 2):
-        player_score_chunked_list.append(score_list[i:i+2])
     # print(f'player score chunked list: {player_score_chunked_list}')
 
-    # Chunk the list into groups of teams, based on mogi_format and order of scores entry
-    chunked_list = list()
-    for i in range(0, len(player_score_chunked_list), mogi_format):
-        chunked_list.append(player_score_chunked_list[i:i+mogi_format])
+
     
     # Get MMR data for each team, calculate team score, and determine team placement
     mogi_score = 0
@@ -1038,9 +989,6 @@ async def table(
         for player in team:
             try:
                 with DBA.DBAccess() as db:
-                    # This part makes sure that only players in the current channel's lineup can have a table made for them
-                    # nevermind
-                    # temp = db.query('SELECT mmr FROM (SELECT p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY create_date ASC LIMIT 12) as m JOIN player p on p.player_id = m.player_id WHERE p.player_id = %s;', (ctx.channel.id, player[0]))
                     temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
                 if temp[0][0] is None:
                     mmr = 0
@@ -1049,20 +997,37 @@ async def table(
                     mmr = temp[0][0]
                     count+=1
                 temp_mmr += mmr
-                try:
+                try: 
+                    # gave me nice integer
                     team_score += int(player[1])
                 except Exception:
-                    score_and_pen = str(player[1]).split('-')
-                    team_score = team_score + int(score_and_pen[0]) - int(score_and_pen[1])
+                    # Split the string into sub strings with scores and operations
+                    # Do calculation + -
+                    current_group = ''
+                    sign = ''
+                    points = 0
+                    for idx, char in enumerate(str(player[1])):
+                        if char.isdigit():
+                            current_group += char
+                        elif char == '-' or char == '+':
+                            sign = char
+                            points += int(f'{sign}{current_group}')
+                            current_group = ''
+                        else:
+                            await ctx.respond(f'``Error 26:``There was an error with the following player: <@{player[0]}>')
+                            return
+                    # Last item in list needs to be added
+                    points += int(f'{sign}{current_group}')
+                    team_score = team_score + points
             except Exception as e:
                 # check for all 12 players exist
                 await send_to_debug_channel(ctx, f'/table Error 24:{e}')
-                await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>. If this is a sub, you must first use the `/sub` command')
+                await ctx.respond(f'``Error 24:`` There was an error with the following player: <@{player[0]}>')
                 return
         # print(team_score)
         if count == 0:
             count = 1
-        team_mmr = temp_mmr/count
+        team_mmr = temp_mmr/count # COUNT AS DIVISOR TO DETERMINE AVG/TEAM MMR
         team.append(team_score)
         team.append(team_mmr)
         mogi_score += team_score
@@ -2479,9 +2444,9 @@ async def zmanually_verify_banned_player(
         if lounge_ban:
             await ctx.respond(f'This player is Lounge Banned.\nUnban date: <t:{lounge_ban}:F>')
             return
-        else:
-            await ctx.respond(f'<@{player_id}> already exists. They should be able to `/verify` their own account.')
-            return
+        # else:
+        #     await ctx.respond(f'<@{player_id}> already exists. They should be able to `/verify` their own account.')
+        #     return
     else:
         pass
     # Regex on https://www.mariokartcentral.com/mkc/registry/players/930
@@ -3230,6 +3195,38 @@ async def cancel_mogi(ctx):
     with DBA.DBAccess() as db:
         db.execute('DELETE FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
     return
+
+# Takes in _scores_ input from /table
+# returns a nice formatted dict-type list thingie...
+# i should probably return a dict and make this way faster
+async def handle_score_input(score_string, mogi_format):
+    # Split into list
+    score_list = score_string.split()
+    if len(score_list) == 24:
+        pass
+    else:
+        return False
+    # Check for player db match
+    try:
+        for i in range(0, len(score_list), 2):
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (score_list[i],))
+                # Replace playernames with playerids
+                score_list[i] = temp[0][0]
+    except Exception:
+        return False
+    
+    player_score_chunked_list = []
+    for i in range(0, len(score_list), 2):
+        player_score_chunked_list.append(score_list[i:i+2])
+        print(player_score_chunked_list)
+
+
+    # Chunk the list into groups of teams, based on mogi_format and order of scores entry
+    chunked_list = []
+    for i in range(0, len(player_score_chunked_list), mogi_format):
+        chunked_list.append(player_score_chunked_list[i:i+mogi_format])
+    return chunked_list
 
 # Somebody did a bad
 # ctx | message | discord.Color.red() | my custom message
