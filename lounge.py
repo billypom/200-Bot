@@ -3238,7 +3238,7 @@ async def handle_score_input(ctx, score_string, mogi_format):
     if len(score_list) == 24:
         pass
     else:
-        channel = await client.get_channel(ctx.channel.id)
+        channel = client.get_channel(ctx.channel.id)
         await channel.send(f'Wrong amount of inputs {len(score_list)}')
         return False
     # Check for player db match
@@ -3249,7 +3249,7 @@ async def handle_score_input(ctx, score_string, mogi_format):
                 # Replace playernames with playerids
                 score_list[i] = temp[0][0]
     except Exception:
-        channel = await client.get_channel(ctx.channel.id)
+        channel = client.get_channel(ctx.channel.id)
         await channel.send(f'`PLAYER DOES NOT EXIST:` {score_list[i]}')
         return False
     
