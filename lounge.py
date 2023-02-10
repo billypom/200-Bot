@@ -3239,7 +3239,7 @@ async def handle_score_input(ctx, score_string, mogi_format):
         pass
     else:
         channel = client.get_channel(ctx.channel.id)
-        await channel.send(f'Wrong amount of inputs {len(score_list)}')
+        await channel.send(f'`WRONG AMOUNT OF INPUTS:` {len(score_list)}')
         return False
     # Check for player db match
     try:
