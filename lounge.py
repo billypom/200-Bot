@@ -913,7 +913,7 @@ async def table(
         await ctx.respond(f'``Error 32:`` Invalid input. There must be 12 players and 12 scores.')
         return
 
-    chunked_list = await handle_score_input(scores, mogi_format)
+    chunked_list = await handle_score_input(ctx, scores, mogi_format)
     if not chunked_list:
         await ctx.respond(f'``Error 73:`` Invalid input. There must be 12 players and 12 scores.')
         return
@@ -3232,12 +3232,14 @@ async def cancel_mogi(ctx):
 # Takes in _scores_ input from /table
 # returns a nice formatted dict-type list thingie...
 # i should probably return a dict and make this way faster
-async def handle_score_input(score_string, mogi_format):
+async def handle_score_input(ctx, score_string, mogi_format):
     # Split into list
     score_list = score_string.split()
     if len(score_list) == 24:
         pass
     else:
+        channel = await client.get_channel(ctx.channel.id)
+        await channel.send(f'Wrong amount of inputs {len(score_list)}')
         return False
     # Check for player db match
     try:
@@ -3247,6 +3249,8 @@ async def handle_score_input(score_string, mogi_format):
                 # Replace playernames with playerids
                 score_list[i] = temp[0][0]
     except Exception:
+        channel = await client.get_channel(ctx.channel.id)
+        await channel.send(f'`PLAYER DOES NOT EXIST:` {score_list[i]}')
         return False
     
     player_score_chunked_list = []
