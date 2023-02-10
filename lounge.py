@@ -2340,12 +2340,12 @@ async def zreload_cogs(ctx):
     await ctx.respond('Cogs reloaded successfully')
 
 @client.slash_command(
-    name='zforce_player_name',
+    name='zset_player_name',
     description='Force a player to a new name',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-async def zforce_player_name(ctx,
+async def zset_player_name(ctx,
     player: discord.Option(discord.Member, 'Player', required=True),
     name: discord.Option(str, 'New name', required=True)):
     await ctx.defer()
@@ -2398,26 +2398,6 @@ async def zforce_player_name(ctx,
             return
         await ctx.respond(f'Name changed for user: <@{player.id}>')
         return
-
-
-
-# /qwe
-@client.slash_command(
-    name='qwe',
-    description='qwe',
-    guild_ids=Lounge
-)
-@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-async def qwe(ctx):
-    current_time = datetime.datetime.now()
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT strike_id, player_id FROM strike WHERE strike_id < %s;', (5,))
-        for expire in temp:
-            await ctx.respond(expire[0])
-    except Exception:
-        await ctx.respond('broken')
-
 
 @client.slash_command(
     name='zmanually_verify_banned_player',
@@ -2561,14 +2541,74 @@ async def zmanually_verify_banned_player(
     name='zset_player_roles',
     description='Check for proper player roles',
     guild_ids=Lounge
-)    
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zset_player_roles(
     ctx,
     player: discord.Option(discord.Member, 'Leaving player', required=True)):
+    await ctx.defer()
     response = await set_player_roles(player.id)
     if response:
         await ctx.respond(f'Player roles set for <@{player.id}>')
         return
+
+@client.slash_command(
+    name='zget_player_info',
+    description='Get player DB info',
+    guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zget_player_info(
+    ctx,
+    name: discord.Option(str, 'Name', required=False),
+    discord_id: discord.Option(str, 'Discord ID', required=False)):
+    await ctx.defer()
+
+    if discord_id:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id, player_name, mkc_id, mmr FROM player WHERE player_id = %s;', (discord_id,))
+        await ctx.respond(f'`id`: {temp[0][0]}\n`name`: {temp[0][1]}\n`mkc_id`: {temp[0][2]}\n`mmr`: {temp[0][3]}')
+        return
+    elif name:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_id, player_name, mkc_id, mmr FROM player WHERE player_name = %s;', (name,))
+        await ctx.respond(f'`id`: {temp[0][0]}\n`name`: {temp[0][1]}\n`mkc_id`: {temp[0][2]}\n`mmr`: {temp[0][3]}')
+        return
+    else:
+        await ctx.respond('You must provide a `name` or `discord_id`')
+        return
+
+
+
+
+
+
+# /qwe
+@client.slash_command(
+    name='qwe',
+    description='qwe',
+    guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def qwe(ctx):
+    current_time = datetime.datetime.now()
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT strike_id, player_id FROM strike WHERE strike_id < %s;', (5,))
+        for expire in temp:
+            await ctx.respond(expire[0])
+    except Exception:
+        await ctx.respond('broken')
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -3231,7 +3271,6 @@ async def cancel_mogi(ctx):
 
 # Takes in _scores_ input from /table
 # returns a nice formatted dict-type list thingie...
-# i should probably return a dict and make this way faster
 async def handle_score_input(ctx, score_string, mogi_format):
     # Split into list
     score_list = score_string.split()
