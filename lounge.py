@@ -2266,6 +2266,7 @@ async def zreduce_loss(ctx,
         await send_to_debug_channel(ctx, f'player: {player} | mogi id: {mogi_id} | reduction: {reduction} | {e}')
         await ctx.respond('``Error 41:`` FATAL ERROR uh oh uh oh uh oh')
         return
+    await set_player_roles(player.id)
     await ctx.respond(f'Loss was reduced for {player.mention}.\nChange: `{mmr_change}` -> `{adjusted_mmr_change}`\nMMR: `{mmr}` -> `{adjusted_mmr}`')
     return
 
