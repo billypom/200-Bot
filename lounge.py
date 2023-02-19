@@ -2591,15 +2591,14 @@ async def zget_player_info(
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-async def qwe(ctx):
-    current_time = datetime.datetime.now()
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT strike_id, player_id FROM strike WHERE strike_id < %s;', (5,))
-        for expire in temp:
-            await ctx.respond(expire[0])
-    except Exception:
-        await ctx.respond('broken')
+async def qwe(
+    ctx,
+    player: discord.Option(discord.Member, 'player', required=True)):
+    await ctx.defer()
+    member = await GUILD.fetch_member(uid)
+    await ctx.respond(member.display_name)
+
+    
 
 
 
