@@ -13,7 +13,7 @@ def create_plot(base, history):
         mmr += match
         mmrhistory.append(mmr)
     xs = np.arange(len(mmrhistory))
-    plt.style.use('./lounge_style.mplstyle')
+    plt.style.use('lounge_style.mplstyle')
     lines = plt.plot(mmrhistory)
     plt.setp(lines, 'color', 'snow', 'linewidth', 1.0)
     xmin, xmax, ymin, ymax = plt.axis()
