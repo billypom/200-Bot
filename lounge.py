@@ -2552,6 +2552,9 @@ async def zset_player_roles(
     if response:
         await ctx.respond(f'Player roles set for <@{player.id}>')
         return
+    else:
+        await ctx.respond(f'`Error 79:` Could not set roles ')
+        return
 
 @client.slash_command(
     name='zget_player_info',
@@ -2568,12 +2571,12 @@ async def zget_player_info(
     if discord_id:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id, player_name, mkc_id, mmr FROM player WHERE player_id = %s;', (discord_id,))
-        await ctx.respond(f'`id`: {temp[0][0]}\n`name`: {temp[0][1]}\n`mkc_id`: {temp[0][2]}\n`mmr`: {temp[0][3]}')
+        await ctx.respond(f'`discord id`: {temp[0][0]}\n`name`: {temp[0][1]}\n`mkc_forum_id`: {temp[0][2]}\n`mmr`: {temp[0][3]}')
         return
     elif name:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id, player_name, mkc_id, mmr FROM player WHERE player_name = %s;', (name,))
-        await ctx.respond(f'`id`: {temp[0][0]}\n`name`: {temp[0][1]}\n`mkc_id`: {temp[0][2]}\n`mmr`: {temp[0][3]}')
+        await ctx.respond(f'`discord id`: {temp[0][0]}\n`name`: {temp[0][1]}\n`mkc_forum_id`: {temp[0][2]}\n`mmr`: {temp[0][3]}')
         return
     else:
         await ctx.respond('You must provide a `name` or `discord_id`')
@@ -2626,12 +2629,20 @@ async def set_uid_chat_restricted(uid):
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
 async def set_player_roles(uid):
     try:
+        # Get player info
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_name, mmr FROM player WHERE player_id = %s;', (uid,))
         player_name = temp[0][0]
         mmr = temp[0][1]
+        # Get discord.Guild and discord.Member objects
         guild = client.get_guild(Lounge[0])
         member = await guild.fetch_member(uid)
+        # Remove all potential ranks
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT rank_id FROM ranks;', ())
+            for rank in temp:
+                remove_rank = guild.get_role(rank[0])
+                await member.remove_roles(remove_rank)
         if mmr is None:
             with open('200lounge.csv', 'rt', encoding='utf-8-sig') as f: # f is our filename as string
                 lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
@@ -2642,20 +2653,14 @@ async def set_player_roles(uid):
                             mmr = int(line[2])
                             with DBA.DBAccess() as db:
                                 ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
-                            for i in range(len(ranks)):
-                                if mmr >= int(ranks[i][1]) and mmr < int(ranks[i][2]):
+                            for rank in ranks:
+                                if mmr >= int(rank[1]) and mmr < int(rank[2]):
                                     role = guild.get_role(ranks[i][0])
                                     await member.add_roles(role)
                                     with DBA.DBAccess() as db:
-                                        db.execute('UPDATE player set rank_id = %s, mmr = %s, base_mmr = %s WHERE player_id = %s;', (ranks[i][0], mmr, mmr, member.id,))
+                                        db.execute('UPDATE player set rank_id = %s, mmr = %s, base_mmr = %s WHERE player_id = %s;', (rank[0], mmr, mmr, member.id,))
                                     return (role.id, role)
             role = guild.get_role(PLACEMENT_ROLE_ID)
-            with DBA.DBAccess() as db:
-                temp = db.query('SELECT rank_id FROM ranks;', ())
-                # Remove all potential ranks first
-                for rank in temp:
-                    remove_rank = guild.get_role(rank[0])
-                    await member.remove_roles(remove_rank)
             await member.add_roles(role)
             return (role.id, role)
             
