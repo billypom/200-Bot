@@ -2738,6 +2738,8 @@ async def create_player(member, mkc_user_id, country_code):
                             await member.add_roles(role)
                             with DBA.DBAccess() as db:
                                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, ranks[i][0], mmr, mmr))
+                            altered_name = str(insert_name).replace(" ", "-")
+                            await send_raw_to_verification_log(f'player:<@{member.id}>\nS4 name:`{name.lower()}`\ninsert name:`{insert_name}`\naltered name:`{altered_name}`\nmmr:`{mmr}`', '**Creating player (+S4)**')
                             return f'Verified & registered successfully - Assigned {role}'
         else:
             return f'``Error 75:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
@@ -2747,12 +2749,21 @@ async def create_player(member, mkc_user_id, country_code):
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, PLACEMENT_ROLE_ID))
             # change player nick name on join
-            await member.edit(nick=str(altered_name))
+            try:
+                await member.edit(nick=str(altered_name))
+            except Exception as e:
+                await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT NICK FOR USER <@{member.id}>', {e})
             role = GUILD.get_role(PLACEMENT_ROLE_ID)
-            await member.add_roles(role)
+            try:
+                await member.add_roles(role)
+            except Exception as e:
+                await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT ROLE FOR USER <@{member.id}>', {e})
+
+            await send_raw_to_verification_log(f'player:<@{member.id}>\nrole:`{role}`\ninsert name:`{insert_name}`\naltered name:`{altered_name}`', '**Creating player**')
+
             return 'Verified & registered successfully'
         except Exception as e:
-            await send_raw_to_debug_channel(f'create_player error 14', {e})
+            await send_raw_to_debug_channel(f'create_player error 14 <@{member.id}>', {e})
             return f'``Error 14:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
             # 1. a player trying to use someone elses link (could be banned player)
             # 2. a genuine player locked from usage by another player (banned player might have locked them out)
@@ -3315,6 +3326,10 @@ async def handle_score_input(ctx, score_string, mogi_format):
 async def send_to_verification_log(ctx, message, verify_description):
     channel = client.get_channel(secretly.verification_channel)
     await channel.send(f'{verify_description}\n{ctx.author.id} | {ctx.author.mention}\n{message}')
+
+async def send_raw_to_verification_log(message, verify_description):
+    channel = client.get_channel(secretly.verification_channel)
+    await channel.send(f'{verify_description}\n{message}')
 
 async def send_to_debug_channel(ctx, error):
     channel = client.get_channel(secretly.debug_channel)
