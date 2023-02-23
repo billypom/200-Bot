@@ -2736,9 +2736,9 @@ async def create_player(member, mkc_user_id, country_code):
                         if mmr > int(ranks[i][1]) and mmr < int(ranks[i][2]):
                             role = GUILD.get_role(ranks[i][0])
                             await member.add_roles(role)
+                            altered_name = str(insert_name).replace(" ", "-")
                             with DBA.DBAccess() as db:
                                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, ranks[i][0], mmr, mmr))
-                            altered_name = str(insert_name).replace(" ", "-")
                             await send_raw_to_verification_log(f'player:<@{member.id}>\nS4 name:`{name.lower()}`\ninsert name:`{insert_name}`\naltered name:`{altered_name}`\nmmr:`{mmr}`', '**Creating player (+S4)**')
                             return f'Verified & registered successfully - Assigned {role} @ {mmr}'
         else:
