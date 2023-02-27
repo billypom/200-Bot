@@ -2655,7 +2655,7 @@ async def set_player_roles(uid):
                                 ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
                             for rank in ranks:
                                 if mmr >= int(rank[1]) and mmr < int(rank[2]):
-                                    role = guild.get_role(ranks[i][0])
+                                    role = guild.get_role(rank[0])
                                     await member.add_roles(role)
                                     with DBA.DBAccess() as db:
                                         db.execute('UPDATE player set rank_id = %s, mmr = %s, base_mmr = %s WHERE player_id = %s;', (rank[0], mmr, mmr, member.id,))
