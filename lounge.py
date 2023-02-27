@@ -2678,6 +2678,8 @@ async def set_player_roles(uid):
                     await member.remove_roles(remove_rank)
                 role = guild.get_role(ranks[i][0])
                 await member.add_roles(role)
+                with DBA.DBAccess() as db:
+                    db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (ranks[i][0], member.id))
         # player_name = player_name.replace("-", " ")
         try:
             await member.edit(nick=str(player_name))
