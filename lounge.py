@@ -325,7 +325,7 @@ async def verify(
             await ctx.respond('``Error 3:`` Oops! Something went wrong. Check your link or try again later')
             return
     else:
-        await ctx.respond('``Error 5:`` Oops! Something went wrong. Check your link or try again later')
+        await ctx.respond('``Error 80:`` Oops! Something went wrong. Check your link or try again later')
         return
     # Make sure player_id was received properly
     if mkc_player_id != -1:
@@ -367,7 +367,7 @@ async def verify(
         if seconds_since_last_login > SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT:
             verify_description = vlog_msg.error5
             await ctx.respond('``Error 5:`` Please log in to your MKC account, then retry. \n\nIf you are still being refused verification, click this link then try again: https://www.mariokartcentral.com/forums/index.php?members/popuko.154/')
-            # await send_to_verification_log(ctx, message, verify_description)
+            await send_to_verification_log(ctx, message, verify_description)
             return
         else:
             pass
