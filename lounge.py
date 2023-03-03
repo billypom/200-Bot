@@ -2690,7 +2690,7 @@ async def set_player_roles(uid):
                                     role = guild.get_role(rank[0])
                                     await member.add_roles(role)
                                     with DBA.DBAccess() as db:
-                                        db.execute('UPDATE player set rank_id = %s, mmr = %s, base_mmr = %s WHERE player_id = %s;', (rank[0], mmr, mmr, member.id,))
+                                        db.execute('UPDATE player set rank_id = %s, mmr = %s, base_mmr = %s, player_name = %s WHERE player_id = %s;', (rank[0], mmr, mmr, member.id))
                                     return (role.id, role)
             role = guild.get_role(PLACEMENT_ROLE_ID)
             await member.add_roles(role)
@@ -3227,14 +3227,11 @@ async def check_if_uid_exists(uid):
     try:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM player WHERE player_id = %s;', (uid,))
-            print(temp)
             if str(temp[0][0]) == str(uid):
                 return True
             else:
-                print('temp is not')
                 return False
     except Exception:
-        print('exception')
         return False
 
 async def check_if_mogi_exists(mogi_id):
@@ -3350,7 +3347,7 @@ async def handle_score_input(ctx, score_string, mogi_format):
     player_score_chunked_list = []
     for i in range(0, len(score_list), 2):
         player_score_chunked_list.append(score_list[i:i+2])
-        print(player_score_chunked_list)
+        # print(player_score_chunked_list)
 
 
     # Chunk the list into groups of teams, based on mogi_format and order of scores entry
