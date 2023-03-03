@@ -2582,7 +2582,39 @@ async def zget_player_info(
         await ctx.respond('You must provide a `name` or `discord_id`')
         return
 
-
+@client.slash_command(
+    name='zdelete_player',
+    description='ADMIN ONLY [DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING]',
+    guild_ids=Lounge
+)
+@commands.has_any_role(ADMIN_ROLE_ID)
+async def zdelete_player(
+    ctx,
+    discord_id: discord.Option(str, 'Discord ID', required=True)):
+    await ctx.defer()
+    channel = client.get_channel(ctx.channel.id)
+    x = await check_if_uid_exists(discord_id)
+    if x:
+        pass
+    else:
+        await ctx.respond('Player does not exist')
+        return
+    with DBA.DBAccess() as db:
+        temp = db.query('select p.player_id, p.player_name, p.mmr, r.rank_name FROM player p JOIN ranks r ON p.rank_id = r.rank_id where player_id = %s;', (discord_id,))
+    confirmation = Confirm(ctx.author.id)
+    await channel.send(f'Are you sure you want to delete this player?\n<@{discord_id}>\n`Name:`{temp[0][1]}\n`MMR:`{temp[0][2]}\n`Rank:`{temp[0][3]}', view=confirmation, delete_after=300)
+    await confirmation.wait()
+    if confirmation.value is None:
+        await ctx.respond('Timed out...')
+        return
+    elif confirmation.value: # yes
+        with DBA.DBAccess() as db:
+            db.execute('DELETE FROM player WHERE player_id = %s;', (discord_id,))
+        await ctx.respond('Player deleted successfully')
+        return
+    else:
+        await ctx.respond('Operation cancelled.')
+        return
 
 
 
@@ -3194,12 +3226,15 @@ async def check_if_player_exists(ctx):
 async def check_if_uid_exists(uid):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM player WHERE player_id = %s;', (uid, ))
-            if temp[0][0] == uid:
+            temp = db.query('SELECT player_id FROM player WHERE player_id = %s;', (uid,))
+            print(temp)
+            if str(temp[0][0]) == str(uid):
                 return True
             else:
+                print('temp is not')
                 return False
     except Exception:
+        print('exception')
         return False
 
 async def check_if_mogi_exists(mogi_id):
