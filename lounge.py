@@ -2775,7 +2775,7 @@ async def create_player(member, mkc_user_id, country_code):
                                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, ranks[i][0], mmr, mmr))
                             await member.edit(nick=str(altered_name))
                             await send_raw_to_verification_log(f'player:<@{member.id}>\nS4 name:`{name.lower()}`\ninsert name:`{insert_name}`\naltered name:`{altered_name}`\nmmr:`{mmr}`', '**Creating player (+S4)**')
-                            return f'Verified & registered successfully - Assigned {role} @ {mmr}'
+                            return f'Verified & registered successfully - Assigned {role} @ {mmr}\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
         else:
             return f'``Error 75:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
         # replace spaces with dashes
@@ -2796,7 +2796,7 @@ async def create_player(member, mkc_user_id, country_code):
 
             await send_raw_to_verification_log(f'player:<@{member.id}>\nrole:`{role}`\ninsert name:`{insert_name}`\naltered name:`{altered_name}`', '**Creating player**')
 
-            return f'Verified & registered successfully - Assigned {role}'
+            return f'Verified & registered successfully - Assigned {role}\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
         except Exception as e:
             await send_raw_to_debug_channel(f'create_player error 14 <@{member.id}>', {e})
             return f'``Error 14:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
