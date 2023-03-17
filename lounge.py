@@ -39,6 +39,7 @@ LOUNGELESS_ROLE_ID = secretly.LOUNGELESS_ROLE_ID
 PLACEMENT_ROLE_ID = secretly.PLACEMENT_ROLE_ID
 CATEGORIES_MESSAGE_ID = secretly.CATEGORIES_MESSAGE_ID
 SQ_HELPER_CHANNEL_ID = secretly.SQ_HELPER_CHANNEL_ID
+SQ_TIER_ID = secretly.squad_queue_channel
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -912,6 +913,22 @@ async def table(
         await send_to_verification_log(ctx, scores, vlog_msg.error1)
         await ctx.respond(f'``Error 32:`` Invalid input. There must be 12 players and 12 scores.')
         return
+    
+    # Check if table was submitted from a tier channel + sq
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+    try:
+        nya_tier_id = temp[0][0]
+    except Exception as e:
+        # check the sq helper channel for categories
+        sq_helper_channel = client.get_channel(SQ_HELPER_CHANNEL_ID)
+        sq_helper_message = await sq_helper_channel.fetch_message(CATEGORIES_MESSAGE_ID)
+        if str(ctx.channel.id) in sq_helper_message.content:
+            nya_tier_id = SQ_TIER_ID
+        else:
+            await ctx.respond(f'``Error 72a: `/table` must be used from a tier channel``')
+            return
+
 
     chunked_list = await handle_score_input(ctx, scores, mogi_format)
     if not chunked_list:
@@ -921,7 +938,7 @@ async def table(
     # Check if mogi has started
     # try:
     #     with DBA.DBAccess() as db:
-    #         temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
+    #         temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (nya_tier_id,))
     #         players_in_lineup_count = temp[0][0]
     # except Exception as e:
     #     await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {secretly.my_discord}. {e}')
@@ -1101,11 +1118,11 @@ async def table(
         db_mogi_id = 0
         # Create mogi
         with DBA.DBAccess() as db:
-            db.execute('INSERT INTO mogi (mogi_format, tier_id) values (%s, %s);', (mogi_format, ctx.channel.id))
-        ##########await send_raw_to_debug_channel('Mogi created' , f'{mogi_format} | {ctx.channel.id}')
+            db.execute('INSERT INTO mogi (mogi_format, tier_id) values (%s, %s);', (mogi_format, nya_tier_id))
+        ##########await send_raw_to_debug_channel('Mogi created' , f'{mogi_format} | {nya_tier_id}')
         # Get the results channel and tier name for later use
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT results_id, tier_name FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+            temp = db.query('SELECT results_id, tier_name FROM tier WHERE tier_id = %s;', (nya_tier_id,))
             db_results_channel = temp[0][0]
             tier_name = temp[0][1]
         results_channel = client.get_channel(db_results_channel)
@@ -1266,17 +1283,17 @@ async def table(
                 try:
                     with DBA.DBAccess() as db:
                         # Get ID of the last inserted table
-                        temp = db.query('SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (ctx.channel.id,))
+                        temp = db.query('SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;', (nya_tier_id,))
                         db_mogi_id = temp[0][0]
                         # Insert reference record
                         db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr)))
                         # Update player record
                         db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
                         # Remove player from lineups
-                        # db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], ctx.channel.id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
+                        # db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], nya_tier_id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
                         # Clear sub leaver table
                         # subs dont matter anymore
-                        # db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (ctx.channel.id,))
+                        # db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (nya_tier_id,))
                 except Exception as e:
                     # print(e)
                     await send_to_debug_channel(ctx, f'FATAL TABLE ERROR: {e}')
