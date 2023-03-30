@@ -923,7 +923,7 @@ async def table(
         # check the sq helper channel for categories
         sq_helper_channel = client.get_channel(SQ_HELPER_CHANNEL_ID)
         sq_helper_message = await sq_helper_channel.fetch_message(CATEGORIES_MESSAGE_ID)
-        if str(ctx.channel.id) in sq_helper_message.content:
+        if str(ctx.channel.category.id) in sq_helper_message.content:
             nya_tier_id = SQ_TIER_ID
         else:
             await ctx.respond(f'``Error 72a: `/table` must be used from a tier channel``')
@@ -2647,8 +2647,9 @@ async def qwe(
     ctx,
     player: discord.Option(discord.Member, 'player', required=True)):
     await ctx.defer()
-    member = await GUILD.fetch_member(uid)
-    await ctx.respond(member.display_name)
+    await ctx.respond(f'{ctx.channel.category.id}')
+    # member = await GUILD.fetch_member(uid)
+    # await ctx.respond(member.display_name)
 
     
 
