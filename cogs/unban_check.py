@@ -40,18 +40,22 @@ class unban_check(commands.Cog):
         try:
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_id FROM player WHERE unban_date < %s;', (current_time,))
-            for player in temp:
+        except Exception as e:
+            await self.send_raw_to_debug_channel(f'unban_check error 1 {secretly.my_discord}', e)
+            return
+        for player in temp:
+            try:
                 guild = self.client.get_guild(secretly.Lounge[0])
                 user = await guild.fetch_member(player[0])
                 loungeless_role = guild.get_role(secretly.LOUNGELESS_ROLE_ID)
                 await user.remove_roles(loungeless_role)
                 await self.set_player_roles(player[0])
                 await self.send_raw_to_debug_channel(f'Player unbanned - Loungeless removed', player[0])
-                with DBA.DBAccess() as db:
-                    db.execute('UPDATE player SET unban_date = NULL WHERE player_id = %s;', (player[0],))
-        except Exception as e:
-            await self.send_raw_to_debug_channel(f'unban_check error 1 {secretly.my_discord}', e)
-            return
+            except Exception as e:
+                await self.send_raw_to_debug_channel(f'Player unbanned - Not found in server - roles not assigned', player[0])
+                pass
+            with DBA.DBAccess() as db:
+                db.execute('UPDATE player SET unban_date = NULL WHERE player_id = %s;', (player[0],))
 
     @check.before_loop
     async def before_check(self):
