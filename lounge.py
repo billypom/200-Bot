@@ -2148,9 +2148,13 @@ async def zrestrict(
     user = await GUILD.fetch_member(player.id)
     if CHAT_RESTRICTED_ROLE in user.roles:
         await user.remove_roles(CHAT_RESTRICTED_ROLE)
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (0, player.id))
         await ctx.respond(f'{player.mention} has been unrestricted')
     else:
         await user.add_roles(CHAT_RESTRICTED_ROLE)
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (1, player.id))
         await ctx.respond(f'{player.mention} has been restricted')
 
 # /zloungeless
