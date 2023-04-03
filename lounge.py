@@ -2146,16 +2146,26 @@ async def zrestrict(
         await ctx.respond('Player not found')
         return
     user = await GUILD.fetch_member(player.id)
-    if CHAT_RESTRICTED_ROLE in user.roles:
-        await user.remove_roles(CHAT_RESTRICTED_ROLE)
+    is_chat_restricted = await check_if_uid_is_chat_restricted(player.id)
+    # is chat restricted
+    if is_chat_restricted:
+        # unrestrict
         with DBA.DBAccess() as db:
             db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (0, player.id))
+        if CHAT_RESTRICTED_ROLE in user.roles:
+            await user.remove_roles(CHAT_RESTRICTED_ROLE)
         await ctx.respond(f'{player.mention} has been unrestricted')
+        return
     else:
-        await user.add_roles(CHAT_RESTRICTED_ROLE)
+        # restrict
         with DBA.DBAccess() as db:
             db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (1, player.id))
+        if CHAT_RESTRICTED_ROLE in user.roles:
+            pass
+        else:
+            await user.add_roles(CHAT_RESTRICTED_ROLE)
         await ctx.respond(f'{player.mention} has been restricted')
+        return
 
 # /zloungeless
 @client.slash_command(
@@ -3224,6 +3234,14 @@ async def check_if_uid_in_first_12_of_tier(uid, tier):
             else:
                 return False
     except Exception:
+        return False
+
+async def check_if_uid_is_chat_restricted(uid):
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT is_chat_restricted FROM player WHERE player_id = %s;', (uid,))
+    if temp:
+        return temp[0][0]
+    else:
         return False
 
 async def check_if_mkc_user_id_used(mkc_user_id):
