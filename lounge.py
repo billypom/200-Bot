@@ -2698,7 +2698,7 @@ async def set_player_roles(uid):
             temp = db.query('SELECT player_name, mmr, is_chat_restricted FROM player WHERE player_id = %s;', (uid,))
         player_name = temp[0][0]
         mmr = temp[0][1]
-        is_chat_restricted = temp[0][1]
+        is_chat_restricted = temp[0][2]
         # Get discord.Guild and discord.Member objects
         guild = client.get_guild(Lounge[0])
         member = await guild.fetch_member(uid)
