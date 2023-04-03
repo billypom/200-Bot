@@ -2681,12 +2681,17 @@ async def set_player_roles(uid):
     try:
         # Get player info
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_name, mmr FROM player WHERE player_id = %s;', (uid,))
+            temp = db.query('SELECT player_name, mmr, is_chat_restricted FROM player WHERE player_id = %s;', (uid,))
         player_name = temp[0][0]
         mmr = temp[0][1]
+        is_chat_restricted = temp[0][1]
         # Get discord.Guild and discord.Member objects
         guild = client.get_guild(Lounge[0])
         member = await guild.fetch_member(uid)
+        # handle chat restricted role
+        if is_chat_restricted:
+            restricted_role = guild.get_role(CHAT_RESTRICTED_ROLE_ID)
+            await member.add_roles(restricted_role)
         # Remove all potential ranks
         with DBA.DBAccess() as db:
             temp = db.query('SELECT rank_id FROM ranks;', ())
