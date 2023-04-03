@@ -1246,12 +1246,13 @@ async def table(
                 # else:
                 my_player_mmr_change = team[len(team)-1]
                 my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
+                
                 # Dont go below 0 mmr
                 # Keep mogi history clean - chart doesn't go below 0
-                if my_player_new_mmr < 0:
+                if my_player_new_mmr <= 0:
                     # if someone gets negative mmr, it is always a loss. add L :pensive:
                     my_player_mmr_change = (my_player_mmr)*-1
-                    my_player_new_mmr = 0
+                    my_player_new_mmr = 1
 
                 # Start creating string for MMR table
                 mmr_table_string += f'{string_my_player_place.center(6)}|'
@@ -2219,7 +2220,7 @@ async def zmmr_penalty(
         with DBA.DBAccess() as db:
             temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
             new_mmr = temp[0][0] - mmr_penalty
-            if new_mmr < 0:
+            if new_mmr <= 0:
                 new_mmr = 1
             db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (new_mmr, player.id))
         await ctx.respond(f'{player.mention} has been given a {mmr_penalty} mmr penalty')
