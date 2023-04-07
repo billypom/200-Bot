@@ -14,6 +14,7 @@ import json
 import requests
 import asyncio
 import random
+import string
 import csv
 import urllib.parse
 import shutil
@@ -2707,12 +2708,7 @@ async def set_player_roles(uid):
         if is_chat_restricted:
             restricted_role = guild.get_role(CHAT_RESTRICTED_ROLE_ID)
             await member.add_roles(restricted_role)
-        # Remove all potential ranks
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT rank_id FROM ranks;', ())
-            for rank in temp:
-                remove_rank = guild.get_role(rank[0])
-                await member.remove_roles(remove_rank)
+
         if mmr is None:
             with open('200lounge.csv', 'rt', encoding='utf-8-sig') as f: # f is our filename as string
                 lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
@@ -2734,23 +2730,22 @@ async def set_player_roles(uid):
             await member.add_roles(role)
             return (role.id, role)
             
-
+        # Get ranks info
         with DBA.DBAccess() as db:
             ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
+        # Remove any ranks from player
+        for rank in ranks: 
+            remove_rank = guild.get_role(rank[0])
+            await member.remove_roles(remove_rank)
+        # Find their rank, based on MMR
         for i in range(len(ranks)):
             if mmr >= int(ranks[i][1]) and mmr < int(ranks[i][2]):
                 # Found your rank
-                with DBA.DBAccess() as db:
-                    temp = db.query('SELECT rank_id FROM ranks;', ())
-                # Remove all potential ranks first
-                for rank in temp: 
-                    remove_rank = guild.get_role(rank[0])
-                    await member.remove_roles(remove_rank)
                 role = guild.get_role(ranks[i][0])
                 await member.add_roles(role)
                 with DBA.DBAccess() as db:
                     db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (ranks[i][0], member.id))
-        # player_name = player_name.replace("-", " ")
+        # Edit their discord nickname
         try:
             await member.edit(nick=str(player_name))
         except Exception as e:
@@ -2762,6 +2757,7 @@ async def set_player_roles(uid):
         return False
 
 # Cool&Create
+# this is a mess
 async def create_player(member, mkc_user_id, country_code):
     name_was_altered = False # track if we found their old name and had to alter it to fit new criteria
     altered_name = ""
@@ -2769,21 +2765,10 @@ async def create_player(member, mkc_user_id, country_code):
     if x:
         return 'Player already registered'
     else:
+        # romanize the text
         insert_name = await jp_kr_romanize(str(member.display_name))
         # if insert name contains non alphanumerics, return error
-        name_still_exists = True
-        count = 0
-        # Handle duplicate names
-        while(name_still_exists):
-            with DBA.DBAccess() as db:
-                temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (insert_name,))
-            if temp:
-                insert_name += "_"
-            else:
-                name_still_exists = False
-            count +=1
-            if count == 16:
-                return f'``Error 39:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
+
         # Handle name too long
         if len(insert_name) > 16:
             temp_name = ""
@@ -2795,6 +2780,29 @@ async def create_player(member, mkc_user_id, country_code):
                 count+=1
             insert_name = temp_name
         
+        # Handle whitespace name
+        if insert_name.isspace():
+            name_is_not_unique = True
+            while(name_is_not_unique):
+                insert_name = await get_random_name()
+                test = await check_if_is_unique_name(insert_name)
+                if (test):
+                    name_is_not_unique = False
+
+        # Handle duplicate names
+        name_still_exists = True
+        count = 0
+        while(name_still_exists):
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (insert_name,))
+            if temp:
+                insert_name += "_"
+            else:
+                name_still_exists = False
+            count +=1
+            if count == 16:
+                return f'``Error 39:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
+
         with open('200lounge.csv', 'rt', encoding='utf-8-sig') as f: # f is our filename as string
             lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
         if len(lines) > 0:
@@ -2812,8 +2820,14 @@ async def create_player(member, mkc_user_id, country_code):
                             with DBA.DBAccess() as db:
                                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, ranks[i][0], mmr, mmr))
                             await member.edit(nick=str(altered_name))
+                            
                             await send_raw_to_verification_log(f'player:<@{member.id}>\nS4 name:`{name.lower()}`\ninsert name:`{insert_name}`\naltered name:`{altered_name}`\nmmr:`{mmr}`', '**Creating player (+S4)**')
-                            return f'Verified & registered successfully - Assigned {role} @ {mmr}\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
+                            message_to_send_to_player = f'Verified & registered successfully - Assigned {role} @ {mmr}\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
+                            try:
+                                await member.send(message_to_send_to_player)
+                            except Exception as e:
+                                await send_raw_to_verification_log(f'<@{member.id}> cannot receive DMs', '+S4 rank attached - response may have not been seen if sent in verification channel.')
+                            return message_to_send_to_player
         else:
             return f'``Error 75:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
         # replace spaces with dashes
@@ -3325,6 +3339,14 @@ async def check_if_uid_is_placement(uid):
     except Exception as e:
         await send_raw_to_debug_channel('Check if uid is placement error:', e)
         return True
+
+async def check_if_is_unique_name(name):
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (name,))
+    return not temp
+
+async def get_random_name():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=9))
 
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
