@@ -41,6 +41,7 @@ PLACEMENT_ROLE_ID = secretly.PLACEMENT_ROLE_ID
 CATEGORIES_MESSAGE_ID = secretly.CATEGORIES_MESSAGE_ID
 SQ_HELPER_CHANNEL_ID = secretly.SQ_HELPER_CHANNEL_ID
 SQ_TIER_ID = secretly.squad_queue_channel
+ALLOWED_CHARACTERS = secretly.ALLOWED_CHARACTERS
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -2782,6 +2783,14 @@ async def create_player(member, mkc_user_id, country_code):
                 temp_name+=char
                 count+=1
             insert_name = temp_name
+
+        allowed_name = ""
+        for char in insert_name:
+            if char.lower() in ALLOWED_CHARACTERS:
+                allowed_name += char
+            else:
+                allowed_name += ""
+        insert_name = allowed_name
         
         # Handle whitespace name
         if insert_name.isspace():
