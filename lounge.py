@@ -231,6 +231,9 @@ async def on_raw_reaction_add(payload):
                         await send_raw_to_debug_channel('Name change exception 2', e)
                         pass
                     member = guild.get_member(message_ids[i][1])
+                    if member is None:
+                        await send_raw_to_debug_channel('Name change exception 5', 'User is not in the guild.')
+                        return
                     try:
                         await member.send(f'Your name change [{message_ids[i][2]}] has been approved.')
                     except Exception as e:
