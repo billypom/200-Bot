@@ -2794,36 +2794,34 @@ async def set_player_roles(uid):
 
 # Cool&Create
 async def create_player(member, mkc_user_id, country_code):
-    x = await check_if_uid_exists(member.id)
-    if x:
-        return 'Player already registered'
-    else:
-        altered_name = await handle_player_name(member.display_name)
+    altered_name = await handle_player_name(member.display_name)
+    print(altered_name)
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, PLACEMENT_ROLE_ID))
+    except Exception as e:
+        await send_raw_to_debug_channel(f'create_player error 14 <@{member.id}>', {e})
+        return f'``Error 14:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
+        # 1. a player trying to use someone elses link (could be banned player)
+        # 2. a genuine player locked from usage by another player (banned player might have locked them out)
+        # 3. someone is verifying multiple times
+
+        # Edit nickname
         try:
-            with DBA.DBAccess() as db:
-                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, PLACEMENT_ROLE_ID))
+            await member.edit(nick=str(altered_name))
         except Exception as e:
-            await send_raw_to_debug_channel(f'create_player error 14 <@{member.id}>', {e})
-            return f'``Error 14:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
-            # 1. a player trying to use someone elses link (could be banned player)
-            # 2. a genuine player locked from usage by another player (banned player might have locked them out)
-            # 3. someone is verifying multiple times
-
-            # Edit nickname
-            try:
-                await member.edit(nick=str(altered_name))
-            except Exception as e:
-                await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT NICK FOR USER <@{member.id}>', {e})
-            role = GUILD.get_role(PLACEMENT_ROLE_ID)
-            # Add role
-            try:
-                await member.add_roles(role)
-            except Exception as e:
-                await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT ROLE FOR USER <@{member.id}>', {e})
-
-            # Confirmation log
-            await send_raw_to_verification_log(f'player:<@{member.id}>\nrole:`{role}`\ninsert name:`{insert_name}`\naltered name:`{altered_name}`', '**Creating player**')
-            return f':flag_us:\nVerified & registered successfully - Assigned `{role}`\nNew players - check out <#{secretly.welcome_eng_channel}> & <#{secretly.faq_channel}>\n\n:flag_jp:\n認証に成功しました。{role}が割り当てられました。新入会員の方は、<#{secretly.welcome_jpn_channel}> と <#{secretly.faq_channel}> チャンネルをお読みください。'
+            await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT NICK FOR USER <@{member.id}>', {e})
+        role = GUILD.get_role(PLACEMENT_ROLE_ID)
+        print(role)
+        # Add role
+        try:
+            await member.add_roles(role)
+        except Exception as e:
+            await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT ROLE FOR USER <@{member.id}>', {e})
+    
+        # Confirmation log
+        await send_raw_to_verification_log(f'player:<@{member.id}>\nrole:`{role}`\ninsert name:`{insert_name}`\naltered name:`{altered_name}`', '**Creating player**')
+        return f':flag_us:\nVerified & registered successfully - Assigned `{role}`\nNew players - check out <#{secretly.welcome_eng_channel}> & <#{secretly.faq_channel}>\n\n:flag_jp:\n認証に成功しました。{role}が割り当てられました。新入会員の方は、<#{secretly.welcome_jpn_channel}> と <#{secretly.faq_channel}> チャンネルをお読みください。'
 
 async def check_if_uid_can_drop(uid):
     try:
