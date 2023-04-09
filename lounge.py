@@ -400,7 +400,10 @@ async def verify(
     else:
         member = await GUILD.fetch_member(ctx.author.id)
         x = await create_player(member, mkc_user_id, country_code)
-        await ctx.respond(x)
+        try:
+            await ctx.respond(x)
+        except Exception as e:
+            await ctx.respond('oops')
         await send_to_verification_log(ctx, message, verify_description)
         return
 
