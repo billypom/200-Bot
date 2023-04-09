@@ -25,6 +25,7 @@ CREATE TABLE player (
     country_code varchar(3) default '',
     fc varchar(15),
     is_host_banned boolean default 0,
+    is_chat_restricted boolean default 0,
     mmr int,
     base_mmr int,
     peak_mmr int,
@@ -126,6 +127,7 @@ CREATE TABLE suggestion(
     was_accepted boolean default NULL,
     author_id bigint unsigned,
     admin_id bigint unsigned,
+    message_id bigint unsigned,
     reason varchar(1000),
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
     CONSTRAINT suggestionpk PRIMARY KEY (id)

@@ -1729,9 +1729,12 @@ async def suggest(
         suggestion_id = db.query('SELECT id FROM suggestion WHERE author_id = %s AND content = %s', (ctx.author.id, message))[0][0]
     request_message = await send_to_suggestion_voting_channel(ctx, suggestion_id, message)
     request_message_id = request_message.id
+    with DBA.DBAccess() as db:
+        db.execute('UPDATE suggestion SET message_id = %s WHERE id = %s;', (request_message_id, suggestion_id))
     await request_message.add_reaction('⬆️')
     await request_message.add_reaction('⬇️')
     await ctx.respond('Your suggestion has been submitted.')
+
 
 # /approve_suggestion
 @client.slash_command(
@@ -1748,17 +1751,27 @@ async def approve(
     await ctx.defer()
     try:
         with DBA.DBAccess() as db:
-            crap = db.query('SELECT id, author_id, content FROM suggestion WHERE id = %s;', (suggestion_id, ))
+            crap = db.query('SELECT id, author_id, content, message_id FROM suggestion WHERE id = %s;', (suggestion_id, ))
     except Exception as e:
         await send_raw_to_debug_channel('/approve_suggestion error 1', e)
     try:
         with DBA.DBAccess() as db:
-            db.execute('UPDATE suggestion SET reason = %s, was_accepted = %s WHERE id = %s', (reason, 1, suggestion_id))
+            db.execute('UPDATE suggestion SET reason = %s, was_accepted = %s, admin_id = %s WHERE id = %s', (reason, 1, ctx.author.id, suggestion_id))
     except Exception as e:
         await send_raw_to_debug_channel('/approve_suggestion error 2', e)
-    
-    await send_to_suggestion_log_channel(ctx, suggestion_id, crap[0][2], 1, crap[0][1], ctx.author.id, reason)
-    await ctx.respond(f'Suggestion #{suggestion_id} approved')
+
+    # suggestion_id
+    suggestion = crap[0][2]
+    author_id = crap[0][1]
+    message_id = crap[0][3]
+    admin_id = ctx.author.id
+    # reason
+
+    response = await handle_suggestion_decision(suggestion_id, suggestion, author_id, message_id, admin_id, 1, reason)
+    if response:
+        await ctx.respond(f'Suggestion #{suggestion_id} approved')
+    else:
+        await ctx.respond(f'Error...')
 
 # /deny_suggestion
 @client.slash_command(
@@ -1775,17 +1788,27 @@ async def deny(
     await ctx.defer()
     try:
         with DBA.DBAccess() as db:
-            crap = db.query('SELECT id, author_id, content FROM suggestion WHERE id = %s;', (suggestion_id, ))
+            crap = db.query('SELECT id, author_id, content, message_id FROM suggestion WHERE id = %s;', (suggestion_id, ))
     except Exception as e:
         await send_raw_to_debug_channel('/deny_suggestion error 1', e)
     try:
         with DBA.DBAccess() as db:
-            db.execute('UPDATE suggestion SET reason = %s, was_accepted = %s WHERE id = %s', (reason, 0, suggestion_id))
+            db.execute('UPDATE suggestion SET reason = %s, was_accepted = %s, admin_id = %s WHERE id = %s', (reason, 0, ctx.author.id, suggestion_id))
     except Exception as e:
         await send_raw_to_debug_channel('/deny_suggestion error 2', e)
 
-    await send_to_suggestion_log_channel(ctx, suggestion_id, crap[0][2], 0, crap[0][1], ctx.author.id, reason)
-    await ctx.respond(f'Suggestion #{suggestion_id} denied')
+    # suggestion_id
+    suggestion = crap[0][2]
+    author_id = crap[0][1]
+    message_id = crap[0][3]
+    admin_id = ctx.author.id
+    # reason
+
+    response = await handle_suggestion_decision(suggestion_id, suggestion, author_id, message_id, admin_id, 0, reason)
+    if response:
+        await ctx.respond(f'Suggestion #{suggestion_id} denied')
+    else:
+        await ctx.respond(f'Error...')
 
 # /zstrikes
 @client.slash_command(
@@ -2654,8 +2677,6 @@ async def zdelete_player(
         return
 
 
-
-
 # /qwe
 @client.slash_command(
     name='qwe',
@@ -2667,9 +2688,17 @@ async def qwe(
     ctx,
     player: discord.Option(discord.Member, 'player', required=True)):
     await ctx.defer()
-    await ctx.respond(f'{ctx.channel.category.id}')
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT * FROM suggestion;', ())
+    for s in temp:
+        await handle_suggestion_decision(s[0], s[1], s[3], s[5], s[4], s[2], s[6])
+    await ctx.respond('done')
+    
+
+
     # member = await GUILD.fetch_member(uid)
     # await ctx.respond(member.display_name)
+
 
     
 
@@ -2685,7 +2714,7 @@ async def qwe(
 
 
 
-# takes a uid, returns True for completed. returns False for error
+# Takes a uid, returns True for completed. returns False for error
 async def set_uid_chat_restricted(uid):
     try:
         member = await GUILD.fetch_member(uid)
@@ -2714,22 +2743,22 @@ async def set_player_roles(uid):
             await member.add_roles(restricted_role)
 
         if mmr is None:
-            with open('200lounge.csv', 'rt', encoding='utf-8-sig') as f: # f is our filename as string
-                lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
-                if len(lines) > 0:
-                    for line in lines:
-                        name = line[0]
-                        if name.lower() == (member.display_name).lower():
-                            mmr = int(line[2])
-                            with DBA.DBAccess() as db:
-                                ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
-                            for rank in ranks:
-                                if mmr >= int(rank[1]) and mmr < int(rank[2]):
-                                    role = guild.get_role(rank[0])
-                                    await member.add_roles(role)
-                                    with DBA.DBAccess() as db:
-                                        db.execute('UPDATE player set rank_id = %s, mmr = %s, base_mmr = %s, player_name = %s WHERE player_id = %s;', (rank[0], mmr, mmr, member.id))
-                                    return (role.id, role)
+            # with open('200lounge.csv', 'rt', encoding='utf-8-sig') as f: # f is our filename as string
+            #     lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
+            #     if len(lines) > 0:
+            #         for line in lines:
+            #             name = line[0]
+            #             if name.lower() == (member.display_name).lower():
+            #                 mmr = int(line[2])
+            #                 with DBA.DBAccess() as db:
+            #                     ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
+            #                 for rank in ranks:
+            #                     if mmr >= int(rank[1]) and mmr < int(rank[2]):
+            #                         role = guild.get_role(rank[0])
+            #                         await member.add_roles(role)
+            #                         with DBA.DBAccess() as db:
+            #                             db.execute('UPDATE player set rank_id = %s, mmr = %s, base_mmr = %s, player_name = %s WHERE player_id = %s;', (rank[0], mmr, mmr, member.id))
+            #                         return (role.id, role)
             role = guild.get_role(PLACEMENT_ROLE_ID)
             await member.add_roles(role)
             return (role.id, role)
@@ -2761,106 +2790,15 @@ async def set_player_roles(uid):
         return False
 
 # Cool&Create
-# this is a mess
 async def create_player(member, mkc_user_id, country_code):
-    name_was_altered = False # track if we found their old name and had to alter it to fit new criteria
-    altered_name = ""
     x = await check_if_uid_exists(member.id)
     if x:
         return 'Player already registered'
     else:
-        # romanize the text
-        insert_name = await jp_kr_romanize(str(member.display_name))
-        # if insert name contains non alphanumerics, return error
-
-        # Handle name too long
-        if len(insert_name) > 16:
-            temp_name = ""
-            count = 0
-            for char in insert_name:
-                if count == 15:
-                    break
-                temp_name+=char
-                count+=1
-            insert_name = temp_name
-
-        allowed_name = ""
-        for char in insert_name:
-            if char.lower() in ALLOWED_CHARACTERS:
-                allowed_name += char
-            else:
-                allowed_name += ""
-        insert_name = allowed_name
-        
-        # Handle whitespace name
-        if insert_name.isspace():
-            name_is_not_unique = True
-            while(name_is_not_unique):
-                insert_name = await get_random_name()
-                test = await check_if_is_unique_name(insert_name)
-                if (test):
-                    name_is_not_unique = False
-
-        # Handle duplicate names
-        name_still_exists = True
-        count = 0
-        while(name_still_exists):
-            with DBA.DBAccess() as db:
-                temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (insert_name,))
-            if temp:
-                insert_name += "_"
-            else:
-                name_still_exists = False
-            count +=1
-            if count == 16:
-                return f'``Error 39:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
-
-        with open('200lounge.csv', 'rt', encoding='utf-8-sig') as f: # f is our filename as string
-            lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
-        if len(lines) > 0:
-            for line in lines:
-                name = line[0]
-                if name.lower() == (member.display_name).lower():
-                    mmr = int(line[2])
-                    with DBA.DBAccess() as db:
-                        ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
-                    for i in range(len(ranks)):
-                        if mmr > int(ranks[i][1]) and mmr < int(ranks[i][2]):
-                            role = GUILD.get_role(ranks[i][0])
-                            await member.add_roles(role)
-                            altered_name = str(insert_name).replace(" ", "-")
-                            with DBA.DBAccess() as db:
-                                db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id, mmr, base_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, ranks[i][0], mmr, mmr))
-                            await member.edit(nick=str(altered_name))
-                            
-                            await send_raw_to_verification_log(f'player:<@{member.id}>\nS4 name:`{name.lower()}`\ninsert name:`{insert_name}`\naltered name:`{altered_name}`\nmmr:`{mmr}`', '**Creating player (+S4)**')
-                            message_to_send_to_player = f'Verified & registered successfully - Assigned {role} @ {mmr}\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
-                            try:
-                                await member.send(message_to_send_to_player)
-                            except Exception as e:
-                                await send_raw_to_verification_log(f'<@{member.id}> cannot receive DMs', '+S4 rank attached - response may have not been seen if sent in verification channel.')
-                            return message_to_send_to_player
-        else:
-            return f'``Error 75:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
-        # replace spaces with dashes
-        altered_name = str(insert_name).replace(" ", "-")
+        altered_name = await handle_player_name(member.display_name)
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, PLACEMENT_ROLE_ID))
-            # change player nick name on join
-            try:
-                await member.edit(nick=str(altered_name))
-            except Exception as e:
-                await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT NICK FOR USER <@{member.id}>', {e})
-            role = GUILD.get_role(PLACEMENT_ROLE_ID)
-            try:
-                await member.add_roles(role)
-            except Exception as e:
-                await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT ROLE FOR USER <@{member.id}>', {e})
-
-            await send_raw_to_verification_log(f'player:<@{member.id}>\nrole:`{role}`\ninsert name:`{insert_name}`\naltered name:`{altered_name}`', '**Creating player**')
-
-            return f'Verified & registered successfully - Assigned {role}\n\n⚠️ **Returning players from Season 4** ⚠️\n`⚠️ シーズン４プレーヤーズ ⚠️`\n\nMake a <#{secretly.support_channel}> ticket if your rank did not transfer.\n`正しいランクが移行されなかった場合は、`<#{secretly.support_channel}>`にアクセスし、チケットを作成してください。`'
         except Exception as e:
             await send_raw_to_debug_channel(f'create_player error 14 <@{member.id}>', {e})
             return f'``Error 14:`` Oops! An unlikely error occured. Try again later or make a <#{secretly.support_channel}> ticket for assistance.'
@@ -2868,345 +2806,21 @@ async def create_player(member, mkc_user_id, country_code):
             # 2. a genuine player locked from usage by another player (banned player might have locked them out)
             # 3. someone is verifying multiple times
 
-# Takes a ctx & a string, returns a response
-async def update_friend_code(ctx, message):
-    fc_pattern = '\d\d\d\d-?\d\d\d\d-?\d\d\d\d'
-    if re.search(fc_pattern, message):
-        try:
-            with DBA.DBAccess() as db:
-                db.execute('UPDATE player SET fc = %s WHERE player_id = %s;', (message, ctx.author.id))
-                return 'Friend Code updated'
-        except Exception as e:
-            await send_to_debug_channel(ctx, f'update_friend_code error 15 {e}')
-            return '``Error 15:`` Player not found'
-    else:
-        return 'Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
+            # Edit nickname
+            try:
+                await member.edit(nick=str(altered_name))
+            except Exception as e:
+                await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT NICK FOR USER <@{member.id}>', {e})
+            role = GUILD.get_role(PLACEMENT_ROLE_ID)
+            # Add role
+            try:
+                await member.add_roles(role)
+            except Exception as e:
+                await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT ROLE FOR USER <@{member.id}>', {e})
 
-# Takes a ctx, returns 0 if error, returns 1 if good, returns nothing if mogi cancelled
-async def start_mogi(ctx):
-    channel = client.get_channel(ctx.channel.id)
-    removal_passed = await remove_players_from_other_tiers(ctx.channel.id)
-    if removal_passed:
-        pass
-    else:
-        await send_to_debug_channel(ctx, 'Failed to remove all players from other lineups...')
-        return 0
-    # Set the tier to the voting state
-    try:
-        with DBA.DBAccess() as db:
-            db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
-    except Exception as e:
-        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 1 | {e}')
-        await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
-        return 0
-    # Initialize the mogi timer, for mogilist checker minutes since start...
-    try:
-        with DBA.DBAccess() as db:
-            db.execute('UPDATE lineups SET mogi_start_time = %s WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (datetime.datetime.now(), ctx.channel.id))
-    except Exception as e:
-        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 4 | {e}')
-        await channel.send(f'`Error 23.2:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
-        return 0
-    # Get the first 12 players
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-    except Exception as e:
-        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 2 | {e}')
-        await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
-        return 0
-    # Set 12 players' state to "cannot drop"
-    try:
-        with DBA.DBAccess() as db:
-            db.execute('UPDATE lineups SET can_drop = 0 WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-    except Exception as e:
-        await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 3 | {e}')
-        await channel.send(f'`Error 55:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
-        return 0
-    response = ''
-    for i in range(len(temp)):
-        response = f'{response} <@{temp[i][0]}>'
-    response = f'''{response} mogi has 12 players\n`Poll Started!`
-
-    `1.` FFA
-    `2.` 2v2
-    `3.` 3v3
-    `4.` 4v4
-    `6.` 6v6
-
-    Type a number to vote!
-    Poll ends in 2 minutes or when a format reaches 6 votes.'''
-    await channel.send(response)
-    with DBA.DBAccess() as db:
-        unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-    # returns the index of the voted on format, and a dictionary of format:voters
-    poll_results = await check_for_poll_results(ctx, unix_temp[MAX_PLAYERS_IN_MOGI-1][0])
-    if poll_results[0] == -1:
-        # Cancel Mogi
-        await channel.send('No votes. Mogi will be cancelled.')
-        await cancel_mogi(ctx)
-        return 2
-        
-    teams_results = await create_teams(ctx, poll_results)
-
-    ffa_voters = list()
-    v2_voters = list()
-    v3_voters = list()
-    v4_voters = list()
-    v6_voters = list()
-    # create formatted message
-    for player in poll_results[1]['FFA']:
-        ffa_voters.append(player)
-    for player in poll_results[1]['2v2']:
-        v2_voters.append(player)
-    for player in poll_results[1]['3v3']:
-        v3_voters.append(player)
-    for player in poll_results[1]['4v4']:
-        v4_voters.append(player)
-    for player in poll_results[1]['6v6']:
-        v6_voters.append(player)
-    remove_chars = {
-        39:None,
-        91:None,
-        93:None,
-    }
-    poll_results_response = f'''`Poll Ended!`
-
-    `1.` FFA - {len(ffa_voters)} ({str(ffa_voters).translate(remove_chars)})
-    `2.` 2v2 - {len(v2_voters)} ({str(v2_voters).translate(remove_chars)})
-    `3.` 3v3 - {len(v3_voters)} ({str(v3_voters).translate(remove_chars)})
-    `4.` 4v4 - {len(v4_voters)} ({str(v4_voters).translate(remove_chars)})
-    `6.` 6v6 - {len(v6_voters)} ({str(v6_voters).translate(remove_chars)})
-    {teams_results}
-    '''
-    await channel.send(poll_results_response)
-    return 1
-
-# When the voting starts - constantly check for player input
-async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
-    # print('checking for poll results')
-    dtobject_now = datetime.datetime.now()
-    unix_now = time.mktime(dtobject_now.timetuple())
-    format_list = [0,0,0,0,0]
-    while (unix_now - last_joiner_unix_timestamp) < 120:
-        # Votes are updated in the on_message event, if mogi is running and player is in tier
-        await asyncio.sleep(0.5)
-        with DBA.DBAccess() as db:
-            ffa_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,1))
-            format_list[0] = ffa_temp[0][0]
-        with DBA.DBAccess() as db:
-            v2_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,2))
-            format_list[1] = v2_temp[0][0]
-        with DBA.DBAccess() as db:
-            v3_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,3))
-            format_list[2] = v3_temp[0][0]
-        with DBA.DBAccess() as db:
-            v4_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,4))
-            format_list[3] = v4_temp[0][0]
-        with DBA.DBAccess() as db:
-            v6_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,6))
-            format_list[4] = v6_temp[0][0]
-        if 6 in format_list:
-            break
-        # print(f'{unix_now} - {last_joiner_unix_timestamp}')
-        dtobject_now = datetime.datetime.now()
-        unix_now = time.mktime(dtobject_now.timetuple())
-    # print('checking for all zero votes')
-    # print(f'format list: {format_list}')
-    if all([v == 0 for v in format_list]):
-        return [0, { '0': 0 }] # If all zeros, return 0. cancel mogi
-    # Close the voting
-    # print('closing the voting')
-    with DBA.DBAccess() as db:
-        db.execute('UPDATE tier SET voting = %s WHERE tier_id = %s;', (0, ctx.channel.id))
-    if format_list[0] == 6:
-        ind = 0
-    elif format_list[1] == 6:
-        ind = 1
-    elif format_list[2] == 6:
-        ind = 2
-    elif format_list[3] == 6:
-        ind = 3
-    elif format_list[4] == 6:
-        ind = 4
-    else:
-        # Get the index of the voted on format
-        max_val = max(format_list)
-        ind = [i for i, v in enumerate(format_list) if v == max_val]
-
-    # Create a dictionary where key=format, value=list of players who voted
-    poll_dictionary = {
-        "FFA":[],
-        "2v2":[],
-        "3v3":[],
-        "4v4":[],
-        "6v6":[],
-    }
-    with DBA.DBAccess() as db:
-        votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-    for i in range(len(votes_temp)):
-        # print(f'votes temp: {votes_temp}')
-        if votes_temp[i][0] == 1:
-            player_format_choice = 'FFA'
-        elif votes_temp[i][0] == 2:
-            player_format_choice = '2v2'
-        elif votes_temp[i][0] == 3:
-            player_format_choice = '3v3'
-        elif votes_temp[i][0] == 4:
-            player_format_choice = '4v4'
-        elif votes_temp[i][0] == 6:
-            player_format_choice = '6v6'
-        else:
-            continue
-        poll_dictionary[player_format_choice].append(votes_temp[i][1])
-    # print('created poll dictionary')
-    # print(f'{poll_dictionary}')
-    # Clear votes after we dont need them anymore...
-    # print('clearing votes...')
-    with DBA.DBAccess() as db:
-        db.execute('UPDATE lineups SET vote = NULL WHERE tier_id = %s;', (ctx.channel.id,))
-    # I use random.choice to account for ties
-    try:
-        return [random.choice(ind), poll_dictionary]
-    except TypeError:
-        return [ind, poll_dictionary]
-
-async def remove_players_from_other_tiers(channel_id):
-    await send_raw_to_debug_channel('Removing players from other tiers...', channel_id)
-    try:
-        with DBA.DBAccess() as db:
-            players = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC;', (channel_id,))
-    except Exception as e:
-        await send_raw_to_debug_channel('No players to remove from other tiers?', e)
-        return True
-    for player in players:
-        with DBA.DBAccess() as db:
-            player_tier = db.query('SELECT p.player_id, p.player_name, l.tier_id FROM lineups as l JOIN player as p ON l.player_id = p.player_id WHERE p.player_id = %s AND l.tier_id <> %s;', (player[0], channel_id))
-        for tier in player_tier:
-            await send_raw_to_debug_channel('Removing from other tiers', f'{tier[1]} - {tier[2]}')
-            channel = client.get_channel(tier[2])
-            with DBA.DBAccess() as db:
-                db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (tier[0], tier[2]))
-            await channel.send(f'{tier[1]} has dropped from the lineup')
-    return True
-
-# poll_results is [index of the voted on format, a dictionary of format:voters]
-# creates teams, finds host, returns a big string formatted...
-async def create_teams(ctx, poll_results):
-    # print('creating teams')
-    keys_list = list(poll_results[1])
-    winning_format = keys_list[poll_results[0]]
-    # print(f'winning format: {winning_format}')
-    players_per_team = 0
-    if winning_format == 'FFA':
-        players_per_team = 1
-    elif winning_format == '2v2':
-        players_per_team = 2
-    elif winning_format == '3v3':
-        players_per_team = 3
-    elif winning_format == '4v4':
-        players_per_team = 4
-    elif winning_format == '6v6':
-        players_per_team = 6
-    else:
-        return 0
-    response_string=f'`Winner:` {winning_format}\n\n'
-    with DBA.DBAccess() as db:
-        player_db = db.query('SELECT p.player_name, p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-    players_list = list()
-    room_mmr = 0
-    for i in range(len(player_db)):
-        players_list.append([player_db[i][0], player_db[i][1], player_db[i][2]])
-        if player_db[i][2] is None: # Account for placement ppls
-            pass
-        else:
-            room_mmr = room_mmr + player_db[i][2]
-    random.shuffle(players_list) # [[popuko, 7238965417831, 4000],[name, discord id, mmr]]
-    room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
-    response_string += f'   `Room MMR:` {math.ceil(room_mmr)}\n'
-    # 6v6 /teams string
-    if players_per_team != 6:
-        # divide the list based on players_per_team
-        chunked_list = list()
-        for i in range(0, len(players_list), players_per_team):
-            chunked_list.append(players_list[i:i+players_per_team])
-
-        # For each divided team, get mmr for all players, average them, append to team
-        for team in chunked_list:
-            temp_mmr = 0
-            count = 0
-            for player in team:
-                if player[2] is None: # If mmr is null - Account for placement ppls
-                    count+=1
-                    #pass - commented out and added count+=1 10/10/22 because people mad about playing with placements even tho its 200 and its tier all lol
-                else:
-                    temp_mmr = temp_mmr + player[2]
-                    count += 1
-            if count == 0:
-                count = 1
-            team_mmr = temp_mmr/count
-            team.append(team_mmr)
-
-        sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
-        sorted_list.reverse()
-        # print(sorted_list)
-        player_score_string = f'    `Table:` /table {players_per_team} '
-        team_count = 0
-        for team in sorted_list:
-            team_count+=1
-            response_string += f'   `Team {team_count}:` '
-            for player in team:
-                try:
-                    player_score_string += f'{player[0]} 0 '
-                    response_string += f'{player[0]} '
-                except TypeError:
-                    response_string += f'(MMR: {math.ceil(player)})\n'
-
-        response_string+=f'\n{player_score_string}'
-    else:
-        with DBA.DBAccess() as db:
-            captains = db.query('SELECT player_name, player_id FROM (SELECT p.player_name, p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s) as mytable ORDER BY mmr DESC LIMIT 2;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-        response_string += f'   `Captains:` <@{captains[0][1]}> & <@{captains[1][1]}>\n'
-        response_string += f'   `Table:` /table 6 `[Team 1 players & scores]` `[Team 2 players & scores]`\n'
-    
-    try:
-        with DBA.DBAccess() as db:
-            db.execute('UPDATE tier SET teams_string = %s WHERE tier_id = %s;', (response_string, ctx.channel.id))
-    except Exception as e:
-        await send_to_debug_channel(ctx, f'team generation error log 1? | {e}')
-    # choose a host
-    host_string = '    '
-    try:
-        with DBA.DBAccess() as db:
-            host_temp = db.query('SELECT fc, player_id FROM (SELECT p.fc, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s AND p.fc IS NOT NULL AND p.is_host_banned = %s ORDER BY l.create_date LIMIT %s) as fcs_in_mogi ORDER BY RAND() LIMIT 1;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
-            host_string += f'`Host:` <@{host_temp[0][1]}> | {host_temp[0][0]}'
-    except Exception as e:
-        host_string = '    `No FC found` - Choose amongst yourselves'
-    # create a return string
-    response_string+=f'\n\n{host_string}'
-    return response_string
-
-async def check_if_mogi_is_ongoing(ctx):
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
-    except Exception:
-        return False
-    if temp[0][0] >= MAX_PLAYERS_IN_MOGI:
-        return True
-    else:
-        return False
-
-async def get_list_of_rank_ids():
-    my_list = []
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT rank_id FROM ranks;', ())
-        for item in temp:
-            my_list.append(item[0])
-        return my_list
-    except Exception:
-        return []
+            # Confirmation log
+            await send_raw_to_verification_log(f'player:<@{member.id}>\nrole:`{role}`\ninsert name:`{insert_name}`\naltered name:`{altered_name}`', '**Creating player**')
+            return f'Verified & registered successfully - Assigned `{role}`\n\nNew players - check out <#{secretly.welcome_eng_channel}> & <#{secretly.faq_channel}>'
 
 async def check_if_uid_can_drop(uid):
     try:
@@ -3357,12 +2971,37 @@ async def check_if_is_unique_name(name):
         temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (name,))
     return not temp
 
+# Returns all rank_id from DB in a list()
+async def get_list_of_rank_ids():
+    my_list = []
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT rank_id FROM ranks;', ())
+        for item in temp:
+            my_list.append(item[0])
+        return my_list
+    except Exception:
+        return []
+
+# Returns a random player name that is not taken
 async def get_random_name():
+    name_is_not_unique = True
+    while(name_is_not_unique):
+        name = await generate_random_name()
+        test = await check_if_is_unique_name(name)
+        if (test):
+            name_is_not_unique = False
+    return name
+
+# Generates a random name (wow)
+async def generate_random_name():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=9))
 
+# Returns the current unix timestamp
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
 
+# Returns the number of strikes that a uid has
 async def get_number_of_strikes(uid):
     with DBA.DBAccess() as db:
         temp = db.query('SELECT COUNT(*) FROM strike WHERE player_id = %s AND is_active = %s;', (uid, 1))
@@ -3395,14 +3034,7 @@ async def get_player_mmr(ctx):
         return -1
     return temp[0][0]
 
-async def cancel_mogi(ctx):
-    # Delete player records for first 12 in lineups table
-    with DBA.DBAccess() as db:
-        db.execute('DELETE FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
-    return
-
-# Takes in _scores_ input from /table
-# returns a nice formatted dict-type list thingie...
+# Takes in scores: from /table - returns a nice formatted dict-type list thingie...
 async def handle_score_input(ctx, score_string, mogi_format):
     # Split into list
     score_list = score_string.split()
@@ -3435,6 +3067,83 @@ async def handle_score_input(ctx, score_string, mogi_format):
     for i in range(0, len(player_score_chunked_list), mogi_format):
         chunked_list.append(player_score_chunked_list[i:i+mogi_format])
     return chunked_list
+
+async def handle_suggestion_decision(suggestion_id, suggestion, author_id, message_id, admin_id, approved, reason):
+    if approved is None:
+        return
+    channel = client.get_channel(secretly.suggestion_voting_channel)
+    if approved:
+        decision = 'Approved'
+        color = discord.Color.green()
+    else:
+        decision = 'Denied'
+        color = discord.Color.red()
+    try:
+        embed = discord.Embed(title='Suggestion', description=f'', color = color)
+        embed.add_field(name=f'#{suggestion_id}', value=suggestion, inline=False)
+        embed.add_field(name=decision, value=reason, inline=False)
+
+        suggestion_message = await channel.fetch_message(message_id)
+        await suggestion_message.edit(embed=embed)
+        return True
+    except Exception as e:
+        return False
+
+# Takes in a name - cleans it - and returns it (or a new random name)
+async def handle_player_name(name):
+    # Romanize the text
+    insert_name = await jp_kr_romanize(str(name))
+
+    # Handle name too long
+    if len(insert_name) > 16:
+        temp_name = ""
+        count = 0
+        for char in insert_name:
+            if count == 15:
+                break
+            temp_name+=char
+            count+=1
+        insert_name = temp_name
+
+    # Handle ä-type characters (delete them)
+    allowed_name = ""
+    for char in insert_name:
+        if char.lower() in ALLOWED_CHARACTERS:
+            allowed_name += char
+        else:
+            allowed_name += ""
+    insert_name = allowed_name
+    
+    # Handle whitespace name  - generate a random name lol
+    if insert_name.isspace():
+        insert_name = await get_random_name()
+        
+    # Handle duplicate names - append underscores
+    name_still_exists = True
+    count = 0
+    while(name_still_exists):
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (insert_name,))
+        if temp:
+            insert_name += "_"
+        else:
+            name_still_exists = False
+        count +=1
+        if count == 16:
+            insert_name = await get_random_name()
+
+    return str(insert_name).replace(" ", "-")
+
+# Takes in string - returns romanized jp/kr
+async def jp_kr_romanize(input):
+    r = Romanizer(input)
+    kr_result = r.romanize()
+    kks = pykakasi.kakasi()
+    result = kks.convert(kr_result)
+    my_string = ""
+    for item in result:
+        my_string+=item['hepburn']
+    return my_string
 
 # Somebody did a bad
 # ctx | message | discord.Color.red() | my custom message
@@ -3530,6 +3239,7 @@ async def send_to_ip_match_log(ctx, message, verify_color, user_matches_list):
     except Exception as e:
         await channel.send(f'TOO MANY MATCHES: {e} {user_matches_list}')
  
+# Requests & async requests
 
 async def mkc_request_forum_info(mkc_user_id):
     with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -3674,17 +3384,6 @@ def mt_lounge_request_mkc_user_id(ctx):
         return -1
     return mkc_user_id
 
-# romanizes japanese and korean strings
-async def jp_kr_romanize(input):
-    r = Romanizer(input)
-    kr_result = r.romanize()
-    kks = pykakasi.kakasi()
-    result = kks.convert(kr_result)
-    my_string = ""
-    for item in result:
-        my_string+=item['hepburn']
-    return my_string
-
 # https://imagemagick.org/script/color.php
 async def new_rank_wrapper(input, mmr):
     # print(f'input: {input}')
@@ -3758,6 +3457,365 @@ async def peak_mmr_wrapper(input):
 client.run(secretly.token)
 
 # old crap below...
+
+
+
+
+
+# # Takes a ctx & a string, returns a response
+# async def update_friend_code(ctx, message):
+#     fc_pattern = '\d\d\d\d-?\d\d\d\d-?\d\d\d\d'
+#     if re.search(fc_pattern, message):
+#         try:
+#             with DBA.DBAccess() as db:
+#                 db.execute('UPDATE player SET fc = %s WHERE player_id = %s;', (message, ctx.author.id))
+#                 return 'Friend Code updated'
+#         except Exception as e:
+#             await send_to_debug_channel(ctx, f'update_friend_code error 15 {e}')
+#             return '``Error 15:`` Player not found'
+#     else:
+#         return 'Invalid fc. Use ``/fc XXXX-XXXX-XXXX``'
+
+
+
+# # Takes a ctx, returns 0 if error, returns 1 if good, returns nothing if mogi cancelled
+# async def start_mogi(ctx):
+#     channel = client.get_channel(ctx.channel.id)
+#     removal_passed = await remove_players_from_other_tiers(ctx.channel.id)
+#     if removal_passed:
+#         pass
+#     else:
+#         await send_to_debug_channel(ctx, 'Failed to remove all players from other lineups...')
+#         return 0
+#     # Set the tier to the voting state
+#     try:
+#         with DBA.DBAccess() as db:
+#             db.execute('UPDATE tier SET voting = 1 WHERE tier_id = %s;', (ctx.channel.id,))
+#     except Exception as e:
+#         await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 1 | {e}')
+#         await channel.send(f'`Error 23:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
+#         return 0
+#     # Initialize the mogi timer, for mogilist checker minutes since start...
+#     try:
+#         with DBA.DBAccess() as db:
+#             db.execute('UPDATE lineups SET mogi_start_time = %s WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12;', (datetime.datetime.now(), ctx.channel.id))
+#     except Exception as e:
+#         await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 4 | {e}')
+#         await channel.send(f'`Error 23.2:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
+#         return 0
+#     # Get the first 12 players
+#     try:
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+#     except Exception as e:
+#         await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 2 | {e}')
+#         await channel.send(f'`Error 22:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
+#         return 0
+#     # Set 12 players' state to "cannot drop"
+#     try:
+#         with DBA.DBAccess() as db:
+#             db.execute('UPDATE lineups SET can_drop = 0 WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+#     except Exception as e:
+#         await send_to_debug_channel(ctx, f'start_mogi cannot start format vote | 3 | {e}')
+#         await channel.send(f'`Error 55:` Could not start the format vote. Contact the admins or {secretly.my_discord} immediately')
+#         return 0
+#     response = ''
+#     for i in range(len(temp)):
+#         response = f'{response} <@{temp[i][0]}>'
+#     response = f'''{response} mogi has 12 players\n`Poll Started!`
+
+#     `1.` FFA
+#     `2.` 2v2
+#     `3.` 3v3
+#     `4.` 4v4
+#     `6.` 6v6
+
+#     Type a number to vote!
+#     Poll ends in 2 minutes or when a format reaches 6 votes.'''
+#     await channel.send(response)
+#     with DBA.DBAccess() as db:
+#         unix_temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+#     # returns the index of the voted on format, and a dictionary of format:voters
+#     poll_results = await check_for_poll_results(ctx, unix_temp[MAX_PLAYERS_IN_MOGI-1][0])
+#     if poll_results[0] == -1:
+#         # Cancel Mogi
+#         await channel.send('No votes. Mogi will be cancelled.')
+#         await cancel_mogi(ctx)
+#         return 2
+        
+#     teams_results = await create_teams(ctx, poll_results)
+
+#     ffa_voters = list()
+#     v2_voters = list()
+#     v3_voters = list()
+#     v4_voters = list()
+#     v6_voters = list()
+#     # create formatted message
+#     for player in poll_results[1]['FFA']:
+#         ffa_voters.append(player)
+#     for player in poll_results[1]['2v2']:
+#         v2_voters.append(player)
+#     for player in poll_results[1]['3v3']:
+#         v3_voters.append(player)
+#     for player in poll_results[1]['4v4']:
+#         v4_voters.append(player)
+#     for player in poll_results[1]['6v6']:
+#         v6_voters.append(player)
+#     remove_chars = {
+#         39:None,
+#         91:None,
+#         93:None,
+#     }
+#     poll_results_response = f'''`Poll Ended!`
+
+#     `1.` FFA - {len(ffa_voters)} ({str(ffa_voters).translate(remove_chars)})
+#     `2.` 2v2 - {len(v2_voters)} ({str(v2_voters).translate(remove_chars)})
+#     `3.` 3v3 - {len(v3_voters)} ({str(v3_voters).translate(remove_chars)})
+#     `4.` 4v4 - {len(v4_voters)} ({str(v4_voters).translate(remove_chars)})
+#     `6.` 6v6 - {len(v6_voters)} ({str(v6_voters).translate(remove_chars)})
+#     {teams_results}
+#     '''
+#     await channel.send(poll_results_response)
+#     return 1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# async def cancel_mogi(ctx):
+#     # Delete player records for first 12 in lineups table
+#     with DBA.DBAccess() as db:
+#         db.execute('DELETE FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+#     return
+
+
+
+# # When the voting starts - constantly check for player input
+# async def check_for_poll_results(ctx, last_joiner_unix_timestamp):
+#     # print('checking for poll results')
+#     dtobject_now = datetime.datetime.now()
+#     unix_now = time.mktime(dtobject_now.timetuple())
+#     format_list = [0,0,0,0,0]
+#     while (unix_now - last_joiner_unix_timestamp) < 120:
+#         # Votes are updated in the on_message event, if mogi is running and player is in tier
+#         await asyncio.sleep(0.5)
+#         with DBA.DBAccess() as db:
+#             ffa_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,1))
+#             format_list[0] = ffa_temp[0][0]
+#         with DBA.DBAccess() as db:
+#             v2_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,2))
+#             format_list[1] = v2_temp[0][0]
+#         with DBA.DBAccess() as db:
+#             v3_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,3))
+#             format_list[2] = v3_temp[0][0]
+#         with DBA.DBAccess() as db:
+#             v4_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,4))
+#             format_list[3] = v4_temp[0][0]
+#         with DBA.DBAccess() as db:
+#             v6_temp = db.query('SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;', (ctx.channel.id,6))
+#             format_list[4] = v6_temp[0][0]
+#         if 6 in format_list:
+#             break
+#         # print(f'{unix_now} - {last_joiner_unix_timestamp}')
+#         dtobject_now = datetime.datetime.now()
+#         unix_now = time.mktime(dtobject_now.timetuple())
+#     # print('checking for all zero votes')
+#     # print(f'format list: {format_list}')
+#     if all([v == 0 for v in format_list]):
+#         return [0, { '0': 0 }] # If all zeros, return 0. cancel mogi
+#     # Close the voting
+#     # print('closing the voting')
+#     with DBA.DBAccess() as db:
+#         db.execute('UPDATE tier SET voting = %s WHERE tier_id = %s;', (0, ctx.channel.id))
+#     if format_list[0] == 6:
+#         ind = 0
+#     elif format_list[1] == 6:
+#         ind = 1
+#     elif format_list[2] == 6:
+#         ind = 2
+#     elif format_list[3] == 6:
+#         ind = 3
+#     elif format_list[4] == 6:
+#         ind = 4
+#     else:
+#         # Get the index of the voted on format
+#         max_val = max(format_list)
+#         ind = [i for i, v in enumerate(format_list) if v == max_val]
+
+#     # Create a dictionary where key=format, value=list of players who voted
+#     poll_dictionary = {
+#         "FFA":[],
+#         "2v2":[],
+#         "3v3":[],
+#         "4v4":[],
+#         "6v6":[],
+#     }
+#     with DBA.DBAccess() as db:
+#         votes_temp = db.query('SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+#     for i in range(len(votes_temp)):
+#         # print(f'votes temp: {votes_temp}')
+#         if votes_temp[i][0] == 1:
+#             player_format_choice = 'FFA'
+#         elif votes_temp[i][0] == 2:
+#             player_format_choice = '2v2'
+#         elif votes_temp[i][0] == 3:
+#             player_format_choice = '3v3'
+#         elif votes_temp[i][0] == 4:
+#             player_format_choice = '4v4'
+#         elif votes_temp[i][0] == 6:
+#             player_format_choice = '6v6'
+#         else:
+#             continue
+#         poll_dictionary[player_format_choice].append(votes_temp[i][1])
+#     # print('created poll dictionary')
+#     # print(f'{poll_dictionary}')
+#     # Clear votes after we dont need them anymore...
+#     # print('clearing votes...')
+#     with DBA.DBAccess() as db:
+#         db.execute('UPDATE lineups SET vote = NULL WHERE tier_id = %s;', (ctx.channel.id,))
+#     # I use random.choice to account for ties
+#     try:
+#         return [random.choice(ind), poll_dictionary]
+#     except TypeError:
+#         return [ind, poll_dictionary]
+
+# async def remove_players_from_other_tiers(channel_id):
+#     await send_raw_to_debug_channel('Removing players from other tiers...', channel_id)
+#     try:
+#         with DBA.DBAccess() as db:
+#             players = db.query('SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC;', (channel_id,))
+#     except Exception as e:
+#         await send_raw_to_debug_channel('No players to remove from other tiers?', e)
+#         return True
+#     for player in players:
+#         with DBA.DBAccess() as db:
+#             player_tier = db.query('SELECT p.player_id, p.player_name, l.tier_id FROM lineups as l JOIN player as p ON l.player_id = p.player_id WHERE p.player_id = %s AND l.tier_id <> %s;', (player[0], channel_id))
+#         for tier in player_tier:
+#             await send_raw_to_debug_channel('Removing from other tiers', f'{tier[1]} - {tier[2]}')
+#             channel = client.get_channel(tier[2])
+#             with DBA.DBAccess() as db:
+#                 db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (tier[0], tier[2]))
+#             await channel.send(f'{tier[1]} has dropped from the lineup')
+#     return True
+
+# # poll_results is [index of the voted on format, a dictionary of format:voters]
+# # creates teams, finds host, returns a big string formatted...
+# async def create_teams(ctx, poll_results):
+#     # print('creating teams')
+#     keys_list = list(poll_results[1])
+#     winning_format = keys_list[poll_results[0]]
+#     # print(f'winning format: {winning_format}')
+#     players_per_team = 0
+#     if winning_format == 'FFA':
+#         players_per_team = 1
+#     elif winning_format == '2v2':
+#         players_per_team = 2
+#     elif winning_format == '3v3':
+#         players_per_team = 3
+#     elif winning_format == '4v4':
+#         players_per_team = 4
+#     elif winning_format == '6v6':
+#         players_per_team = 6
+#     else:
+#         return 0
+#     response_string=f'`Winner:` {winning_format}\n\n'
+#     with DBA.DBAccess() as db:
+#         player_db = db.query('SELECT p.player_name, p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+#     players_list = list()
+#     room_mmr = 0
+#     for i in range(len(player_db)):
+#         players_list.append([player_db[i][0], player_db[i][1], player_db[i][2]])
+#         if player_db[i][2] is None: # Account for placement ppls
+#             pass
+#         else:
+#             room_mmr = room_mmr + player_db[i][2]
+#     random.shuffle(players_list) # [[popuko, 7238965417831, 4000],[name, discord id, mmr]]
+#     room_mmr = room_mmr/MAX_PLAYERS_IN_MOGI
+#     response_string += f'   `Room MMR:` {math.ceil(room_mmr)}\n'
+#     # 6v6 /teams string
+#     if players_per_team != 6:
+#         # divide the list based on players_per_team
+#         chunked_list = list()
+#         for i in range(0, len(players_list), players_per_team):
+#             chunked_list.append(players_list[i:i+players_per_team])
+
+#         # For each divided team, get mmr for all players, average them, append to team
+#         for team in chunked_list:
+#             temp_mmr = 0
+#             count = 0
+#             for player in team:
+#                 if player[2] is None: # If mmr is null - Account for placement ppls
+#                     count+=1
+#                     #pass - commented out and added count+=1 10/10/22 because people mad about playing with placements even tho its 200 and its tier all lol
+#                 else:
+#                     temp_mmr = temp_mmr + player[2]
+#                     count += 1
+#             if count == 0:
+#                 count = 1
+#             team_mmr = temp_mmr/count
+#             team.append(team_mmr)
+
+#         sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
+#         sorted_list.reverse()
+#         # print(sorted_list)
+#         player_score_string = f'    `Table:` /table {players_per_team} '
+#         team_count = 0
+#         for team in sorted_list:
+#             team_count+=1
+#             response_string += f'   `Team {team_count}:` '
+#             for player in team:
+#                 try:
+#                     player_score_string += f'{player[0]} 0 '
+#                     response_string += f'{player[0]} '
+#                 except TypeError:
+#                     response_string += f'(MMR: {math.ceil(player)})\n'
+
+#         response_string+=f'\n{player_score_string}'
+#     else:
+#         with DBA.DBAccess() as db:
+#             captains = db.query('SELECT player_name, player_id FROM (SELECT p.player_name, p.player_id, p.mmr FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s) as mytable ORDER BY mmr DESC LIMIT 2;', (ctx.channel.id, MAX_PLAYERS_IN_MOGI))
+#         response_string += f'   `Captains:` <@{captains[0][1]}> & <@{captains[1][1]}>\n'
+#         response_string += f'   `Table:` /table 6 `[Team 1 players & scores]` `[Team 2 players & scores]`\n'
+    
+#     try:
+#         with DBA.DBAccess() as db:
+#             db.execute('UPDATE tier SET teams_string = %s WHERE tier_id = %s;', (response_string, ctx.channel.id))
+#     except Exception as e:
+#         await send_to_debug_channel(ctx, f'team generation error log 1? | {e}')
+#     # choose a host
+#     host_string = '    '
+#     try:
+#         with DBA.DBAccess() as db:
+#             host_temp = db.query('SELECT fc, player_id FROM (SELECT p.fc, p.player_id FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s AND p.fc IS NOT NULL AND p.is_host_banned = %s ORDER BY l.create_date LIMIT %s) as fcs_in_mogi ORDER BY RAND() LIMIT 1;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
+#             host_string += f'`Host:` <@{host_temp[0][1]}> | {host_temp[0][0]}'
+#     except Exception as e:
+#         host_string = '    `No FC found` - Choose amongst yourselves'
+#     # create a return string
+#     response_string+=f'\n\n{host_string}'
+#     return response_string
+
+# async def check_if_mogi_is_ongoing(ctx):
+#     try:
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (ctx.channel.id,))
+#     except Exception:
+#         return False
+#     if temp[0][0] >= MAX_PLAYERS_IN_MOGI:
+#         return True
+#     else:
+#         return False
+
 
 
 
@@ -4017,7 +4075,7 @@ client.run(secretly.token)
 #         with DBA.DBAccess() as db:
 #             temp = db.query('SELECT l.player_id, UNIX_TIMESTAMP(l.last_active), l.tier_id, l.wait_for_activity, p.player_name FROM lineups as l JOIN player as p ON l.player_id = p.player_id WHERE l.can_drop = %s;', (1,))
 #     except Exception as e:
-#         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 1 {secrely.my_discord}', e), client.loop)
+#         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 1 {secretly.my_discord}', e), client.loop)
 #         return
 #     for i in range(len(temp)):
 #         name = temp[i][4]
@@ -4034,7 +4092,7 @@ client.run(secretly.token)
 #                         with DBA.DBAccess() as db:
 #                             db.execute('UPDATE lineups SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0])) # we are waiting for activity
 #                     except Exception as e:
-#                         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 2 {secrely.my_discord}', e), client.loop)
+#                         asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'inactivity_check error 2 {secretly.my_discord}', e), client.loop)
 #                         return
 #             else: # has not been at least 10 minutes yet
 #                 continue # does this make it faster? idk
@@ -4044,7 +4102,7 @@ client.run(secretly.token)
 #                 with DBA.DBAccess() as db:
 #                     db.execute('DELETE FROM lineups WHERE player_id = %s;', (temp[i][0],))
 #             except Exception as e:
-#                 asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'{secrely.my_discord} inactivity_check - cannot delete from lineup',f'{temp[i][0]} | {temp[i][1]} | {temp[i][2]} | {e}'), client.loop)
+#                 asyncio.run_coroutine_threadsafe(send_raw_to_debug_channel(f'{secretly.my_discord} inactivity_check - cannot delete from lineup',f'{temp[i][0]} | {temp[i][1]} | {temp[i][2]} | {e}'), client.loop)
 #                 return
 #             # Send message
 #             channel = client.get_channel(temp[i][2])
