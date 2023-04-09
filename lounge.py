@@ -3069,17 +3069,22 @@ async def handle_score_input(ctx, score_string, mogi_format):
     return chunked_list
 
 async def handle_suggestion_decision(suggestion_id, suggestion, author_id, message_id, admin_id, approved, reason):
+    author = await GUILD.fetch_member(author_id)
+    admin = await GUILD.fetch_member(admin_id)
     if approved is None:
         return
     channel = client.get_channel(secretly.suggestion_voting_channel)
     if approved:
-        decision = 'Approved'
+        decision = f'Approved by {admin.display_name}'
         color = discord.Color.green()
     else:
-        decision = 'Denied'
+        decision = f'Denied by {admin.display_name}'
         color = discord.Color.red()
     try:
         embed = discord.Embed(title='Suggestion', description=f'', color = color)
+        embed.set_author(name=author.display_name, icon_url=author.avatar.url)
+
+
         embed.add_field(name=f'#{suggestion_id}', value=suggestion, inline=False)
         embed.add_field(name=decision, value=reason, inline=False)
 
