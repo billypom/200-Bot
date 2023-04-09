@@ -136,9 +136,12 @@ async def on_application_command_error(ctx, error):
 
 @client.event
 async def on_message(ctx):
-    if ctx.guild == GUILD: # Only care if messages are in 200 Lounge
-        pass
-    else:
+    try:
+        if ctx.guild == GUILD: # Only care if messages are in 200 Lounge
+            pass
+        else:
+            return
+    except Exception:
         return
     if ctx.author.id == secretly.bot_id: # ignore self messages
         return
