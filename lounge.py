@@ -279,7 +279,7 @@ async def verify(
     # mkc_player_id = registry id
     # mkc_user_id = forum id
     await ctx.defer(ephemeral=True)
-    x = await check_if_player_exists(ctx)
+    x = await check_if_uid_exists(ctx.author.id)
     if x:
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:
