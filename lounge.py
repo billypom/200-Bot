@@ -3101,6 +3101,7 @@ async def handle_suggestion_decision(suggestion_id, suggestion, author_id, messa
 
 # Takes in a name - cleans it - and returns it (or a new random name)
 async def handle_player_name(name):
+    insert_name = ""
     # Romanize the text
     insert_name = await jp_kr_romanize(str(name))
 
