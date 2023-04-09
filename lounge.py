@@ -1748,7 +1748,7 @@ async def approve(
     suggestion_id: discord.Option(int, 'Suggestion ID', required=True),
     reason: discord.Option(str, 'Type your reason (1000 characters max)', required=True)
     ):
-    await ctx.defer()
+    await ctx.defer(ephemeral=True)
     try:
         with DBA.DBAccess() as db:
             crap = db.query('SELECT id, author_id, content, message_id FROM suggestion WHERE id = %s;', (suggestion_id, ))
@@ -1785,7 +1785,7 @@ async def deny(
     suggestion_id: discord.Option(int, 'Suggestion ID', required=True),
     reason: discord.Option(str, 'Type your reason (1000 characters max)', required=True)
     ):
-    await ctx.defer()
+    await ctx.defer(ephemeral=True)
     try:
         with DBA.DBAccess() as db:
             crap = db.query('SELECT id, author_id, content, message_id FROM suggestion WHERE id = %s;', (suggestion_id, ))
