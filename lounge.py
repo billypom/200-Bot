@@ -3095,6 +3095,8 @@ async def handle_suggestion_decision(suggestion_id, suggestion, author_id, messa
 
         suggestion_message = await channel.fetch_message(message_id)
         await suggestion_message.edit(embed=embed)
+        dummy_msg = await channel.send('.')
+        await dummy_msg.delete()
         return True
     except Exception as e:
         return False
