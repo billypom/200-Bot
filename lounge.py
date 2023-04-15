@@ -25,6 +25,9 @@ import pykakasi
 from korean_romanizer.romanizer import Romanizer
 import operator
 
+import logging
+logging.basicConfig(filename='log', filemode='w', level=logging.DEBUG)
+
 Lounge = secretly.Lounge
 # mogi_media_message_id = 1005205285817831455
 TIER_ID_LIST = list()
@@ -2798,7 +2801,7 @@ async def set_player_roles(uid):
 # Cool&Create
 async def create_player(member, mkc_user_id, country_code):
     altered_name = await handle_player_name(member.display_name)
-    print(altered_name)
+    logging.info(f'Finished handling name: {altered_name}')
     try:
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, PLACEMENT_ROLE_ID))
@@ -2990,11 +2993,14 @@ async def get_list_of_rank_ids():
 
 # Returns a random player name that is not taken
 async def get_random_name():
+    logging.info('Retrieving random name...')
     name_is_not_unique = True
     while(name_is_not_unique):
         name = await generate_random_name()
+        logging.info(f'Generated name: {name}')
         test = await check_if_is_unique_name(name)
         if (test):
+            logging.info(f'Unique name detected')
             name_is_not_unique = False
     return name
 
@@ -3103,9 +3109,21 @@ async def handle_suggestion_decision(suggestion_id, suggestion, author_id, messa
 
 # Takes in a name - cleans it - and returns it (or a new random name)
 async def handle_player_name(name):
+    # logging.info(f'Step 1 - Handling name: [{name}]')
     insert_name = ""
     # Romanize the text
     insert_name = await jp_kr_romanize(str(name))
+    # logging.info(f'Step 2 - romanized name: [{insert_name}]')
+
+    # Handle empty name
+    if not insert_name:
+        insert_name = await get_random_name()
+    # logging.info(f'Step 3 - handled empty: [{insert_name}]')
+
+    # Handle whitespace name  - generate a random name lol
+    if insert_name.isspace():
+        insert_name = await get_random_name()
+    # logging.info(f'Step 4 - handled whitespace: [{insert_name}]')
 
     # Handle name too long
     if len(insert_name) > 16:
@@ -3117,6 +3135,7 @@ async def handle_player_name(name):
             temp_name+=char
             count+=1
         insert_name = temp_name
+    # logging.info(f'Step 5 - checked length: [{insert_name}]')
 
     # Handle ä-type characters (delete them)
     allowed_name = ""
@@ -3125,11 +3144,8 @@ async def handle_player_name(name):
             allowed_name += char
         else:
             allowed_name += ""
+    # logging.info(f'Step 6 - handled chars: [{allowed_name}]')
     insert_name = allowed_name
-    
-    # Handle whitespace name  - generate a random name lol
-    if insert_name.isspace():
-        insert_name = await get_random_name()
         
     # Handle duplicate names - append underscores
     name_still_exists = True
@@ -3144,6 +3160,7 @@ async def handle_player_name(name):
         count +=1
         if count == 16:
             insert_name = await get_random_name()
+    # logging.info(f'Step 6 - handled duplicates: [{insert_name}]')
 
     return str(insert_name).replace(" ", "-")
 

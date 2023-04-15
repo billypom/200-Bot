@@ -10,6 +10,7 @@ migration_commands.py
 
 # other files
 # 200lounge.csv
+log
 
 # folders
 /__pycache__
