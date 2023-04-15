@@ -1049,6 +1049,7 @@ async def table(
                             return
                     # Last item in list needs to be added
                     points += int(f'{sign}{current_group}')
+                    player[1] = points
                     team_score = team_score + points
             except Exception as e:
                 # check for all 12 players exist
@@ -1139,7 +1140,7 @@ async def table(
             temp = db.query('SELECT results_id, tier_name FROM tier WHERE tier_id = %s;', (nya_tier_id,))
             db_results_channel = temp[0][0]
             tier_name = temp[0][1]
-        results_channel = client.get_channel(db_results_channel)
+        results_channel = await client.fetch_channel(db_results_channel)
         #############await send_raw_to_debug_channel('Results channel acquired', f'{results_channel}')
 
         # Pre MMR table calculate
