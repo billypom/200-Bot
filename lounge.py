@@ -343,7 +343,7 @@ async def verify(
     if mkc_player_id != -1:
         pass
     else:
-        await ctx.respond('``Error 4:`` Oops! Something went wrong. Did you sign up in the MKC registry?')
+        await ctx.respond('``Error 4:`` Oops! Something went wrong. Sign up in the MKC registry or try again later.')
         return
     # Request registry data
     mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
