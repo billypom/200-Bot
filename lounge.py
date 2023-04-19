@@ -293,7 +293,7 @@ async def verify(
             return
         else:
             pass
-        response = await set_player_roles(ctx.author.id)
+        response = await set_uid_roles(ctx.author.id)
         if response:
             await ctx.respond(f':flag_us:\nWelcome back to 200cc Lounge.\nYou have been given the role: <@&{response[0]}>\n\n:flag_jp:\n`200ccラウンジにおかえり！`\n<@&{response[0]}>`が割り当てられています`')
         else:
@@ -2226,9 +2226,11 @@ async def zloungeless(
     user = await GUILD.fetch_member(player.id)
     if LOUNGELESS_ROLE in user.roles:
         await user.remove_roles(LOUNGELESS_ROLE)
+        await set_uid_roles(player.id)
         await ctx.respond(f'Loungeless removed from {player.mention}')
     else:
         await user.add_roles(LOUNGELESS_ROLE)
+        await remove_rank_roles_from_uid(player.id)
         await ctx.respond(f'Loungeless added to {player.mention}')
 
 # /zmmr_penalty
@@ -2262,7 +2264,7 @@ async def zmmr_penalty(
                 new_mmr = 1
             db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (new_mmr, player.id))
         await ctx.respond(f'{player.mention} has been given a {mmr_penalty} mmr penalty')
-        await set_player_roles(player.id)
+        await set_uid_roles(player.id)
     except Exception as e:
         await send_to_debug_channel(ctx, f'/zmmr_penalty error 38 {e}')
         await ctx.respond('`Error 38:` Could not apply penalty')
@@ -2336,7 +2338,7 @@ async def zreduce_loss(ctx,
         await send_to_debug_channel(ctx, f'player: {player} | mogi id: {mogi_id} | reduction: {reduction} | {e}')
         await ctx.respond('``Error 41:`` FATAL ERROR uh oh uh oh uh oh')
         return
-    await set_player_roles(player.id)
+    await set_uid_roles(player.id)
     await ctx.respond(f'Loss was reduced for {player.mention}.\nChange: `{mmr_change}` -> `{adjusted_mmr_change}`\nMMR: `{mmr}` -> `{adjusted_mmr}`')
     return
 
@@ -2618,7 +2620,7 @@ async def zset_player_roles(
     ctx,
     player: discord.Option(discord.Member, 'Leaving player', required=True)):
     await ctx.defer()
-    response = await set_player_roles(player.id)
+    response = await set_uid_roles(player.id)
     if response:
         await ctx.respond(f'Player roles set for <@{player.id}>')
         return
@@ -2722,7 +2724,15 @@ async def qwe(
 
 
 
-
+async def remove_rank_roles_from_uid(uid):
+    member = await GUILD.fetch_member(uid)
+    # Get ranks
+    with DBA.DBAccess() as db:
+        ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
+    # Remove any ranks from member
+    for rank in ranks: 
+        remove_rank = guild.get_role(rank[0])
+        await member.remove_roles(remove_rank)
 
 # Takes a uid, returns True for completed. returns False for error
 async def set_uid_chat_restricted(uid):
@@ -2736,7 +2746,7 @@ async def set_uid_chat_restricted(uid):
         return False
 
 # Takes a ctx, returns the a response (used in re-verification when reentering lounge)
-async def set_player_roles(uid):
+async def set_uid_roles(uid):
     try:
         # Get player info
         with DBA.DBAccess() as db:
@@ -2796,7 +2806,7 @@ async def set_player_roles(uid):
             pass
         return (role.id, role)
     except Exception as e:
-        await send_raw_to_debug_channel(f'<@{uid}>', f'set_player_roles exception: {e}')
+        await send_raw_to_debug_channel(f'<@{uid}>', f'set_uid_roles exception: {e}')
         return False
 
 # Cool&Create
