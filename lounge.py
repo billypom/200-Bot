@@ -2383,7 +2383,7 @@ async def zchange_discord_account(
             # get old player data
             temp = db.query('SELECT * FROM player WHERE player_id = %s;', (old_discord_id,))
             # create new player
-            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, fc, is_host_banned, is_chat_restricted, mmr, base_mmr, peak_mmr, rank_id, times_strike_limit_reached, twitch_link, mogi_media_message_id, unban_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);', (new_discord_id, temp[0][1], temp[0][2], temp[0][3], temp[0][4], temp[0][5], temp[0][6], temp[0][7], temp[0][8], temp[0][9], temp[0][10], temp[0][11], temp[0][12], temp[0][13], temp[0][14]))
+            db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, fc, is_host_banned, is_chat_restricted, mmr, base_mmr, peak_mmr, rank_id, times_strike_limit_reached, twitch_link, mogi_media_message_id, unban_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);', (new_discord_id, temp[0][1], temp[0][2], temp[0][3], temp[0][4], temp[0][5], temp[0][6], temp[0][7], temp[0][8], temp[0][9], temp[0][10], temp[0][11], temp[0][12], temp[0][13], temp[0][14]))
             # update player_mogi instances
             db.execute('UPDATE player_mogi SET player_id = %s WHERE player_id = %s;', (new_discord_id, old_discord_id))
             # update player_name_request instances
