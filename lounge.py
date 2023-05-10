@@ -2098,10 +2098,10 @@ async def zstrike(
     if y:
         await ctx.respond('Invalid reason')
         return
-    # player_is_placement = await check_if_uid_is_placement(player.id)
-    # if player_is_placement:
-    #     await ctx.respond('Cannot strike a placement player')
-    #     return
+    player_is_placement = await check_if_uid_is_placement(player.id)
+    if player_is_placement:
+        await ctx.respond('Cannot strike a placement player')
+        return
     # Send info to strikes table
     mmr_penalty = abs(mmr_penalty)
     # Update player MMR
@@ -2112,7 +2112,8 @@ async def zstrike(
     with DBA.DBAccess() as db:
         temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
         if temp[0][0] is None:
-            mmr = mmr_penalty # super punished for leaving ur 1st match?
+            await ctx.respond(f'This player has no MMR! Contact {secretly.my_discord}')
+            return
         else:
             mmr = temp[0][0]
     with DBA.DBAccess() as db:
