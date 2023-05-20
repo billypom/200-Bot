@@ -62,6 +62,7 @@ CREATE TABLE strike (
     player_id bigint unsigned,
     reason varchar(32),
     mmr_penalty int,
+    penalty_applied boolean default 1,
     is_active boolean default 1,
     create_date TIMESTAMP default CURRENT_TIMESTAMP NOT NULL,
     expiration_date TIMESTAMP NOT NULL,

@@ -401,7 +401,7 @@ async def verify(
         await ctx.respond(f'``Error 10:`` Oops! Something went wrong. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')
         verify_description = vlog_msg.error4
         verify_color = discord.Color.red()
-        await send_to_verification_log(ctx, f'Error 10: {message}', verify_description)
+        await send_to_verification_log(ctx, f'Error 10: {message}', f'{verify_description} | <@{x[1]}> already using MKC **FORUM** ID {x[0]}')
         return
     else:
         member = await GUILD.fetch_member(ctx.author.id)
@@ -921,6 +921,9 @@ async def table(
         return
     else:
         pass
+
+
+
     # Check scores for bad input
     bad = await check_if_banned_characters(scores)
     if bad:
@@ -928,6 +931,9 @@ async def table(
         await ctx.respond(f'``Error 32:`` Invalid input. There must be 12 players and 12 scores.')
         return
     
+
+
+
     # Check if table was submitted from a tier channel + sq
     with DBA.DBAccess() as db:
         temp = db.query('SELECT tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
@@ -942,6 +948,9 @@ async def table(
         else:
             await ctx.respond(f'``Error 72a: `/table` must be used from a tier channel``')
             return
+
+
+
 
 
     chunked_list = await handle_score_input(ctx, scores, mogi_format)
@@ -994,6 +1003,10 @@ async def table(
         await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, 4, or 6.')
         return
 
+
+
+
+
     # Get the highest MMR ever
     #   There was a very high integer in the formula for calculating mmr on the original google sheet.
     #   A comment about how people "never thought anyone could reach 10k mmr" made me think this very high integer was a
@@ -1009,6 +1022,14 @@ async def table(
 
 
     
+
+
+
+
+
+
+
+
     # Get MMR data for each team, calculate team score, and determine team placement
     mogi_score = 0
     # print(f'length of chunked list: {len(chunked_list)}')
@@ -1070,16 +1091,36 @@ async def table(
         await ctx.respond(f'``Error 28:`` `Scores = {mogi_score} `Scores must add up to 984.')
         return
 
+
+
+
+
+
+
+
+
+        
+
     # Sort the teams in order of score
     # [[players players players], team_score, team_mmr]
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-2]))
     sorted_list.reverse() 
+
+
+
+
+
+
 
     # Create hlorenzi string
     if mogi_format == 1:
         lorenzi_query='-\n'
     else:
         lorenzi_query=''
+
+
+
+
 
     # Initialize score and placement values
     prev_team_score = 0
@@ -1113,6 +1154,13 @@ async def table(
         prev_team_placement = team_placement
         prev_team_score = team[len(team)-3]
 
+
+
+
+
+
+
+
     # Request a lorenzi table
     query_string = urllib.parse.quote(lorenzi_query)
     url = f'https://gb.hlorenzi.com/table.png?data={query_string}'
@@ -1120,6 +1168,11 @@ async def table(
     with open(f'./images/{hex(ctx.author.id)}table.png', 'wb') as out_file:
         shutil.copyfileobj(response.raw, out_file)
     del response
+
+
+
+
+
 
     # Ask for table confirmation
     table_view = Confirm(ctx.author.id)
@@ -1129,6 +1182,10 @@ async def table(
     await table_view.wait()
     if table_view.value is None:
         await ctx.respond('No response from reporter. Timed out')
+
+
+
+
     elif table_view.value: # yes
         db_mogi_id = 0
         # Create mogi
@@ -1142,6 +1199,11 @@ async def table(
             tier_name = temp[0][1]
         results_channel = await client.fetch_channel(db_results_channel)
         #############await send_raw_to_debug_channel('Results channel acquired', f'{results_channel}')
+
+
+
+
+
 
         # Pre MMR table calculate
         value_table = list()
@@ -1175,6 +1237,12 @@ async def table(
             # print(f'working list {idx}: {working_list}')
         ############await send_raw_to_debug_channel('MMR calculated', 'value table loaded')
 
+
+
+
+
+
+
         # # DEBUG
         # print(f'\nprinting value table:\n')
         # for _list in value_table:
@@ -1194,6 +1262,10 @@ async def table(
             # print(f'appending {temp_value}+={value} | {idx} | {idx2}')
             team.append(math.floor(temp_value))
 
+
+
+
+
         # Create mmr table string
         if mogi_format == 1:
             string_mogi_format = 'FFA'
@@ -1202,6 +1274,10 @@ async def table(
 
         mmr_table_string = f'<big><big>{ctx.channel.name} {string_mogi_format}</big></big>\n'
         mmr_table_string += f'PLACE |       NAME       |  MMR  |  +/-  | NEW MMR |  RANKUPS\n'
+
+
+
+
 
         for team in sorted_list:
             ###########await send_raw_to_debug_channel('Updating team', team)
@@ -1250,6 +1326,27 @@ async def table(
                         await discord_member.add_roles(init_role)
                         await discord_member.remove_roles(placement_role)
                         await results_channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
+                        # get any queue'd strike penalties, and apply
+                        try:
+                            # get all mmr penalties accumulated
+                            with DBA.DBAccess() as db:
+                                temp = db.query('SELECT sum(mmr_penalty) FROM strike WHERE penalty_applied = %s AND player_id = %s;', (0, player[0]))
+                            total_queued_mmr_penalty = temp[0][0]
+                            my_player_new_queued_strike_adjusted_mmr = my_player_mmr - total_queued_mmr_penalty
+                            # update players mmr
+                            with DBA.DBAccess() as db:
+                                db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_queued_strike_adjusted_mmr, player[0]))
+                            # disclosure
+                            await results_channel.send(f'<@{player[0]}> accumulated {total_queued_mmr_penalty} worth of MMR penalties during placement.\nMMR adjustment: ({my_player_mmr} -> {my_player_new_queued_strike_adjusted_mmr})')
+                            # strike penalty applied = yes
+                            with DBA.DBAccess() as db:
+                                db.execute('UPDATE strike SET penalty_applied = %s WHERE player_id = %s;', (1, player[0]))
+                            # set the players mmr for mmr calc & table
+                            my_player_mmr = my_player_new_queued_strike_adjusted_mmr
+                        except Exception as e:
+                            await send_raw_to_debug_channel(f'{player[0]} did not load queued strikes', e)
+
+
                     except Exception as e:
                         await send_raw_to_debug_channel(f'{player[0]} did not stick around long enough to be placed',e)
 
@@ -1262,6 +1359,9 @@ async def table(
                 my_player_mmr_change = team[len(team)-1]
                 my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
                 
+
+
+
                 # Dont go below 0 mmr
                 # Keep mogi history clean - chart doesn't go below 0
                 if my_player_new_mmr <= 0:
@@ -1269,10 +1369,16 @@ async def table(
                     my_player_mmr_change = (my_player_mmr)*-1
                     my_player_new_mmr = 1
 
+
+
+
                 # Start creating string for MMR table
                 mmr_table_string += f'{string_my_player_place.center(6)}|'
                 mmr_table_string +=f'{my_player_name.center(18)}|'
                 mmr_table_string += f'{str(my_player_mmr).center(7)}|'
+
+
+
 
                 # Check sign of mmr delta
                 if my_player_mmr_change >= 0:
@@ -1284,6 +1390,10 @@ async def table(
                     formatted_my_player_mmr_change = await neg_mmr_wrapper(string_my_player_mmr_change)
                 mmr_table_string += f'{formatted_my_player_mmr_change}|'
 
+
+
+
+
                 # Check for new peak
                 string_my_player_new_mmr = str(my_player_new_mmr).center(9)
                 # print(f'current peak: {my_player_peak} | new mmr value: {my_player_new_mmr}')
@@ -1294,6 +1404,11 @@ async def table(
                 else:
                     formatted_my_player_new_mmr = string_my_player_new_mmr
                 mmr_table_string += f'{formatted_my_player_new_mmr}|'
+
+
+
+
+
 
                 # Send updates to DB
                 try:
@@ -1315,6 +1430,8 @@ async def table(
                     await send_to_debug_channel(ctx, f'FATAL TABLE ERROR: {e}')
                     pass
                 
+
+
                 # Remove mogi media messages
                 if mogi_media_message_id is None:
                     pass
@@ -1325,6 +1442,8 @@ async def table(
 
                 with DBA.DBAccess() as db:
                     db.execute('UPDATE player SET mogi_media_message_id = NULL WHERE player_id = %s;', (player[0],))
+
+
 
 
                 # Check for rank changes
@@ -1371,6 +1490,13 @@ async def table(
                 formatted_my_player_new_rank = await new_rank_wrapper(string_my_player_new_rank, my_player_new_mmr)
                 mmr_table_string += f'{formatted_my_player_new_rank}'
                 string_my_player_place = ''
+
+
+
+
+
+
+
         ###########await send_raw_to_debug_channel('TEAMS UPDATED', 'Success')
         # Create imagemagick image
         # https://imagemagick.org/script/color.php
@@ -2098,10 +2224,6 @@ async def zstrike(
     if y:
         await ctx.respond('Invalid reason')
         return
-    player_is_placement = await check_if_uid_is_placement(player.id)
-    if player_is_placement:
-        await ctx.respond('Cannot strike a placement player')
-        return
     # Send info to strikes table
     mmr_penalty = abs(mmr_penalty)
     # Update player MMR
@@ -2109,16 +2231,22 @@ async def zstrike(
     expiration_date = current_time + datetime.timedelta(days=30)
     mmr = 0
     num_of_strikes = 0
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
-        if temp[0][0] is None:
-            await ctx.respond(f'This player has no MMR! Contact {secretly.my_discord}')
-            return
-        else:
-            mmr = temp[0][0]
-    with DBA.DBAccess() as db:
-        db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date))
-        db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((mmr-mmr_penalty), player.id))
+    # if placement player, insert a strike, penalty applied = 0
+    player_is_placement = await check_if_uid_is_placement(player.id)
+    if player_is_placement:
+        with DBA.DBAccess() as db:
+            db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date, penalty_applied) VALUES (%s, %s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date, 0))
+    else:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
+            if temp[0][0] is None:
+                await ctx.respond(f'This player has no MMR! Contact {secretly.my_discord}')
+                return
+            else:
+                mmr = temp[0][0]
+        with DBA.DBAccess() as db:
+            db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date))
+            db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((mmr-mmr_penalty), player.id))
     num_of_strikes = await get_number_of_strikes(player.id)
     if num_of_strikes >= 3:
         times_strike_limit_reached = 0
@@ -2699,13 +2827,9 @@ async def zdelete_player(
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def qwe(
     ctx,
-    player: discord.Option(discord.Member, 'player', required=True)):
+    player: discord.Option(discord.Member, 'player', required=False)):
     await ctx.defer()
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT * FROM suggestion;', ())
-    for s in temp:
-        await handle_suggestion_decision(s[0], s[1], s[3], s[5], s[4], s[2], s[6])
-    await ctx.respond('done')
+    await ctx.respond('qwe')
     
 
 
@@ -2907,9 +3031,10 @@ async def check_if_uid_is_chat_restricted(uid):
 async def check_if_mkc_user_id_used(mkc_user_id):
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mkc_id from player WHERE mkc_id = %s;', (mkc_user_id,))
+            temp = db.query('SELECT mkc_id, player_id from player WHERE mkc_id = %s;', (mkc_user_id,))
             if int(temp[0][0]) == int(mkc_user_id):
-                return True
+                # return mkc_id, player_id as list
+                return [temp[0][0], temp[0][1]]
             else:
                 return False
     except Exception as e:
