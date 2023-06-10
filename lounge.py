@@ -3372,6 +3372,7 @@ async def zassign_ranks2(ctx):
             except Exception as e:
                 print(f'{players[i][0]} | {e}')
                 break
+    await ctx.respond('done')
 
 
 
