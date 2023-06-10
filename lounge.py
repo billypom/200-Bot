@@ -611,13 +611,14 @@ async def table(
     #   A comment about how people "never thought anyone could reach 10k mmr" made me think this very high integer was a
     #       replacement for getting the highest existing mmr (or at least my formula could emulate that high integer 
     #       with some variance :shrug: its probably fine... no1 going 2 read this)
-    try:
-        with DBA.DBAccess() as db:
-            h = db.query('SELECT max(mmr) from player where player_id > %s;',(0,))
-            highest_mmr = h[0][0]
-    except Exception as e:
-        await ctx.respond(f'``Error 76:`` `/table` error. Make a <#{secretly.support_channel}> if you need assistance.')
+    # try:
+        # with DBA.DBAccess() as db:
+            # h = db.query('SELECT max(mmr) from player where player_id > %s;',(0,))
+            # highest_mmr = h[0][0]
+    # except Exception as e:
+        # await ctx.respond(f'``Error 76:`` `/table` error. Make a <#{secretly.support_channel}> if you need assistance.')
     # print(f'player score chunked list: {player_score_chunked_list}')
+    highest_mmr = 10999
 
 
     
