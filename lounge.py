@@ -3343,9 +3343,14 @@ async def zassign_ranks2(ctx):
         temp = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
     for i in range(len(players)):
         if players[i][1] is None:
-            role = GUILD.get_role(PLACEMENT_ROLE_ID)
-            await member.add_roles(role)
-            print(f'assigned {role} to {players[i][0]}')
+            try:
+                role = GUILD.get_role(PLACEMENT_ROLE_ID)
+                member = GUILD.get_member(players[i][0])
+                await member.add_roles(role)
+                print(f'assigned {role} to {players[i][0]}')
+            except Exception:
+                print(f'{players[i][0]} | {e}')
+                break
             continue
         for j in range(len(temp)):
             # If MMR > min & MMR < max, assign role
