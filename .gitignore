@@ -1,12 +1,14 @@
 # python files
 secrets.py
 secretly.py
+secretly2.py
 vlog_msg.py
 magicktest.py
 url_encode.py
 twitch_test.py
 unit_test.py
 migration_commands.py
+season_migration.py
 
 # other files
 # 200lounge.csv
