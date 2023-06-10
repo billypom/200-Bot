@@ -3350,7 +3350,6 @@ async def zassign_ranks2(ctx):
                 print(f'assigned {role} to {players[i][0]}')
             except Exception as e:
                 print(f'{players[i][0]} | {e}')
-                break
             continue
         for j in range(len(temp)):
             # If MMR > min & MMR < max, assign role
