@@ -3318,7 +3318,11 @@ async def zassign_ranks(ctx):
     with DBA.DBAccess() as db:
         players = db.query('SELECT player_id, mmr FROM player',())
     for player in players:
-        response = await set_uid_roles(player[0])
+        try:
+            response = await set_uid_roles(player[0])
+        except Exception:
+            print(f'Member not in guild: {player[0]}')
+            continue
         print(response)
     await ctx.respond('All player rank roles have been assigned')
     return
