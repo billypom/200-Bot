@@ -3329,7 +3329,40 @@ async def zassign_ranks(ctx):
     return
 
 
-
+@client.slash_command(
+    name='zassign_ranks2',
+    description='popuko only',
+    guild_ids=Lounge
+)
+@commands.has_any_role(ADMIN_ROLE_ID)
+async def zassign_ranks2(ctx):
+    await ctx.defer()
+    with DBA.DBAccess() as db:
+        players = db.query('SELECT player_id, mmr FROM player',())
+    with DBA.DBAccess() as db:
+        temp = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
+    for i in range(len(players)):
+        for j in range(len(temp)):
+            # If MMR > min & MMR < max, assign role
+            if players[i][1] > temp[j][1]:
+                pass 
+            else:
+                continue
+            if players[i][1] < temp[j][2]:
+                pass
+            else:
+                continue
+            try:
+                member = GUILD.get_member(players[i][0])
+                role = GUILD.get_role(temp[j][0])
+                await member.add_roles(role)
+                with DBA.DBAccess() as db:
+                    db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (temp[j][0], players[i][0]))
+                print(f'assigned {role} to {member}')
+                break
+            except Exception as e:
+                print(f'{players[i][0]} | {e}')
+                break
 
 
 
