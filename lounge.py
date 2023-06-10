@@ -3348,7 +3348,7 @@ async def zassign_ranks2(ctx):
                 member = GUILD.get_member(players[i][0])
                 await member.add_roles(role)
                 print(f'assigned {role} to {players[i][0]}')
-            except Exception:
+            except Exception as e:
                 print(f'{players[i][0]} | {e}')
                 break
             continue
