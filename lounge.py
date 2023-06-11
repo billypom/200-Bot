@@ -909,7 +909,7 @@ async def table(
 
                 # Place the placement players
                 if my_player_mmr is None:
-                    placement_name, my_player_mmr = await handle_placement_init(player, my_player_mmr, my_player_score, ctx.channel.name)
+                    placement_name, my_player_mmr = await handle_placement_init(player, my_player_mmr, my_player_score, ctx.channel.name, results_channel)
                 
 
 
@@ -2886,7 +2886,7 @@ async def handle_player_name(name):
 # Assigns rank role
 # Accounts for queued penalties
 # Returns: the name of their rank role, new mmr value
-async def handle_placement_init(player, my_player_mmr, my_player_score, tier_name):
+async def handle_placement_init(player, my_player_mmr, my_player_score, tier_name, results_channel):
     logging.info(f'handle_placement_init: {player} | {my_player_mmr} | {my_player_score} | {tier_name}')
     placement_name = ''
 
