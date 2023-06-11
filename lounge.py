@@ -909,7 +909,7 @@ async def table(
 
                 # Place the placement players
                 if my_player_mmr is None:
-                    placement_name, my_player_mmr = await handle_placement_init(player, my_player_mmr, my_player_score, ctx.channel_name)
+                    placement_name, my_player_mmr = await handle_placement_init(player, my_player_mmr, my_player_score, ctx.channel.name)
                 
 
 
