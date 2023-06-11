@@ -2937,7 +2937,10 @@ async def handle_placement_init(player, my_player_mmr, my_player_score, tier_nam
     try:
         total_queued_mmr_penalty, my_player_new_queued_strike_adjusted_mmr = await handle_queued_mmr_penalties(player[0], my_player_mmr)
         # disclosure
-        await results_channel.send(f'<@{player[0]}> accumulated {total_queued_mmr_penalty} worth of MMR penalties during placement.\nMMR adjustment: ({my_player_mmr} -> {my_player_new_queued_strike_adjusted_mmr})')
+        if total_queued_mmr_penalty == 0:
+            pass
+        else:
+            await results_channel.send(f'<@{player[0]}> accumulated {total_queued_mmr_penalty} worth of MMR penalties during placement.\nMMR adjustment: ({my_player_mmr} -> {my_player_new_queued_strike_adjusted_mmr})')
     except Exception as e:
         await send_raw_to_debug_channel(f'Potential accumulated penalties error for player: {player[0]}', e)
     
