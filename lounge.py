@@ -1247,7 +1247,7 @@ async def stats(
                         last_10_wins += 1
                     else:
                         last_10_losses += 1
-        partner_average = await get_partner_avg(my_player_id, number_of_mogis)
+        partner_average = await get_partner_avg(my_player_id, number_of_mogis, '%', stats_db)
     elif tier_id in TIER_ID_LIST:
         try:
             with DBA2.DBAccess(stats_db) as db:
@@ -1266,7 +1266,7 @@ async def stats(
             await send_to_debug_channel(ctx, f'/stats not played in tier | {e}')
             await ctx.respond(f'You have not played in {tier.mention}')
             return
-        partner_average = await get_partner_avg(my_player_id, number_of_mogis, tier_id)
+        partner_average = await get_partner_avg(my_player_id, number_of_mogis, tier_id, stats_db)
     else:
         await ctx.respond(f'``Error 30:`` {tier.mention} is not a valid tier')
         return
@@ -2751,9 +2751,9 @@ async def get_number_of_strikes(uid):
             return temp[0][0]
 
 # Takes in ctx, returns avg partner score
-async def get_partner_avg(uid, number_of_mogis, tier_id='%'):
+async def get_partner_avg(uid, number_of_mogis, tier_id='%', db_name='s6200lounge'):
     try:
-        with DBA.DBAccess() as db:
+        with DBA2.DBAccess(db_name) as db:
             # temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid, uid))
             temp = db.query("SELECT AVG(score) FROM (SELECT pm.player_id, pm.mogi_id, pm.place, pm.score, pm.mmr_change FROM player_mogi as pm INNER JOIN (SELECT pm.mogi_id, pm.place, pm.mmr_change FROM player_mogi as pm JOIN mogi as m on pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND tier_id like %s ORDER BY m.create_date DESC LIMIT %s) as pm2 ON pm2.mogi_id = pm.mogi_id AND pm2.place = pm.place AND pm.mmr_change = pm2.mmr_change WHERE player_id <> %s) as a", (uid, tier_id, number_of_mogis, uid))
             try:
