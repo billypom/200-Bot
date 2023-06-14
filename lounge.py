@@ -1,4 +1,5 @@
 import DBA
+import DBA2
 import secretly
 import plotting
 import discord
@@ -1126,9 +1127,23 @@ async def stats(
     tier: discord.Option(str, description='Which tier? (a, b, c, all, sq)', required=False),
     player: discord.Option(str, description='Which player?', required=False),
     # player: discord.Option(discord.Member, description='Which player?', required=False),
-    last: discord.Option(int, description='How many mogis?', required=False)
+    last: discord.Option(int, description='How many mogis?', required=False),
+    season: discord.Option(int, description='Season number (5, 6)', required=False)
     ):
-    # Validate strings.
+    await ctx.defer()
+    # Validate strings
+    # Season picker
+    stats_db = f's{secretly.CURRENT_SEASON}200lounge'
+    if season is None:
+        pass
+    else:
+        try:
+            stats_db = f's{int(season)}200lounge'
+        except Exception as e:
+            await send_raw_to_debug_channel('Stats parse season db exception: ', e)
+            await ctx.respond('Invalid season')
+            return
+    # Tier picker
     if tier is None:
        pass
     else: # User entered a value, so check it
@@ -1139,11 +1154,12 @@ async def stats(
             return
         # Retrieve tier ID and api request the discord.TextChannel object
         try:
-            with DBA.DBAccess() as db:
+            with DBA2.DBAccess(stats_db) as db:
                 tier_id = db.query('SELECT tier_id FROM tier WHERE tier_name = %s;', (tier,))[0][0]
         except Exception as e: # bad input 2 - no tier by that name
             await ctx.respond("Invalid tier")
             return
+    # Status for self or others
     if player is None:
         pass
     else:
@@ -1152,21 +1168,22 @@ async def stats(
             await ctx.respond("Invalid player")
             await send_to_verification_log(ctx, player, vlog_msg.error1)
             return
-        # Retrieve player ID and api request the discord.Member object
+        # Retrieve player ID
         try:
-            with DBA.DBAccess() as db:
+            with DBA2.DBAccess(stats_db) as db:
                 player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
         except Exception as e: # bad input 2 - no player by that name
             await ctx.respond('Invalid player')
             return
+    # Last n mogis
     if last is None:
         number_of_mogis = 999999
     else:
         if last < 0:
-            await ctx.respond('Cannot have negative amount of matches.')
+            await ctx.respond(f'You will score 180 and gain 99999 MMR in the next {abs(last)} mogi(s).')
             return
         number_of_mogis = last
-    await ctx.defer()
+    
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
         await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
@@ -1196,7 +1213,7 @@ async def stats(
         my_player_id = player_id
     # Create matplotlib MMR history graph
     try: # Checks for valid player
-        with DBA.DBAccess() as db:
+        with DBA2.DBAccess(stats_db) as db:
             temp = db.query('SELECT base_mmr, peak_mmr, mmr, player_name FROM player WHERE player_id = %s;', (my_player_id,))
             if temp[0][0] is None:
                 base = 0
@@ -1205,7 +1222,7 @@ async def stats(
             peak = temp[0][1]
             mmr = temp[0][2]
             player_name = temp[0][3]
-        with DBA.DBAccess() as db:
+        with DBA2.DBAccess(stats_db) as db:
             temp = db.query('SELECT COUNT(*) FROM player WHERE mmr >= %s ORDER BY mmr DESC;', (mmr,))
             rank = temp[0][0]
     except Exception as e:
@@ -1213,7 +1230,7 @@ async def stats(
         await ctx.respond('``Error 31:`` Player not found.')
         return
     if tier is None:
-        with DBA.DBAccess() as db:
+        with DBA2.DBAccess(stats_db) as db:
             temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, number_of_mogis)) # order newest first
             try:
                 did_u_play_yet = temp[0][0]
@@ -1233,7 +1250,7 @@ async def stats(
         partner_average = await get_partner_avg(my_player_id, number_of_mogis)
     elif tier_id in TIER_ID_LIST:
         try:
-            with DBA.DBAccess() as db:
+            with DBA2.DBAccess(stats_db) as db:
                 temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, tier_id, number_of_mogis))
                 for i in range(len(temp)):
                     mmr_history.append(temp[i][0])
