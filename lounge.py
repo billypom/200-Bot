@@ -1156,6 +1156,7 @@ async def stats(
         try:
             with DBA2.DBAccess(stats_db) as db:
                 tier_id = db.query('SELECT tier_id FROM tier WHERE tier_name = %s;', (tier,))[0][0]
+                tier_channel = await client.get_channel(tier_id)
         except Exception as e: # bad input 2 - no tier by that name
             await ctx.respond("Invalid tier")
             return
@@ -1264,11 +1265,11 @@ async def stats(
                             last_10_losses += 1
         except Exception as e:
             await send_to_debug_channel(ctx, f'/stats not played in tier | {e}')
-            await ctx.respond(f'You have not played in {tier.mention}')
+            await ctx.respond(f'You have not played in {tier_channel.mention}')
             return
         partner_average = await get_partner_avg(my_player_id, number_of_mogis, tier_id, stats_db)
     else:
-        await ctx.respond(f'``Error 30:`` {tier.mention} is not a valid tier')
+        await ctx.respond(f'``Error 30:`` {tier_channel.mention} is not a valid tier')
         return
     mmr_history.reverse() # reverse list, oldest first for matplotlib
     score_history.reverse()
@@ -1278,7 +1279,7 @@ async def stats(
     try:
         top_index, top_score = max(enumerate(score_history), key=operator.itemgetter(1))
     except Exception as e:
-        await ctx.respond(f'You have not played in {tier.mention}')
+        await ctx.respond(f'You have not played in {tier_channel.mention}')
         return
     top_mogi_id = mogi_id_history[top_index]
 
