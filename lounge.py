@@ -1330,6 +1330,12 @@ async def stats(
         pass
     else:
         title+=f' | tier-{tier}'
+
+    if mogi_format is None:
+        pass
+    else:
+        title+= f' | {mogi_format}v'
+
     if last is None:
         pass
     else:
