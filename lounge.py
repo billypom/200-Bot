@@ -1125,9 +1125,10 @@ async def stats(
     ctx,
     # tier: discord.Option(discord.TextChannel, description='Which tier?', required=False),
     tier: discord.Option(str, description='Which tier? (a, b, c, all, sq)', required=False),
-    player: discord.Option(str, description='Which player?', required=False),
+    mogi_format: discord.Option(int, description='Your choices: (2, 3, 4, 6)', required=False),
     # player: discord.Option(discord.Member, description='Which player?', required=False),
     last: discord.Option(int, description='How many mogis?', required=False),
+    player: discord.Option(str, description='Which player?', required=False),
     season: discord.Option(int, description='Season number (5, 6)', required=False)
     ):
     await ctx.defer()
@@ -1186,12 +1187,18 @@ async def stats(
             return
         number_of_mogis = last
     
-    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-    if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
-        return
+    # Format picker
+    mogi_format_list = []
+    if mogi_format is None:
+        mogi_format_list = [2, 3, 4, 6]
+    elif mogi_format in [2, 3, 4, 6]:
+        mogi_format_list.append(mogi_format)
     else:
-        pass
+        await ctx.respond(f'Invalid format: `{mogi_format}`')
+        return
+    mogi_format_string = ','.join(str(e) for e in mogi_format_list)
+
+    
     if ctx.channel.id in secretly.tier_chats:
         await ctx.respond('`/stats` is not available in tier channels.')
         return
@@ -1213,8 +1220,10 @@ async def stats(
         my_player_id = ctx.author.id
     else:
         my_player_id = player_id
-    # Create matplotlib MMR history graph
-    try: # Checks for valid player
+
+
+    # Checks for valid player
+    try: 
         with DBA2.DBAccess(stats_db) as db:
             temp = db.query('SELECT base_mmr, peak_mmr, mmr, player_name FROM player WHERE player_id = %s;', (my_player_id,))
             if temp[0][0] is None:
@@ -1231,9 +1240,12 @@ async def stats(
         await send_to_debug_channel(ctx, f'/stats error 31 | {e}')
         await ctx.respond('``Error 31:`` Player not found.')
         return
+
+
+    # Create matplotlib MMR history graph
     if tier is None:
         with DBA2.DBAccess(stats_db) as db:
-            temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE player_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, number_of_mogis)) # order newest first
+            temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.mogi_format IN (%s) ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, mogi_format_string, number_of_mogis)) # order newest first
             try:
                 did_u_play_yet = temp[0][0]
             except Exception:
@@ -1249,11 +1261,11 @@ async def stats(
                         last_10_wins += 1
                     else:
                         last_10_losses += 1
-        partner_average = await get_partner_avg(my_player_id, number_of_mogis, '%', stats_db)
+        partner_average = await get_partner_avg(my_player_id, number_of_mogis, mogi_format_string, '%', stats_db)
     elif tier_id in TIER_ID_LIST:
         try:
             with DBA2.DBAccess(stats_db) as db:
-                temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, tier_id, number_of_mogis))
+                temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s AND m.mogi_format IN (%s) ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, tier_id, mogi_format_string, number_of_mogis))
                 for i in range(len(temp)):
                     mmr_history.append(temp[i][0])
                     score_history.append(temp[i][1])
@@ -1268,7 +1280,7 @@ async def stats(
             await send_to_debug_channel(ctx, f'/stats not played in tier | {e}')
             await ctx.respond(f'You have not played in {tier_channel}')
             return
-        partner_average = await get_partner_avg(my_player_id, number_of_mogis, tier_id, stats_db)
+        partner_average = await get_partner_avg(my_player_id, number_of_mogis, mogi_format_string, tier_id, stats_db)
     else:
         await ctx.respond(f'``Error 30:`` {tier_channel} is not a valid tier')
         return
@@ -2753,11 +2765,27 @@ async def get_number_of_strikes(uid):
             return temp[0][0]
 
 # Takes in ctx, returns avg partner score
-async def get_partner_avg(uid, number_of_mogis, tier_id='%', db_name='s6200lounge'):
+async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%', db_name='s6200lounge'):
     try:
         with DBA2.DBAccess(db_name) as db:
             # temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid, uid))
-            temp = db.query("SELECT AVG(score) FROM (SELECT pm.player_id, pm.mogi_id, pm.place, pm.score, pm.mmr_change FROM player_mogi as pm INNER JOIN (SELECT pm.mogi_id, pm.place, pm.mmr_change FROM player_mogi as pm JOIN mogi as m on pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND tier_id like %s ORDER BY m.create_date DESC LIMIT %s) as pm2 ON pm2.mogi_id = pm.mogi_id AND pm2.place = pm.place AND pm.mmr_change = pm2.mmr_change WHERE player_id <> %s) as a", (uid, tier_id, number_of_mogis, uid))
+            temp = db.query('''
+            SELECT AVG(score) 
+            FROM 
+                (SELECT pm.player_id, pm.mogi_id, pm.place, pm.score, pm.mmr_change 
+                FROM player_mogi as pm 
+                INNER JOIN 
+                    (SELECT pm.mogi_id, pm.place, pm.mmr_change 
+                    FROM player_mogi as pm 
+                    JOIN mogi as m ON pm.mogi_id = m.mogi_id 
+                    WHERE pm.player_id = %s 
+                    AND m.mogi_format IN (%s)
+                    AND tier_id like %s 
+                    ORDER BY m.create_date DESC LIMIT %s) as pm2 
+                ON pm2.mogi_id = pm.mogi_id 
+                AND pm2.place = pm.place 
+                AND pm.mmr_change = pm2.mmr_change
+                WHERE player_id <> %s) as a''', (uid, mogi_format_string, tier_id, number_of_mogis, uid))
             try:
                 return round(float(temp[0][0]), 2)
             except Exception as e:
