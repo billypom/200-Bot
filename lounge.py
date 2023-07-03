@@ -1125,7 +1125,7 @@ async def stats(
     ctx,
     # tier: discord.Option(discord.TextChannel, description='Which tier?', required=False),
     tier: discord.Option(str, description='Which tier? (a, b, c, all, sq)', required=False),
-    mogi_format: discord.Option(int, description='Your choices: (2, 3, 4, 6)', required=False),
+    mogi_format: discord.Option(int, description='Your choices: (1, 2, 3, 4, 6)', required=False),
     # player: discord.Option(discord.Member, description='Which player?', required=False),
     last: discord.Option(int, description='How many mogis?', required=False),
     player: discord.Option(str, description='Which player?', required=False),
@@ -1190,8 +1190,8 @@ async def stats(
     # Format picker
     mogi_format_list = []
     if mogi_format is None:
-        mogi_format_list = [2, 3, 4, 6]
-    elif mogi_format in [2, 3, 4, 6]:
+        mogi_format_list = [1, 2, 3, 4, 6]
+    elif mogi_format in [1, 2, 3, 4, 6]:
         mogi_format_list.append(mogi_format)
     else:
         await ctx.respond(f'Invalid format: `{mogi_format}`')
@@ -1334,7 +1334,10 @@ async def stats(
     if mogi_format is None:
         pass
     else:
-        title+= f' | {mogi_format}v'
+        if int(mogi_format) == 1:
+            title+= f' | FFA'
+        else:
+            title+= f' | {mogi_format}v'
 
     if last is None:
         pass
