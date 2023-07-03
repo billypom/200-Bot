@@ -1245,12 +1245,17 @@ async def stats(
     # Create matplotlib MMR history graph
     if tier is None:
         with DBA2.DBAccess(stats_db) as db:
-            temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.mogi_format IN (%s) ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, mogi_format_string, number_of_mogis)) # order newest first
+
+            sql = 'SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.mogi_format IN (%s) ORDER BY m.create_date DESC LIMIT %s;' % ('%s', mogi_format_string, '%s')
+
+            temp = db.query(sql, (my_player_id, number_of_mogis)) # order newest first
+
             try:
                 did_u_play_yet = temp[0][0]
             except Exception:
                 await ctx.respond('You must play at least 1 match to use `/stats`')
                 return
+                
             for i in range(len(temp)):
                 mmr_history.append(temp[i][0]) # append to list newest first
                 score_history.append(temp[i][1])
@@ -1265,7 +1270,11 @@ async def stats(
     elif tier_id in TIER_ID_LIST:
         try:
             with DBA2.DBAccess(stats_db) as db:
-                temp = db.query('SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s AND m.mogi_format IN (%s) ORDER BY m.create_date DESC LIMIT %s;', (my_player_id, tier_id, mogi_format_string, number_of_mogis))
+
+                sql = 'SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s AND m.mogi_format IN (%s) ORDER BY m.create_date DESC LIMIT %s;' % ('%s', '%s', mogi_format_string, '%s')
+
+                temp = db.query(sql, (my_player_id, tier_id, number_of_mogis))
+
                 for i in range(len(temp)):
                     mmr_history.append(temp[i][0])
                     score_history.append(temp[i][1])
