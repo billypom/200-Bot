@@ -2787,7 +2787,7 @@ async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%',
     try:
         with DBA2.DBAccess(db_name) as db:
             # temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid, uid))
-            temp = db.query('''
+            sql = '''
             SELECT AVG(score) 
             FROM 
                 (SELECT pm.player_id, pm.mogi_id, pm.place, pm.score, pm.mmr_change 
@@ -2803,7 +2803,8 @@ async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%',
                 ON pm2.mogi_id = pm.mogi_id 
                 AND pm2.place = pm.place 
                 AND pm.mmr_change = pm2.mmr_change
-                WHERE player_id <> %s) as a''', (uid, mogi_format_string, tier_id, number_of_mogis, uid))
+                WHERE player_id <> %s) as a''' % ('%s', mogi_format_string, '%s', '%s', '%s')
+            temp = db.query(sql, (uid, tier_id, number_of_mogis, uid))
             try:
                 return round(float(temp[0][0]), 2)
             except Exception as e:
