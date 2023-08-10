@@ -863,13 +863,14 @@ async def table(
                     logging.info(f'POP_LOG | (idx,idx2)')
                     logging.info(f'POP_LOG | {idx},{idx2}')
                     logging.info(f'POP_LOG | {temp_value} += {value}')
-                    logging.info(f'POP_LOG | {temp_value.real} += {value.real}')
+                    # logging.info(f'POP_LOG | {temp_value.real} += {value.real}')
                     if idx == idx2:
                         temp_value += value
                     else:
                         pass
             # print(f'appending {temp_value}+={value} | {idx} | {idx2}')
-            team.append(math.floor(temp_value))
+            logging.info(f'POP_LOG | value = {temp_value}, value.real = {temp_value.real}')
+            team.append(math.floor(temp_value.real))
 
 
 
