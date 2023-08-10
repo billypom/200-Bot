@@ -851,15 +851,19 @@ async def table(
         #     print(_list)
 
         # Actually calculate the MMR
+        logging.info(f'POP_LOG | Calculating MMR')
         for idx, team in enumerate(sorted_list):
+            logging.info(f'POP_LOG | {idx} | {team}')
             temp_value = 0.0
             for pre_mmr_list in value_table:
+                logging.info(f'POP_LOG | {pre_mmr_list}')
                 # print(f'{idx}pre mmr list')
                 # print(pre_mmr_list)
                 for idx2, value in enumerate(pre_mmr_list):
                     logging.info(f'POP_LOG | (idx,idx2)')
                     logging.info(f'POP_LOG | {idx},{idx2}')
                     logging.info(f'POP_LOG | {temp_value} += {value}')
+                    logging.info(f'POP_LOG | {temp_value.real} += {value.real}')
                     if idx == idx2:
                         temp_value += value
                     else:
