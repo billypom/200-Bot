@@ -857,7 +857,9 @@ async def table(
                 # print(f'{idx}pre mmr list')
                 # print(pre_mmr_list)
                 for idx2, value in enumerate(pre_mmr_list):
-                    logging.info(f'POP_LOG | (idx,idx2)\n{idx},{idx2}\n{temp_value} += {value}\n\n')
+                    logging.info(f'POP_LOG | (idx,idx2)')
+                    logging.info(f'POP_LOG | {idx},{idx2}')
+                    logging.info(f'POP_LOG | {temp_value} += {value}')
                     if idx == idx2:
                         temp_value += value
                     else:
