@@ -1491,16 +1491,21 @@ async def suggest(
     if x:
         await ctx.respond(f'Oops! There was an error with your suggestion. Try using less symbols :P')
         return
-    with DBA.DBAccess() as db:
-        db.execute('INSERT INTO suggestion (content, author_id) VALUES (%s, %s);', (message, ctx.author.id))
-        suggestion_id = db.query('SELECT id FROM suggestion WHERE author_id = %s AND content = %s', (ctx.author.id, message))[0][0]
-    request_message = await send_to_suggestion_voting_channel(ctx, suggestion_id, message)
-    request_message_id = request_message.id
-    with DBA.DBAccess() as db:
-        db.execute('UPDATE suggestion SET message_id = %s WHERE id = %s;', (request_message_id, suggestion_id))
-    await request_message.add_reaction('⬆️')
-    await request_message.add_reaction('⬇️')
-    await ctx.respond('Your suggestion has been submitted.')
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('INSERT INTO suggestion (content, author_id) VALUES (%s, %s);', (message, ctx.author.id))
+            suggestion_id = db.query('SELECT id FROM suggestion WHERE author_id = %s AND content = %s', (ctx.author.id, message))[0][0]
+        request_message = await send_to_suggestion_voting_channel(ctx, suggestion_id, message)
+        request_message_id = request_message.id
+        with DBA.DBAccess() as db:
+            db.execute('UPDATE suggestion SET message_id = %s WHERE id = %s;', (request_message_id, suggestion_id))
+        await request_message.add_reaction('⬆️')
+        await request_message.add_reaction('⬇️')
+        await ctx.respond('Your suggestion has been submitted.')
+    except Exception as e:
+        await send_raw_to_debug_channel('/suggest error: ', e)
+        await ctx.respond(f'`Error 81:` There was an issue with your suggestion. Please create a ticket in {secretly.support_channel} with your error number.')
+        return
 
 
 # /approve_suggestion
