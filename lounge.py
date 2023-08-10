@@ -154,53 +154,54 @@ async def on_message(ctx):
     user = await GUILD.fetch_member(ctx.author.id)
     if CHAT_RESTRICTED_ROLE in user.roles: # restricted players
         if ctx.content in secretly.chat_restricted_words:
-            pass
+            return
         else:
             await ctx.delete()
-    if ctx.channel.id in TIER_ID_LIST: # Only care if messages are in a tier
-        # If player in lineup, set player chat activity timer
-        try:
-            with DBA.DBAccess() as db:
-                temp = db.query('SELECT player_id, tier_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
-        except Exception as e:
-            await send_to_debug_channel(ctx, f'on_message error 1 | {e}')
             return
-        try:
-            test_assign = temp[0][0]
-        except Exception:
-            # player not in lineup talked. dont care
-            return
-        if temp[0][0] is None:
-            return
-        else:
-            if ctx.channel.id == temp[0][1]: # Type activity in correct channel
-                try:
-                    with DBA.DBAccess() as db:
-                        db.execute('UPDATE lineups SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
-                except Exception as e:
-                    await send_to_debug_channel(ctx, f'on_message error 2 | {e}')
-                    return
-        try:
-            with DBA.DBAccess() as db:
-                get_tier = db.query('SELECT voting, tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
-        except Exception as e:
-            await send_to_debug_channel(ctx, f'on_message error 3 | {e}')
-        # Set votes, if tier is currently voting
-        if get_tier[0][0]:
-            if get_tier[0][1] == ctx.channel.id:
-                if str(ctx.content) in ['1', '2', '3', '4', '6']:
-                    try:
-                        with DBA.DBAccess() as db:
-                            temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s ORDER BY create_date LIMIT %s;', (ctx.author.id, ctx.channel.id, MAX_PLAYERS_IN_MOGI)) # limit prevents 13th person from voting
-                    except Exception as e:
-                        await send_to_debug_channel(ctx, f'on_message error 4 {e}')
-                        return
-                    try:
-                        with DBA.DBAccess() as db:
-                            db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content), ctx.author.id))
-                    except Exception as e:
-                        await send_to_debug_channel(ctx, f'on_message error 5 {e}')
-                        return
+    # if ctx.channel.id in TIER_ID_LIST: # Only care if messages are in a tier
+    #     # If player in lineup, set player chat activity timer
+    #     try:
+    #         with DBA.DBAccess() as db:
+    #             temp = db.query('SELECT player_id, tier_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
+    #     except Exception as e:
+    #         await send_to_debug_channel(ctx, f'on_message error 1 | {e}')
+    #         return
+    #     try:
+    #         test_assign = temp[0][0]
+    #     except Exception:
+    #         # player not in lineup talked. dont care
+    #         return
+    #     if temp[0][0] is None:
+    #         return
+    #     else:
+    #         if ctx.channel.id == temp[0][1]: # Type activity in correct channel
+    #             try:
+    #                 with DBA.DBAccess() as db:
+    #                     db.execute('UPDATE lineups SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
+    #             except Exception as e:
+    #                 await send_to_debug_channel(ctx, f'on_message error 2 | {e}')
+    #                 return
+    #     try:
+    #         with DBA.DBAccess() as db:
+    #             get_tier = db.query('SELECT voting, tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
+    #     except Exception as e:
+    #         await send_to_debug_channel(ctx, f'on_message error 3 | {e}')
+    #     # Set votes, if tier is currently voting
+    #     if get_tier[0][0]:
+    #         if get_tier[0][1] == ctx.channel.id:
+    #             if str(ctx.content) in ['1', '2', '3', '4', '6']:
+    #                 try:
+    #                     with DBA.DBAccess() as db:
+    #                         temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s ORDER BY create_date LIMIT %s;', (ctx.author.id, ctx.channel.id, MAX_PLAYERS_IN_MOGI)) # limit prevents 13th person from voting
+    #                 except Exception as e:
+    #                     await send_to_debug_channel(ctx, f'on_message error 4 {e}')
+    #                     return
+    #                 try:
+    #                     with DBA.DBAccess() as db:
+    #                         db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content), ctx.author.id))
+    #                 except Exception as e:
+    #                     await send_to_debug_channel(ctx, f'on_message error 5 {e}')
+    #                     return
 
 @client.event
 async def on_raw_reaction_add(payload):
@@ -1413,19 +1414,25 @@ async def mmr(ctx):
         return
     else:
         pass
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT p.mmr, r.rank_name FROM player as p JOIN ranks as r ON p.rank_id = r.rank_id WHERE p.player_id = %s;', (ctx.author.id,))
-        mmr = temp[0][0]
-        rank_name = temp[0][1]
-    if temp:
-        pass
-    else:
-        await ctx.respond('``Error 43:`` Player not found')
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT p.mmr, r.rank_name FROM player as p JOIN ranks as r ON p.rank_id = r.rank_id WHERE p.player_id = %s;', (ctx.author.id,))
+            mmr = temp[0][0]
+            rank_name = temp[0][1]
+        if temp:
+            pass
+        else:
+            await ctx.respond('``Error 43:`` Player not found')
+            return
+        if mmr is None:
+            mmr = "n/a"
+        await ctx.respond(f'`MMR:` {mmr} | `Rank:` {rank_name}. If this looks wrong, try the `/verify` command.')
         return
-    if mmr is None:
-        mmr = "n/a"
-    await ctx.respond(f'`MMR:` {mmr} | `Rank:` {rank_name}. If this looks wrong, try the `/verify` command.')
-    return
+    except Exception as e:
+        await send_raw_to_debug_channel('/mmr command triggered by player without mmr: ', e)
+        await ctx.respond('Use `/verify` to register for Lounge before checking your MMR.')
+        return
+
 
 # /strikes
 @client.slash_command(
