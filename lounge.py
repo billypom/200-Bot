@@ -2492,16 +2492,25 @@ async def zmanually_verify_player(
         await ctx.respond(f'``Error 82:`` This MKC ID is already in use by {uh_oh_player}')
         verify_description = vlog_msg.error4
         verify_color = discord.Color.red()
-        await send_to_verification_log(ctx, f'Error 10: {player_id} | {mkc_id} | {country_code}', f'{verify_description} | <@{x[1]}> already using MKC **FORUM** ID {x[0]}')
+        await send_to_verification_log(ctx, f'Error 82: {player_id} | {mkc_id} | {country_code}', f'{verify_description} | <@{x[1]}> already using MKC **FORUM** ID {x[0]}')
         return
     else:
-        member = await GUILD.fetch_member(player_id)
-        x = await create_player(member, mkc_id, country_code)
+        try:
+            member = await GUILD.fetch_member(player_id)
+        except Exception as e:
+            await ctx.respond(f'Unknown guild member: <@{player_id}>.')
+            return
+        try:
+            x = await create_player(member, mkc_id, country_code)
+        except Exception as e:
+            await ctx.respond(f'`Error 83:` Database error on create_player. Please create a support ticket and ping <@{secretly.my_discord}>')
+            return
         try:
             await ctx.respond(x)
+            await send_to_verification_log(ctx, f'{player_id} | {mkc_id} | {country_code}', verify_description)
         except Exception as e:
-            await ctx.respond('oops')
-        await send_to_verification_log(ctx, f'{player_id} | {mkc_id} | {country_code}', verify_description)
+            await ctx.respond(f'`Error 84:` I was unable to respond and post in log channels for some reason...')
+            return
         return
 
 
