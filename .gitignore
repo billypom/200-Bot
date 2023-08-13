@@ -11,8 +11,8 @@ migration_commands.py
 season_migration.py
 
 # other files
-# 200lounge.csv
 log
+discord.log
 
 # folders
 /__pycache__

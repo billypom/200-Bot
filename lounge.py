@@ -27,7 +27,13 @@ from korean_romanizer.romanizer import Romanizer
 import operator
 
 import logging
-logging.basicConfig(filename='log', filemode='w', level=logging.DEBUG)
+logging.basicConfig(filename='log', filemode='w', level=logging.WARNING)
+# discord logging separate
+# logger = logging.getLogger('discord')
+# logger.setLevel(logging.DEBUG)
+# handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+# handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+# logger.addHandler(handler)
 
 Lounge = secretly.Lounge
 # mogi_media_message_id = 1005205285817831455
@@ -557,7 +563,7 @@ async def table(
     if not chunked_list:
         await ctx.respond(f'``Error 73:`` Invalid input. There must be 12 players and 12 scores.')
         return
-    logging.info(f'POP_LOG | chunked_list: {chunked_list}')
+    logging.warning(f'POP_LOG | chunked_list: {chunked_list}')
     
     # Check if mogi has started
     # try:
@@ -851,25 +857,25 @@ async def table(
         #     print(_list)
 
         # Actually calculate the MMR
-        logging.info(f'POP_LOG | Calculating MMR')
+        logging.warning(f'POP_LOG | Calculating MMR')
         for idx, team in enumerate(sorted_list):
-            logging.info(f'POP_LOG | {idx} | {team}')
+            logging.warning(f'POP_LOG | {idx} | {team}')
             temp_value = 0.0
             for pre_mmr_list in value_table:
-                logging.info(f'POP_LOG | {pre_mmr_list}')
+                logging.warning(f'POP_LOG | {pre_mmr_list}')
                 # print(f'{idx}pre mmr list')
                 # print(pre_mmr_list)
                 for idx2, value in enumerate(pre_mmr_list):
-                    logging.info(f'POP_LOG | (idx,idx2)')
-                    logging.info(f'POP_LOG | {idx},{idx2}')
-                    logging.info(f'POP_LOG | {temp_value} += {value}')
-                    # logging.info(f'POP_LOG | {temp_value.real} += {value.real}')
+                    logging.warning(f'POP_LOG | (idx,idx2)')
+                    logging.warning(f'POP_LOG | {idx},{idx2}')
+                    logging.warning(f'POP_LOG | {temp_value} += {value}')
+                    # logging.warning(f'POP_LOG | {temp_value.real} += {value.real}')
                     if idx == idx2:
                         temp_value += value
                     else:
                         pass
             # print(f'appending {temp_value}+={value} | {idx} | {idx2}')
-            logging.info(f'POP_LOG | value = {temp_value}, value.real = {temp_value.real}')
+            logging.warning(f'POP_LOG | value = {temp_value}, value.real = {temp_value.real}')
             team.append(math.floor(temp_value.real))
 
 
@@ -890,7 +896,7 @@ async def table(
 
 
         for team in sorted_list:
-            logging.info(f'POP_LOG | team in sorted_list: {team}')
+            logging.warning(f'POP_LOG | team in sorted_list: {team}')
             ###########await send_raw_to_debug_channel('Updating team', team)
             my_player_place = team[len(team)-2]
             string_my_player_place = str(my_player_place)
@@ -1143,16 +1149,19 @@ async def stats(
     await ctx.defer()
     # Validate strings
     # Season picker
-    stats_db = f's{secretly.CURRENT_SEASON}200lounge'
-    if season is None:
-        pass
+    if secretly.DTB == 'lounge_dev':
+        stats_db = 'lounge_dev'
     else:
-        try:
-            stats_db = f's{int(season)}200lounge'
-        except Exception as e:
-            await send_raw_to_debug_channel('Stats parse season db exception: ', e)
-            await ctx.respond('Invalid season')
-            return
+        stats_db = f's{secretly.CURRENT_SEASON}200lounge'
+        if season is None:
+            pass
+        else:
+            try:
+                stats_db = f's{int(season)}200lounge'
+            except Exception as e:
+                await send_raw_to_debug_channel('Stats parse season db exception: ', e)
+                await ctx.respond('Invalid season')
+                return
     # Tier picker
     if tier is None:
        pass
@@ -1324,20 +1333,13 @@ async def stats(
 
     # Start at proper value for mmr graph
     if last is None:
-        temp_for_average_mmr = base # base ...
-        running_sum = base # 3750
         graph_base = base
     else:
-        temp_for_average_mmr = mmr_history[0]
-        running_sum = mmr_history[0]
         graph_base = mmr + (sum(mmr_history)*-1)
 
     for match in mmr_history:
-        temp_for_average_mmr += match # x = 3750 + 300 
-        running_sum += temp_for_average_mmr
         if match > 0:
             count_of_wins += 1
-    average_mmr = running_sum/(len(mmr_history)+1)
     win_rate = (count_of_wins/len(mmr_history))*100
 
     file = plotting.create_plot(graph_base, mmr_history)
@@ -1400,7 +1402,6 @@ async def stats(
     embed.add_field(name='Events Played', value=f'{events_played}', inline=True)
     embed.add_field(name='Largest Gain', value=f'{largest_gain}', inline=True)
     embed.add_field(name='Largest Loss', value=f'{largest_loss}', inline=True)
-    embed.add_field(name='Average MMR', value=f'{round(average_mmr,0)}', inline=True)
     embed.add_field(name='Base MMR', value=f'{base}', inline=True)
     embed.set_thumbnail(url='attachment://stats_rank.jpg')
     embed.set_image(url='attachment://stats.png')
@@ -2636,7 +2637,7 @@ async def set_uid_roles(uid):
 # Cool&Create
 async def create_player(member, mkc_user_id, country_code):
     altered_name = await handle_player_name(member.display_name)
-    logging.info(f'POP_LOG | Finished handling name: {altered_name}')
+    logging.warning(f'POP_LOG | Finished handling name: {altered_name}')
     try:
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, PLACEMENT_ROLE_ID))
@@ -2829,14 +2830,14 @@ async def get_list_of_rank_ids():
 
 # Returns a random player name that is not taken
 async def get_random_name():
-    logging.info('POP_LOG | Retrieving random name...')
+    logging.warning('POP_LOG | Retrieving random name...')
     name_is_not_unique = True
     while(name_is_not_unique):
         name = await generate_random_name()
-        logging.info(f'POP_LOG | Generated name: {name}')
+        logging.warning(f'POP_LOG | Generated name: {name}')
         test = await check_if_is_unique_name(name)
         if (test):
-            logging.info(f'POP_LOG | Unique name detected')
+            logging.warning(f'POP_LOG | Unique name detected')
             name_is_not_unique = False
     return name
 
@@ -2857,11 +2858,39 @@ async def get_number_of_strikes(uid):
         else:
             return temp[0][0]
 
-# Takes in ctx, returns avg partner score
+# Takes in uid, returns avg partner score
 async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%', db_name='s6200lounge'):
+    logging.warning(f'POP_LOG | Partner Avg | uid={uid} | #mogis={number_of_mogis} | format={mogi_format_string} | tier={tier_id}')
     try:
         with DBA2.DBAccess(db_name) as db:
-            # temp = db.query('SELECT AVG(score) FROM (SELECT player_id, mogi_id, place, score FROM player_mogi WHERE player_id <> %s AND (mogi_id, place) IN (SELECT mogi_id, place FROM player_mogi WHERE player_id = %s)) as table2;', (uid, uid))
+            sql = '''
+                SELECT pm.mogi_id, pm.place, pm.mmr_change 
+                FROM player_mogi as pm 
+                JOIN mogi as m ON pm.mogi_id = m.mogi_id 
+                WHERE pm.player_id = %s 
+                AND m.mogi_format IN (%s)
+                AND tier_id like %s 
+                ORDER BY m.create_date DESC LIMIT %s
+                '''  % ('%s', mogi_format_string, '%s', '%s')
+            debug_temp1 = db.query(sql, (uid, tier_id, number_of_mogis))
+
+            sql = '''
+                SELECT pm.player_id, pm.mogi_id, pm.place, pm.score, pm.mmr_change 
+                FROM player_mogi as pm 
+                INNER JOIN 
+                    (SELECT pm.mogi_id, pm.place, pm.mmr_change 
+                    FROM player_mogi as pm 
+                    JOIN mogi as m ON pm.mogi_id = m.mogi_id 
+                    WHERE pm.player_id = %s 
+                    AND m.mogi_format IN (%s)
+                    AND tier_id like %s 
+                    ORDER BY m.create_date DESC LIMIT %s) as pm2 
+                ON pm2.mogi_id = pm.mogi_id 
+                AND pm2.place = pm.place 
+                AND pm.mmr_change = pm2.mmr_change
+                WHERE player_id <> %s ''' % ('%s', mogi_format_string, '%s', '%s', '%s')
+            debug_temp2 = db.query(sql, (uid, tier_id, number_of_mogis, uid))
+
             sql = '''
             SELECT AVG(score) 
             FROM 
@@ -2880,9 +2909,14 @@ async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%',
                 AND pm.mmr_change = pm2.mmr_change
                 WHERE player_id <> %s) as a''' % ('%s', mogi_format_string, '%s', '%s', '%s')
             temp = db.query(sql, (uid, tier_id, number_of_mogis, uid))
+
             try:
+                logging.warning(f'POP_LOG | Partner Avg | SQL Debug 1 returned: {debug_temp1}')
+                logging.warning(f'POP_LOG | Partner Avg | SQL Debug 2 returned: {debug_temp2}')
+                logging.warning(f'POP_LOG | Partner Avg | SQL returned: {temp}')
                 return round(float(temp[0][0]), 2)
             except Exception as e:
+                logging.warning(f'POP_LOG | Partner Avg | SQL did not return any average')
                 return 0
     except Exception as e:
         await send_raw_to_debug_channel('partner average error',e)
@@ -2966,11 +3000,11 @@ async def handle_suggestion_decision(suggestion_id, suggestion, author_id, messa
 # Cleans name
 # Returns cleaned name (or a new random name)
 async def handle_player_name(name):
-    logging.info(f'POP_LOG | Step 1 - Handling name: [{name}]')
+    logging.warning(f'POP_LOG | Step 1 - Handling name: [{name}]')
     insert_name = ""
     # Romanize the text
     insert_name = await jp_kr_romanize(str(name))
-    logging.info(f'POP_LOG | Step 2 - romanized name: [{insert_name}]')
+    logging.warning(f'POP_LOG | Step 2 - romanized name: [{insert_name}]')
 
     # Handle name too long
     if len(insert_name) > 16:
@@ -2982,7 +3016,7 @@ async def handle_player_name(name):
             temp_name+=char
             count+=1
         insert_name = temp_name
-    logging.info(f'POP_LOG | Step 3 - checked length: [{insert_name}]')
+    logging.warning(f'POP_LOG | Step 3 - checked length: [{insert_name}]')
 
     # Handle ä-type characters (delete them)
     allowed_name = ""
@@ -2991,18 +3025,18 @@ async def handle_player_name(name):
             allowed_name += char
         else:
             allowed_name += ""
-    logging.info(f'POP_LOG | Step 4 - handled chars: [{allowed_name}]')
+    logging.warning(f'POP_LOG | Step 4 - handled chars: [{allowed_name}]')
     insert_name = allowed_name
 
     # Handle empty name
     if not insert_name:
         insert_name = await get_random_name()
-    logging.info(f'POP_LOG | Step 5 - handled empty: [{insert_name}]')
+    logging.warning(f'POP_LOG | Step 5 - handled empty: [{insert_name}]')
 
     # Handle whitespace name  - generate a random name lol
     if insert_name.isspace():
         insert_name = await get_random_name()
-    logging.info(f'POP_LOG | Step 6 - handled whitespace: [{insert_name}]')
+    logging.warning(f'POP_LOG | Step 6 - handled whitespace: [{insert_name}]')
         
     # Handle duplicate names - append underscores
     name_still_exists = True
@@ -3017,7 +3051,7 @@ async def handle_player_name(name):
         count +=1
         if count == 16:
             insert_name = await get_random_name()
-    logging.info(f'POP_LOG | Step 7 - handled duplicates: [{insert_name}]')
+    logging.warning(f'POP_LOG | Step 7 - handled duplicates: [{insert_name}]')
 
     return str(insert_name).replace(" ", "-")
 
@@ -3028,7 +3062,7 @@ async def handle_player_name(name):
 # Accounts for queued penalties
 # Returns: the name of their rank role, new mmr value
 async def handle_placement_init(player, my_player_mmr, my_player_score, tier_name, results_channel):
-    logging.info(f'POP_LOG | handle_placement_init: {player} | {my_player_mmr} | {my_player_score} | {tier_name}')
+    logging.warning(f'POP_LOG | handle_placement_init: {player} | {my_player_mmr} | {my_player_score} | {tier_name}')
     placement_name = ''
 
     if tier_name == 'tier-c':
