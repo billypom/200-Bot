@@ -286,7 +286,7 @@ async def verify(
     )):
     # mkc_player_id = registry id
     # mkc_user_id = forum id
-    await ctx.defer(ephemeral=True)
+    await ctx.defer(ephemeral=False)
     x = await check_if_uid_exists(ctx.author.id)
     if x:
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
@@ -345,7 +345,7 @@ async def verify(
     if mkc_player_id != -1:
         pass
     else:
-        await ctx.respond('``Error 4:`` Oops! Something went wrong. Sign up in the MKC registry or try again later.')
+        await ctx.respond('``Error 4:`` Oops! Something went wrong. ```MKC Player ID not transmitted properly.\nMake sure you are signed up in the MKC Registry or try again later.```')
         return
     # Request registry data
     mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
