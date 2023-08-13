@@ -2461,6 +2461,52 @@ async def zdelete_player(
         await ctx.respond('Operation cancelled.')
         return
 
+@client.slash_command(
+    name='zmanually_verify_player',
+    description='manually verify a player (no mkc api checks)',
+    guild_ids=Lounge
+)
+async def zmanually_verify_player(
+    ctx, 
+    player_id: discord.Option(str, 'Discord ID of player to be verified', required=True),
+    mkc_id: discord.Option(str, 'Last numbers in MKC forum link. (e.g. popuko mkc_id = 154)', required=True),
+    country_code: discord.Option(str, 'ISO 3166 Alpha-2 Code - https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes', required=True)
+    ):
+    # mkc_player_id = registry id
+    # mkc_user_id = forum id
+    await ctx.defer(ephemeral=False)
+    x = await check_if_uid_exists(int(player_id))
+    if x:
+        await ctx.respond('The player id provided is already registered in the Lounge.')
+        return
+    else:
+        pass
+    # All clear. Roll out.
+    verify_description = vlog_msg.success
+    verify_color = discord.Color.green()
+    # Check if someone has verified as this user before...
+    x = await check_if_mkc_user_id_used(mkc_id)
+    if x:
+        with DBA.DBAccess() as db:
+            uh_oh_player = db.query('SELECT player_id FROM player WHERE mkc_id = %s;', (mkc_id,))[0][0]
+        await ctx.respond(f'``Error 82:`` This MKC ID is already in use by {uh_oh_player}')
+        verify_description = vlog_msg.error4
+        verify_color = discord.Color.red()
+        await send_to_verification_log(ctx, f'Error 10: {player_id} | {mkc_id} | {country_code}', f'{verify_description} | <@{x[1]}> already using MKC **FORUM** ID {x[0]}')
+        return
+    else:
+        member = await GUILD.fetch_member(player_id)
+        x = await create_player(member, mkc_id, country_code)
+        try:
+            await ctx.respond(x)
+        except Exception as e:
+            await ctx.respond('oops')
+        await send_to_verification_log(ctx, f'{player_id} | {mkc_id} | {country_code}', verify_description)
+        return
+
+
+
+
 
 # /qwe
 @client.slash_command(
