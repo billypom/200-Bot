@@ -14,7 +14,7 @@ class unban_check(commands.Cog):
     async def send_raw_to_debug_channel(self, anything, error):
         channel = self.client.get_channel(secretly.debug_channel)
         embed = discord.Embed(title='Error', description='>.<', color = discord.Color.orange())
-        embed.add_field(name='anything: ', value=anything, inline=False)
+        embed.add_field(name='Description: ', value=anything, inline=False)
         embed.add_field(name='Error: ', value=str(error), inline=False)
         await channel.send(content=None, embed=embed)
 
@@ -50,9 +50,9 @@ class unban_check(commands.Cog):
                 loungeless_role = guild.get_role(secretly.LOUNGELESS_ROLE_ID)
                 await user.remove_roles(loungeless_role)
                 await self.set_player_roles(player[0])
-                await self.send_raw_to_debug_channel(f'Player unbanned - Loungeless removed', player[0])
+                await self.send_raw_to_debug_channel(f'<@{player[0]}>\nPlayer unbanned - Loungeless removed', player[0])
             except Exception as e:
-                await self.send_raw_to_debug_channel(f'Player unbanned - Not found in server - roles not assigned', player[0])
+                await self.send_raw_to_debug_channel(f'<@{player[0]}>\nPlayer unbanned - Not found in server - roles not assigned', player[0])
                 pass
             with DBA.DBAccess() as db:
                 db.execute('UPDATE player SET unban_date = NULL WHERE player_id = %s;', (player[0],))

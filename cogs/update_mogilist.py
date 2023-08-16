@@ -17,7 +17,7 @@ class update_mogilist(commands.Cog):
     async def send_raw_to_debug_channel(self, anything, error):
         channel = self.client.get_channel(secretly.debug_channel)
         embed = discord.Embed(title='Error', description='>.<', color = discord.Color.yellow())
-        embed.add_field(name='anything: ', value=anything, inline=False)
+        embed.add_field(name='Description: ', value=anything, inline=False)
         embed.add_field(name='Error: ', value=str(error), inline=False)
         await channel.send(content=None, embed=embed)
 

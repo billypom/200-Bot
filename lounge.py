@@ -52,6 +52,7 @@ CATEGORIES_MESSAGE_ID = secretly.CATEGORIES_MESSAGE_ID
 SQ_HELPER_CHANNEL_ID = secretly.SQ_HELPER_CHANNEL_ID
 SQ_TIER_ID = secretly.squad_queue_channel
 ALLOWED_CHARACTERS = secretly.ALLOWED_CHARACTERS
+SEASON_NUMBER_LIST = secretly.SEASON_NUMBER_LIST
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -1157,6 +1158,12 @@ async def stats(
             pass
         else:
             try:
+                if season in SEASON_NUMBER_LIST:
+                    pass
+                else
+                    await send_raw_to_debug_channel(f'/stats invalid season {season}: ', 'lol')
+                    await ctx.respond('Invalid season')
+                    return
                 stats_db = f's{int(season)}200lounge'
             except Exception as e:
                 await send_raw_to_debug_channel('Stats parse season db exception: ', e)
@@ -1177,7 +1184,7 @@ async def stats(
                 tier_id = db.query('SELECT tier_id FROM tier WHERE tier_name = %s;', (tier,))[0][0]
                 tier_channel = await client.fetch_channel(tier_id)
         except Exception as e: # bad input 2 - no tier by that name
-            await send_raw_to_debug_channel('tier problem', e)
+            await send_raw_to_debug_channel(f'/stats invalid tier: {tier}', e)
             await ctx.respond("Invalid tier")
             return
     # Status for self or others
@@ -3106,7 +3113,7 @@ async def handle_placement_init(player, my_player_mmr, my_player_score, tier_nam
         await discord_member.remove_roles(placement_role)
         await results_channel.send(f'<@{player[0]}> has been placed at {placement_name} ({my_player_mmr} MMR)')
     except Exception as e:
-        await send_raw_to_debug_channel(f'{player[0]} did not stick around long enough to be placed',e)
+        await send_raw_to_debug_channel(f'<@{player[0]}> did not stick around long enough to be placed',e)
 
     # Potential accumulated MMR penalties
     try:
