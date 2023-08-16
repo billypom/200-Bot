@@ -1160,7 +1160,7 @@ async def stats(
             try:
                 if season in SEASON_NUMBER_LIST:
                     pass
-                else
+                else:
                     await send_raw_to_debug_channel(f'/stats invalid season {season}: ', 'lol')
                     await ctx.respond('Invalid season')
                     return
