@@ -415,6 +415,7 @@ async def verify(
     else:
         member = await GUILD.fetch_member(ctx.author.id)
         x = await create_player(member, mkc_user_id, country_code)
+        logging.warning(f'POP_LOG | Created player: discord.Member: {member} | mkc_user_id: {mkc_user_id} | country: {country_code}')
         try:
             await ctx.respond(x)
             await member.send(x)
