@@ -417,6 +417,7 @@ async def verify(
         x = await create_player(member, mkc_user_id, country_code)
         try:
             await ctx.respond(x)
+            await member.send(x)
         except Exception as e:
             await ctx.respond('oops')
         await send_to_verification_log(ctx, message, verify_description)
