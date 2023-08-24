@@ -27,7 +27,7 @@ from korean_romanizer.romanizer import Romanizer
 import operator
 
 import logging
-logging.basicConfig(filename='log', filemode='w', level=logging.WARNING)
+logging.basicConfig(filename='log', filemode='a', level=logging.WARNING)
 # discord logging separate
 # logger = logging.getLogger('discord')
 # logger.setLevel(logging.DEBUG)
@@ -307,9 +307,9 @@ async def verify(
             member = await GUILD.fetch_member(ctx.author.id)
             msg_response = f':flag_us:\nWelcome back to 200cc Lounge.\nYou have been given the role: <@&{response[0]}>\n\n:flag_jp:\n`200ccラウンジにおかえり！`\n<@&{response[0]}>`が割り当てられています`'
             await ctx.respond(msg_response)
-            logging.warning(f'POP_LOG | Responded to verification message')
+            logging.warning(f'POP_LOG | {member.display_name} | Responded to verification message')
             await member.send(msg_response)
-            logging.warning(f'POP_LOG | Sent verification DM')
+            logging.warning(f'POP_LOG | {member.display_name} | Sent verification DM')
         else:
             await ctx.respond(f'``Error 29:`` Could not re-enter the lounge. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')        
         return
@@ -423,9 +423,9 @@ async def verify(
         logging.warning(f'POP_LOG | Created player: discord.Member: {member} | mkc_user_id: {mkc_user_id} | country: {country_code}')
         try:
             await ctx.respond(x)
-            logging.warning(f'POP_LOG | Responded to verification message')
+            logging.warning(f'POP_LOG | {member.display_name} | Responded to verification message')
             await member.send(x)
-            logging.warning(f'POP_LOG | Sent verification DM')
+            logging.warning(f'POP_LOG | {member.display_name} | Sent verification DM')
         except Exception as e:
             await ctx.respond('oops')
         await send_to_verification_log(ctx, message, verify_description)
