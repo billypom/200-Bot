@@ -418,7 +418,9 @@ async def verify(
         logging.warning(f'POP_LOG | Created player: discord.Member: {member} | mkc_user_id: {mkc_user_id} | country: {country_code}')
         try:
             await ctx.respond(x)
+            logging.warning(f'POP_LOG | Responded to verification message')
             await member.send(x)
+            logging.warning(f'POP_LOG | Sent verification DM')
         except Exception as e:
             await ctx.respond('oops')
         await send_to_verification_log(ctx, message, verify_description)
@@ -2663,12 +2665,14 @@ async def create_player(member, mkc_user_id, country_code):
     except Exception as e:
         await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT NICK FOR USER <@{member.id}>', {e})
     role = GUILD.get_role(PLACEMENT_ROLE_ID)
+    logging.warning(f'POP_LOG | {altered_name} | Attempted to edit nickname')
 
     # Add role
     try:
         await member.add_roles(role)
     except Exception as e:
         await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT ROLE FOR USER <@{member.id}>', {e})
+    logging.warning(f'POP_LOG | {altered_name} | Attempted to add roles')
 
     # Confirmation log
     await send_raw_to_verification_log(f'player:<@{member.id}>\nrole:`{role}`\naltered name:`{altered_name}`', '**Creating player**')
