@@ -304,7 +304,12 @@ async def verify(
             pass
         response = await set_uid_roles(ctx.author.id)
         if response:
-            await ctx.respond(f':flag_us:\nWelcome back to 200cc Lounge.\nYou have been given the role: <@&{response[0]}>\n\n:flag_jp:\n`200ccラウンジにおかえり！`\n<@&{response[0]}>`が割り当てられています`')
+            member = await GUILD.fetch_member(ctx.author.id)
+            msg_response = f':flag_us:\nWelcome back to 200cc Lounge.\nYou have been given the role: <@&{response[0]}>\n\n:flag_jp:\n`200ccラウンジにおかえり！`\n<@&{response[0]}>`が割り当てられています`'
+            await ctx.respond(msg_response)
+            logging.warning(f'POP_LOG | Responded to verification message')
+            await member.send(msg_response)
+            logging.warning(f'POP_LOG | Sent verification DM')
         else:
             await ctx.respond(f'``Error 29:`` Could not re-enter the lounge. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')        
         return
