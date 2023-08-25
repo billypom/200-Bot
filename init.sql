@@ -1,3 +1,6 @@
+DROP TABLE IF EXISTS player_punishment;
+DROP TABLE IF EXISTS punishment;
+DROP TABLE IF EXISTS suggestion;
 DROP TABLE IF EXISTS sub_leaver;
 DROP TABLE IF EXISTS player_name_request;
 DROP TABLE IF EXISTS lineups;
@@ -122,6 +125,9 @@ CREATE TABLE sub_leaver(
     CONSTRAINT subleaversfk2 FOREIGN KEY (tier_id) REFERENCES tier(tier_id)
 );
 
+-- null = suggestion sent but not responded to
+-- 0 = suggestion denied
+-- 1 = suggestion approved
 CREATE TABLE suggestion(
     id int unsigned auto_increment,
     content varchar(1000),
@@ -133,9 +139,27 @@ CREATE TABLE suggestion(
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
     CONSTRAINT suggestionpk PRIMARY KEY (id)
 );
--- null = suggestion sent but not responded to
--- 0 = suggestion denied
--- 1 = suggestion approved
+
+CREATE TABLE punishment(
+    id int unsigned auto_increment,
+    punishment_type varchar(24),
+    create_date TIMESTAMP default CURRENT_TIMESTAMP,
+    CONSTRAINT punishmentpk PRIMARY KEY (id)
+);
+
+CREATE TABLE player_punishment(
+    id int unsigned auto_increment,
+    punishment_id int unsigned,
+    player_id bigint unsigned,
+    reason varchar(1000),
+    admin_id bigint unsigned,
+    create_date TIMESTAMP default CURRENT_TIMESTAMP,
+    CONSTRAINT player_punishmentpk PRIMARY KEY (id)
+);
+
+insert into punishment(punishment_type)
+values ('Restriction'),
+('Loungeless');
 
 insert into ranks (rank_id, rank_name, mmr_min, mmr_max, placement_mmr)
 values (791874714434797589, 'Grandmaster', 11000, 99999, NULL),

@@ -13,6 +13,7 @@ season_migration.py
 # other files
 log
 discord.log
+200lounge.log
 
 # folders
 /__pycache__

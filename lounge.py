@@ -27,7 +27,7 @@ from korean_romanizer.romanizer import Romanizer
 import operator
 
 import logging
-logging.basicConfig(filename='log', filemode='a', level=logging.WARNING)
+logging.basicConfig(filename='200lounge.log', filemode='a', level=logging.WARNING)
 # discord logging separate
 # logger = logging.getLogger('discord')
 # logger.setLevel(logging.DEBUG)
@@ -289,8 +289,7 @@ async def on_raw_reaction_add(payload):
 )
 async def verify(
     ctx, 
-    message: discord.Option(str, 'MKC Link', required=True
-    )):
+    message: discord.Option(str, 'MKC Link | https://www.mariokartcentral.com/mkc/registry/players/930', required=True)):
     # mkc_player_id = registry id
     # mkc_user_id = forum id
     await ctx.defer(ephemeral=False)
@@ -440,7 +439,7 @@ async def verify(
 )
 async def name(
     ctx,
-    name: discord.Option(str, 'New name', required=True)
+    name: discord.Option(str, 'Enter a new nickname here', required=True)
     ):
     await ctx.defer(ephemeral=True)
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
@@ -1927,34 +1926,34 @@ async def zstrike(
         await channel.send(f'{player.mention} has reached 3 strikes. Loungeless role applied\n`# of offenses:` {times_strike_limit_reached}')
     await ctx.respond(f'Strike applied to {player.mention} | Penalty: {mmr_penalty}')
      
-# /zhostban
-@client.slash_command(
-    name='zhostban',
-    description='Add hostban to a player [Admin only]',
-    guild_ids=Lounge
-)
-@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-async def zhostban(
-    ctx,
-    player: discord.Option(discord.Member, description='Which player?', required=True)
-    ):
-    await ctx.defer()
-    x = await check_if_uid_exists(player.id)
-    if x:
-        pass
-    else:
-        await ctx.respond('Player not found')
-        return
-    with DBA.DBAccess() as db:
-        temp = db.query('SELECT is_host_banned FROM player WHERE player_id = %s;', (player.id,))
-    if temp[0][0]:
-        with DBA.DBAccess() as db:
-            db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (0, player.id))
-            await ctx.respond(f'{player.mention} has been un-host-banned')
-    else:
-        with DBA.DBAccess() as db:
-            db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (1, player.id))
-            await ctx.respond(f'{player.mention} has been host-banned')
+# # /zhostban
+# @client.slash_command(
+#     name='zhostban',
+#     description='Add hostban to a player [Admin only]',
+#     guild_ids=Lounge
+# )
+# @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+# async def zhostban(
+#     ctx,
+#     player: discord.Option(discord.Member, description='Which player?', required=True)
+#     ):
+#     await ctx.defer()
+#     x = await check_if_uid_exists(player.id)
+#     if x:
+#         pass
+#     else:
+#         await ctx.respond('Player not found')
+#         return
+#     with DBA.DBAccess() as db:
+#         temp = db.query('SELECT is_host_banned FROM player WHERE player_id = %s;', (player.id,))
+#     if temp[0][0]:
+#         with DBA.DBAccess() as db:
+#             db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (0, player.id))
+#             await ctx.respond(f'{player.mention} has been un-host-banned')
+#     else:
+#         with DBA.DBAccess() as db:
+#             db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (1, player.id))
+#             await ctx.respond(f'{player.mention} has been host-banned')
 
 # /zrestrict
 @client.slash_command(
@@ -1965,7 +1964,8 @@ async def zhostban(
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zrestrict(
     ctx,
-    player: discord.Option(discord.Member, description='Which player?', required=True)
+    player: discord.Option(discord.Member, description='Which player?', required=True),
+    reason: discord.Option(str, description='Explain why (1000 chars)', required=True)
     ):
     await ctx.defer()
     x = await check_if_uid_exists(player.id)
@@ -1993,6 +1993,11 @@ async def zrestrict(
             pass
         else:
             await user.add_roles(CHAT_RESTRICTED_ROLE)
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id) VALUES (%s, %s, %s, %s);', (player.id, 1, reason, ctx.author.id))
+        except Exception as e:
+            await send_raw_to_debug_channel('/zrestrict error - Failed to insert punishment record', e)
         await ctx.respond(f'{player.mention} has been restricted')
         return
 
@@ -2005,7 +2010,8 @@ async def zrestrict(
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zloungeless(
     ctx, 
-    player: discord.Option(discord.Member, description='Which player?', required=True)
+    player: discord.Option(discord.Member, description='Which player?', required=True),
+    reason: discord.Option(str, description='Explain why (1000 chars)', required=True)
     ):
     await ctx.defer()
     x = await check_if_uid_exists(player.id)
@@ -2021,6 +2027,11 @@ async def zloungeless(
     else:
         await user.add_roles(LOUNGELESS_ROLE)
         await remove_rank_roles_from_uid(player.id)
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id) VALUES (%s, %s, %s, %s);', (player.id, 2, reason, ctx.author.id))
+        except Exception as e:
+            await send_raw_to_debug_channel('/zloungeless error - Failed to insert punishment record', e)
         await ctx.respond(f'Loungeless added to {player.mention}')
 
 # /zmmr_penalty
@@ -2431,17 +2442,33 @@ async def zget_player_info(
     await ctx.defer()
 
     if discord_id:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id, player_name, mkc_id, mmr FROM player WHERE player_id = %s;', (discord_id,))
-        await ctx.respond(f'`discord id`: {temp[0][0]}\n`name`: {temp[0][1]}\n`mkc_forum_id`: {temp[0][2]}\n`mmr`: {temp[0][3]}')
-        return
+        pass
     elif name:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id, player_name, mkc_id, mmr FROM player WHERE player_name = %s;', (name,))
-        await ctx.respond(f'`discord id`: {temp[0][0]}\n`name`: {temp[0][1]}\n`mkc_forum_id`: {temp[0][2]}\n`mmr`: {temp[0][3]}')
-        return
+            temp = db.query('SELECT player_id FROM player WHERE player_name = %s;', (name,))
+            discord_id = temp[0][0]
     else:
         await ctx.respond('You must provide a `name` or `discord_id`')
+        return
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('''SELECT player_id, player_name, mkc_id, mmr, is_chat_restricted, times_strike_limit_reached 
+            FROM player 
+            WHERE player_id = %s;''', (discord_id,))
+            strike_count = db.query('SELECT count(*) FROM strike WHERE player_id = %s;', (discord_id,))[0][0]
+            number_of_punishments = db.query('SELECT count(*) from player_punishment WHERE player_id = %s;', (discord_id,))[0][0]
+        await ctx.respond(f'''`discord id`: {temp[0][0]}
+`name`: {temp[0][1]}
+`mkc_forum_id`: {temp[0][2]}
+`mmr`: {temp[0][3]}
+`chat restricted`: {'y' if temp[0][4] == 1 else 'n'}
+`strike limit reached`: {temp[0][5]} times
+`total # of strikes`: {strike_count}
+`total # of punishments`: {number_of_punishments}
+''')
+        return
+    except Exception as e:
+        await ctx.respond(f'Invalid name or discord ID')
         return
 
 @client.slash_command(
