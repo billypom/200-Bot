@@ -1615,65 +1615,45 @@ async def deny(
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zstrikes(ctx,
-    player: discord.Option(discord.Member, description='Which player?', required=False)
+    player: discord.Option(str, description='Player name', required=True)
     ):
     await ctx.defer()
-    if player is None:
-        lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-        if lounge_ban:
-            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
-            return
-        else:
-            pass
-        x = await check_if_uid_exists(ctx.author.id)
-        if x:
-            pass
-        else:
-            await ctx.respond('Player not found. Use `/verify <mkc link>` to register with Lounge')
-            return
-        try:
-            with DBA.DBAccess() as db:
-                temp = db.query('SELECT UNIX_TIMESTAMP(expiration_date) FROM strike WHERE player_id = %s AND is_active = %s ORDER BY create_date ASC;', (ctx.author.id, 1))
-                if temp[0][0]:
-                    response = ''
-                    for i in range(len(temp)):
-                        response += f'`Strike {i+1}` Expires: <t:{str(int(temp[i][0]))}:F>\n'
-                    await ctx.respond(response)
-                    return
-                else:
-                    pass
-        except Exception:
-            pass
-        await ctx.respond('You have no strikes')
+
+    with DBA.DBAccess() as db:
+        player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
+    if player_id:
+        pass
+    else:
+        await ctx.respond('Player not found')
+        return
+
+    lounge_ban = await check_if_uid_is_lounge_banned(player_id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
         return
     else:
-        lounge_ban = await check_if_uid_is_lounge_banned(player.id)
-        if lounge_ban:
-            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
-            return
-        else:
-            pass
-        x = await check_if_uid_exists(player.id)
-        if x:
-            pass
-        else:
-            await ctx.respond('Player not found.')
-            return
-        try:
-            with DBA.DBAccess() as db:
-                temp = db.query('SELECT UNIX_TIMESTAMP(expiration_date) FROM strike WHERE player_id = %s AND is_active = %s ORDER BY create_date ASC;', (player.id, 1))
-                if temp[0][0]:
-                    response = ''
-                    for i in range(len(temp)):
-                        response += f'`Strike {i+1}` Expires: <t:{str(int(temp[i][0]))}:F>\n'
-                    await ctx.respond(response)
-                    return
-                else:
-                    pass
-        except Exception:
-            pass
-        await ctx.respond('This player has no strikes')
+        pass
+    x = await check_if_uid_exists(player_id)
+    if x:
+        pass
+    else:
+        await ctx.respond('Player not found.')
         return
+    try:
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT UNIX_TIMESTAMP(expiration_date) FROM strike WHERE player_id = %s AND is_active = %s ORDER BY create_date ASC;', (player_id, 1))
+            if temp[0][0]:
+                response = ''
+                for i in range(len(temp)):
+                    response += f'`Strike {i+1}` Expires: <t:{str(int(temp[i][0]))}:F>\n'
+                await ctx.respond(response)
+                return
+            else:
+                pass
+    except Exception:
+        pass
+    await ctx.respond('This player has no strikes')
+    return
 
 # /zcancel_mogi
 @client.slash_command(
@@ -1867,7 +1847,7 @@ async def zswapscore(
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zstrike(
     ctx,
-    player: discord.Option(discord.Member, description='Which player?', required=True),
+    player: discord.Option(str, description='Player name', required=True),
     mmr_penalty: discord.Option(int, description='How much penalty to apply?', required=True),
     reason: discord.Option(str, description='Why?', required=True)
     ):
@@ -1875,8 +1855,9 @@ async def zstrike(
     if len(reason) > 32:
         await ctx.respond('Reason too long (32 character limit)')
         return
-    x = await check_if_uid_exists(player.id)
-    if x:
+    with DBA.DBAccess() as db:
+        player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
+    if player_id:
         pass
     else:
         await ctx.respond('Player not found')
@@ -1893,31 +1874,31 @@ async def zstrike(
     mmr = 0
     num_of_strikes = 0
     # if placement player, insert a strike, penalty applied = 0
-    player_is_placement = await check_if_uid_is_placement(player.id)
+    player_is_placement = await check_if_uid_is_placement(player_id)
     if player_is_placement:
         with DBA.DBAccess() as db:
-            db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date, penalty_applied) VALUES (%s, %s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date, 0))
+            db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date, penalty_applied) VALUES (%s, %s, %s, %s, %s);', (player_id, reason, mmr_penalty, expiration_date, 0))
     else:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
+            temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player_id,))
             if temp[0][0] is None:
                 await ctx.respond(f'This player has no MMR! Contact {secretly.my_discord}')
                 return
             else:
                 mmr = temp[0][0]
         with DBA.DBAccess() as db:
-            db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player.id, reason, mmr_penalty, expiration_date))
-            db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((mmr-mmr_penalty), player.id))
-    num_of_strikes = await get_number_of_strikes(player.id)
+            db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player_id, reason, mmr_penalty, expiration_date))
+            db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((mmr-mmr_penalty), player_id))
+    num_of_strikes = await get_number_of_strikes(player_id)
     if num_of_strikes >= 3:
         times_strike_limit_reached = 0
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT times_strike_limit_reached FROM player WHERE player_id = %s;', (player.id,))
+            temp = db.query('SELECT times_strike_limit_reached FROM player WHERE player_id = %s;', (player_id,))
             times_strike_limit_reached = temp[0][0] + 1
             unban_unix_time = await get_unix_time_now() + 24*60*60*times_strike_limit_reached
             dt = datetime.datetime.utcfromtimestamp(unban_unix_time).strftime('%Y-%m-%d %H:%M:%S')
-            db.execute('UPDATE player SET times_strike_limit_reached = %s, unban_date = %s WHERE player_id = %s;', (times_strike_limit_reached, dt, player.id))
-        user = await GUILD.fetch_member(player.id)
+            db.execute('UPDATE player SET times_strike_limit_reached = %s, unban_date = %s WHERE player_id = %s;', (times_strike_limit_reached, dt, player_id))
+        user = await GUILD.fetch_member(player_id)
         await user.add_roles(LOUNGELESS_ROLE)
         ranks_list = await get_list_of_rank_ids()
         for rank in ranks_list:
@@ -1965,41 +1946,42 @@ async def zstrike(
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zrestrict(
     ctx,
-    player: discord.Option(discord.Member, description='Which player?', required=True),
+    player: discord.Option(str, description='Player name', required=True),
     reason: discord.Option(str, description='Explain why (1000 chars)', required=True)
     ):
     await ctx.defer()
-    x = await check_if_uid_exists(player.id)
-    if x:
+    with DBA.DBAccess() as db:
+        player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
+    if player_id:
         pass
     else:
         await ctx.respond('Player not found')
         return
-    user = await GUILD.fetch_member(player.id)
-    is_chat_restricted = await check_if_uid_is_chat_restricted(player.id)
+    user = await GUILD.fetch_member(player_id)
+    is_chat_restricted = await check_if_uid_is_chat_restricted(player_id)
     # is chat restricted
     if is_chat_restricted:
         # unrestrict
         with DBA.DBAccess() as db:
-            db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (0, player.id))
+            db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (0, player_id))
         if CHAT_RESTRICTED_ROLE in user.roles:
             await user.remove_roles(CHAT_RESTRICTED_ROLE)
-        await ctx.respond(f'{player.mention} has been unrestricted')
+        await ctx.respond(f'<@{player_id}> has been unrestricted')
         return
     else:
         # restrict
         with DBA.DBAccess() as db:
-            db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (1, player.id))
+            db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (1, player_id))
         if CHAT_RESTRICTED_ROLE in user.roles:
             pass
         else:
             await user.add_roles(CHAT_RESTRICTED_ROLE)
         try:
             with DBA.DBAccess() as db:
-                db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id) VALUES (%s, %s, %s, %s);', (player.id, 1, reason, ctx.author.id))
+                db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id) VALUES (%s, %s, %s, %s);', (player_id, 1, reason, ctx.author.id))
         except Exception as e:
             await send_raw_to_debug_channel('/zrestrict error - Failed to insert punishment record', e)
-        await ctx.respond(f'{player.mention} has been restricted')
+        await ctx.respond(f'<@{player_id}> has been restricted')
         return
 
 # /zloungeless
@@ -2011,29 +1993,31 @@ async def zrestrict(
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zloungeless(
     ctx, 
-    player: discord.Option(discord.Member, description='Which player?', required=True),
+    player: discord.Option(str, description='Player name', required=True),
     reason: discord.Option(str, description='Explain why (1000 chars)', required=True)
     ):
     await ctx.defer()
-    x = await check_if_uid_exists(player.id)
-    if x:
+    with DBA.DBAccess() as db:
+        player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
+    if player_id:
         pass
     else:
         await ctx.respond('Player not found')
-    user = await GUILD.fetch_member(player.id)
+        return
+    user = await GUILD.fetch_member(player_id)
     if LOUNGELESS_ROLE in user.roles:
         await user.remove_roles(LOUNGELESS_ROLE)
-        await set_uid_roles(player.id)
-        await ctx.respond(f'Loungeless removed from {player.mention}')
+        await set_uid_roles(player_id)
+        await ctx.respond(f'Loungeless removed from <@{player_id}>')
     else:
         await user.add_roles(LOUNGELESS_ROLE)
-        await remove_rank_roles_from_uid(player.id)
+        await remove_rank_roles_from_uid(player_id)
         try:
             with DBA.DBAccess() as db:
-                db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id) VALUES (%s, %s, %s, %s);', (player.id, 2, reason, ctx.author.id))
+                db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id) VALUES (%s, %s, %s, %s);', (player_id, 2, reason, ctx.author.id))
         except Exception as e:
             await send_raw_to_debug_channel('/zloungeless error - Failed to insert punishment record', e)
-        await ctx.respond(f'Loungeless added to {player.mention}')
+        await ctx.respond(f'Loungeless added to <@{player_id}>')
 
 # /zmmr_penalty
 @client.slash_command(
@@ -2044,29 +2028,30 @@ async def zloungeless(
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zmmr_penalty(
     ctx,
-    player: discord.Option(discord.Member, description='Which player?', required=True),
+    player: discord.Option(str, description='Which player?', required=True),
     mmr_penalty: discord.Option(int, description='How much penalty to apply?', required=True)):
     await ctx.defer()
     mmr_penalty = abs(mmr_penalty)
-    x = await check_if_uid_exists(player.id)
-    if x:
+    with DBA.DBAccess() as db:
+        player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
+    if player_id:
         pass
     else:
         await ctx.respond('Player not found')
         return
-    player_is_placement = await check_if_uid_is_placement(player.id)
+    player_is_placement = await check_if_uid_is_placement(player_id)
     if player_is_placement:
         await ctx.respond('Cannot apply mmr penalty to a placement player')
         return
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
+            temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player_id,))
             new_mmr = temp[0][0] - mmr_penalty
             if new_mmr <= 0:
                 new_mmr = 1
-            db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (new_mmr, player.id))
-        await ctx.respond(f'{player.mention} has been given a {mmr_penalty} mmr penalty')
-        await set_uid_roles(player.id)
+            db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (new_mmr, player_id))
+        await ctx.respond(f'<@{player_id}> has been given a {mmr_penalty} mmr penalty')
+        await set_uid_roles(player_id)
     except Exception as e:
         await send_to_debug_channel(ctx, f'/zmmr_penalty error 38 {e}')
         await ctx.respond('`Error 38:` Could not apply penalty')
@@ -2092,12 +2077,13 @@ async def zsendmsg(ctx):
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zreduce_loss(ctx,
-    player: discord.Option(discord.Member, description='Which player?', required=True),
+    player: discord.Option(str, description='Player name', required=True),
     mogi_id: discord.Option(int, description='Which mogi?', required=True),
     reduction: discord.Option(str, description='Reduction value', required=True)):
     await ctx.defer()
-    x = await check_if_uid_exists(player.id)
-    if x:
+    with DBA.DBAccess() as db:
+        player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
+    if player_id:
         pass
     else:
         await ctx.respond('Player not found')
@@ -2119,8 +2105,8 @@ async def zreduce_loss(ctx,
     multiplier = int(reduce[0])/int(reduce[1])
     try:
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT mmr_change, prev_mmr FROM player_mogi WHERE player_id = %s AND mogi_id = %s;', (player.id, mogi_id))
-            temp2 = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player.id,))
+            temp = db.query('SELECT mmr_change, prev_mmr FROM player_mogi WHERE player_id = %s AND mogi_id = %s;', (player_id, mogi_id))
+            temp2 = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player_id,))
             mmr_change = temp[0][0]
             prev_mmr = temp[0][1]
             mmr = temp2[0][0]
@@ -2134,14 +2120,14 @@ async def zreduce_loss(ctx,
     adjusted_new_mmr = int(math.floor(prev_mmr + adjusted_mmr_change)) # pm new_mmr
     try:
         with DBA.DBAccess() as db:
-            db.execute('UPDATE player_mogi SET mmr_change = %s, new_mmr = %s WHERE player_id = %s AND mogi_id = %s;', (adjusted_mmr_change, adjusted_new_mmr, player.id, mogi_id))
-            db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (adjusted_mmr, player.id))
+            db.execute('UPDATE player_mogi SET mmr_change = %s, new_mmr = %s WHERE player_id = %s AND mogi_id = %s;', (adjusted_mmr_change, adjusted_new_mmr, player_id, mogi_id))
+            db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (adjusted_mmr, player_id))
     except Exception as e:
-        await send_to_debug_channel(ctx, f'player: {player} | mogi id: {mogi_id} | reduction: {reduction} | {e}')
+        await send_to_debug_channel(ctx, f'player_name: {player} | mogi id: {mogi_id} | reduction: {reduction} | {e}')
         await ctx.respond('``Error 41:`` FATAL ERROR uh oh uh oh uh oh')
         return
-    await set_uid_roles(player.id)
-    await ctx.respond(f'Loss was reduced for {player.mention}.\nChange: `{mmr_change}` -> `{adjusted_mmr_change}`\nMMR: `{mmr}` -> `{adjusted_mmr}`')
+    await set_uid_roles(player_id)
+    await ctx.respond(f'Loss was reduced for <@{player_id}>.\nChange: `{mmr_change}` -> `{adjusted_mmr_change}`\nMMR: `{mmr}` -> `{adjusted_mmr}`')
     return
 
 # /zchange_discord_account
@@ -2420,7 +2406,7 @@ async def zmanually_verify_banned_player(
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zset_player_roles(
     ctx,
-    player: discord.Option(discord.Member, 'Leaving player', required=True)):
+    player: discord.Option(discord.Member, '@User', required=True)):
     await ctx.defer()
     response = await set_uid_roles(player.id)
     if response:
@@ -2568,6 +2554,7 @@ async def zget_player_punishments(
     ctx,
     name: discord.Option(str, 'Name', required=False),
     discord_id: discord.Option(str, 'Discord ID', required=False)):
+    await ctx.defer()
     if discord_id:
         with DBA.DBAccess() as db:
             name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (discord_id,))[0][0]
@@ -2595,6 +2582,42 @@ async def zget_player_punishments(
         await ctx.respond(f'Invalid name or discord ID')
         await send_raw_to_debug_channel('Player punishment retrieval error 1', e)
         return
+
+@client.slash_command(
+    name='zadd_mmr',
+    description='Add MMR to a player',
+    guild_ids=Lounge
+)
+@commands.has_any_role(ADMIN_ROLE_ID)
+async def zadd_mmr(
+    ctx,
+    player: discord.Option(str, 'Player name', required=True),
+    mmr: discord.Option(int, 'Amount of MMR to add to the player', required=True)):
+    await ctx.defer()
+    
+    # Check if player exists
+    with DBA.DBAccess() as db:
+        player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
+    if player_id:
+        pass
+    else:
+        await ctx.respond('Player not found')
+        return
+    # Get current MMR of player
+    with DBA.DBAccess() as db:
+        current_mmr = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player_id,))[0][0]
+    # Calculate new MMR
+    new_mmr = current_mmr + mmr
+    # Update player record
+    with DBA.DBAccess() as db:
+        db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (new_mmr, player_id))
+    await ctx.respond(f'{mmr} MMR added to <@{player_id}>\n`{current_mmr}` -> `{new_mmr}`')
+    return
+
+
+
+
+
 
 
 # /qwe
