@@ -25,6 +25,7 @@ from bs4 import BeautifulSoup as Soup
 import pykakasi
 from korean_romanizer.romanizer import Romanizer
 import operator
+from textwrap import wrap # used to split long messages into multiple parts
 
 import logging
 logging.basicConfig(filename='200lounge.log', filemode='a', level=logging.WARNING)
@@ -2557,8 +2558,43 @@ async def zmanually_verify_player(
             return
         return
 
-
-
+@client.slash_command(
+    name='zget_player_punishments',
+    description='See all punishments for a player',
+    guild_ids=Lounge
+)
+@commands.has_any_role(ADMIN_ROLE_ID)
+async def zget_player_punishments(
+    ctx,
+    name: discord.Option(str, 'Name', required=False),
+    discord_id: discord.Option(str, 'Discord ID', required=False)):
+    if discord_id:
+        with DBA.DBAccess() as db:
+            name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (discord_id,))[0][0]
+    elif name:
+        with DBA.DBAccess() as db:
+            discord_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (name,))[0][0]
+    else:
+        await ctx.respond('You must provide a `name` or `discord_id`')
+        return
+    try:
+        punishment_string = ''
+        channel = client.get_channel(ctx.channel.id)
+        await ctx.respond(f'# {name} punishments')
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT pl.player_name, p.punishment_type, pp.reason, pp.id FROM punishment p JOIN player_punishment pp ON p.id = pp.punishment_id JOIN player pl ON pp.admin_id = pl.player_id WHERE pp.player_id = %s;', (discord_id,))
+            for punishment in temp:
+                # await channel.send(f'{punishment[0]} | {punishment[1]} | {punishment[2]}\n')
+                punishment_string += f'''{punishment[3]}. | {punishment[0]} | {punishment[1]} | {punishment[2]}\n
+                '''
+            message_array = wrap(punishment_string, 1000)
+        # channel = client.get_channel(ctx.channel.id)
+        for message in message_array:
+            await channel.send(f'```{message}```')
+    except Exception as e:
+        await ctx.respond(f'Invalid name or discord ID')
+        await send_raw_to_debug_channel('Player punishment retrieval error 1', e)
+        return
 
 
 # /qwe
