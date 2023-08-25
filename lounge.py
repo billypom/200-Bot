@@ -1905,8 +1905,8 @@ async def zstrike(
             bye = GUILD.get_role(rank)
             await user.remove_roles(bye)
         channel = client.get_channel(secretly.strikes_channel)
-        await channel.send(f'{player.mention} has reached 3 strikes. Loungeless role applied\n`# of offenses:` {times_strike_limit_reached}')
-    await ctx.respond(f'Strike applied to {player.mention} | Penalty: {mmr_penalty}')
+        await channel.send(f'<@{player_id}> has reached 3 strikes. Loungeless role applied\n`# of offenses:` {times_strike_limit_reached}')
+    await ctx.respond(f'Strike applied to <@{player_id}> | Penalty: {mmr_penalty}')
      
 # # /zhostban
 # @client.slash_command(
