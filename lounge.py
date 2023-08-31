@@ -2791,6 +2791,8 @@ async def set_uid_roles(uid):
             await send_raw_to_debug_channel(f'<@{uid}>', f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')
             pass
         return (role.id, role)
+    except IndexError:
+        return False
     except Exception as e:
         await send_raw_to_debug_channel(f'<@{uid}>', f'set_uid_roles exception: {e}')
         return False
