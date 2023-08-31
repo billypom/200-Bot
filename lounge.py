@@ -2556,6 +2556,7 @@ async def zmanually_verify_player(
             return
         return
 
+# /zget_player_punishments
 @client.slash_command(
     name='zget_player_punishments',
     description='See all punishments for a player',
@@ -2579,17 +2580,16 @@ async def zget_player_punishments(
     try:
         punishment_string = ''
         channel = client.get_channel(ctx.channel.id)
-        await ctx.respond(f'# {name} punishments')
+        await ctx.respond(f"# {name}'s punishments")
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT pl.player_name, p.punishment_type, pp.reason, pp.id FROM punishment p JOIN player_punishment pp ON p.id = pp.punishment_id JOIN player pl ON pp.admin_id = pl.player_id WHERE pp.player_id = %s;', (discord_id,))
+            temp = db.query('SELECT pl.player_name, p.punishment_type, pp.reason, pp.id, pp.unban_date FROM punishment p JOIN player_punishment pp ON p.id = pp.punishment_id JOIN player pl ON pp.admin_id = pl.player_id WHERE pp.player_id = %s;', (discord_id,))
+            # dynamic list of punishments
             for punishment in temp:
-                # await channel.send(f'{punishment[0]} | {punishment[1]} | {punishment[2]}\n')
-                punishment_string += f'''{punishment[3]}. | {punishment[0]} | {punishment[1]} | {punishment[2]}\n
-                '''
+                punishment_string += f'**{punishment[3]}.** {punishment[1]} - {punishment[2]}\n`issued by: {punishment[0]}` | unban: <t:{str(punishment[4])}:F>\n'
             message_array = wrap(punishment_string, 1000)
         # channel = client.get_channel(ctx.channel.id)
         for message in message_array:
-            await channel.send(f'```{message}```')
+            await channel.send(message)
     except Exception as e:
         await ctx.respond(f'Invalid name or discord ID')
         await send_raw_to_debug_channel('Player punishment retrieval error 1', e)
