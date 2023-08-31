@@ -2627,6 +2627,17 @@ async def zadd_mmr(
     return
 
 
+@client.slash_command(
+    name='zlog_file',
+    description='gimme the log file pls thamks',
+    guild_ids=Lounge
+)
+@commands.has_any_role(ADMIN_ROLE_ID)
+async def zlog_file(ctx):
+    await ctx.defer()
+    await ctx.send(file=discord.File('200lounge.log'))
+    await ctx.respond('here u go')
+    return
 
 
 
