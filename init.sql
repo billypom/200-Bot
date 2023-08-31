@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS sq_default_schedule;
+DROP TABLE IF EXISTS sq_schedule;
 DROP TABLE IF EXISTS player_punishment;
 DROP TABLE IF EXISTS punishment;
 DROP TABLE IF EXISTS suggestion;
@@ -152,15 +154,37 @@ CREATE TABLE player_punishment(
     punishment_id int unsigned,
     player_id bigint unsigned,
     reason varchar(1000),
+    unban_date bigint unsigned,
     admin_id bigint unsigned,
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
     CONSTRAINT player_punishmentpk PRIMARY KEY (id)
+);
+
+CREATE TABLE sq_schedule(
+    id int unsigned auto_increment,
+    start_time bigint unsigned,
+    queue_time bigint unsigned,
+    mogi_format int unsigned,
+    mogi_channel bigint unsigned,
+    create_date TIMESTAMP default CURRENT_TIMESTAMP,
+    CONSTRAINT sq_schedulepk PRIMARY KEY (id)
+);
+
+CREATE TABLE sq_default_schedule(
+    id int unsigned auto_increment,
+    day_of_week int unsigned,
+    start_time varchar(16),
+    mogi_format int unsigned,
+    mogi_channel bigint unsigned,
+    create_date TIMESTAMP default CURRENT_TIMESTAMP,
+    CONSTRAINT default_sq_schedulepk PRIMARY KEY (id)
 );
 
 insert into punishment(punishment_type)
 values ('Restriction'),
 ('Loungeless');
 
+-- Real Ranks
 insert into ranks (rank_id, rank_name, mmr_min, mmr_max, placement_mmr)
 values (791874714434797589, 'Grandmaster', 11000, 99999, NULL),
 (794262638518730772, 'Master', 9000, 10999, NULL),
@@ -178,6 +202,44 @@ values (1010662448715546706, 'a', 1010600237880053800, ""),
 (1010663000987934771, 'c', 1010600418524532889, ""),
 (1010663109536534539, 'all', 1010600464003387542, ""),
 (965286774098260029, 'sq', 1010600944209244210, "");
+
+
+
+-- Dev Ranks - run these 3 groups of commands in order to fix
+insert into ranks (rank_id, rank_name, mmr_min, mmr_max, placement_mmr)
+values (1041162011536527398, 'Grandmaster', 11000, 99999, NULL),
+(1041162011536527397, 'Master', 9000, 10999, NULL),
+(1041162011536527396, 'Diamond', 7500, 8999, NULL),
+(1041162011536527395, 'Platinum', 6000, 7499, NULL),
+(1041162011536527394, 'Gold', 4500, 5999, 5250),
+(1041162011536527393, 'Silver', 3000, 4499, 3750),
+(1041162011536527392, 'Bronze', 1500, 2999, 2250),
+(1041162011536527391, 'Iron', 0, 1499, 1000),
+(1041162011536527390, 'Placement', -2, -1, 2500);
+
+UPDATE player SET rank_id = 1041162011536527398 WHERE rank_id = 791874714434797589;
+UPDATE player SET rank_id = 1041162011536527397 WHERE rank_id = 794262638518730772;
+UPDATE player SET rank_id = 1041162011536527396 WHERE rank_id = 794262898423627857;
+UPDATE player SET rank_id = 1041162011536527395 WHERE rank_id = 794262916627038258;
+UPDATE player SET rank_id = 1041162011536527394 WHERE rank_id = 794262925098745858;
+UPDATE player SET rank_id = 1041162011536527393 WHERE rank_id = 794262959084797984;
+UPDATE player SET rank_id = 1041162011536527392 WHERE rank_id = 794263467581374524;
+UPDATE player SET rank_id = 1041162011536527391 WHERE rank_id = 970028275789365368;
+UPDATE player SET rank_id = 1041162011536527390 WHERE rank_id = 846497627508047872;
+
+DELETE FROM ranks WHERE rank_id = 791874714434797589;
+DELETE FROM ranks WHERE rank_id = 794262638518730772;
+DELETE FROM ranks WHERE rank_id = 794262898423627857;
+DELETE FROM ranks WHERE rank_id = 794262916627038258;
+DELETE FROM ranks WHERE rank_id = 794262925098745858;
+DELETE FROM ranks WHERE rank_id = 794262959084797984;
+DELETE FROM ranks WHERE rank_id = 794263467581374524;
+DELETE FROM ranks WHERE rank_id = 970028275789365368;
+DELETE FROM ranks WHERE rank_id = 846497627508047872;
+
+
+
+
 
 -- insert into player (player_id, player_name, mkc_id, mmr, fc, country_code, rank_id, twitch_link) 
 -- values (166818526768791552,'popuko',154, 3000, NULL, 'us', 846497627508047872, 'toppomeranian'),

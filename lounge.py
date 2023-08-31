@@ -11,6 +11,7 @@ import threading
 import re
 import datetime
 import time
+import pytz
 import json
 import requests
 import asyncio
@@ -54,6 +55,7 @@ SQ_HELPER_CHANNEL_ID = secretly.SQ_HELPER_CHANNEL_ID
 SQ_TIER_ID = secretly.squad_queue_channel
 ALLOWED_CHARACTERS = secretly.ALLOWED_CHARACTERS
 SEASON_NUMBER_LIST = secretly.SEASON_NUMBER_LIST
+SECONDS_IN_A_DAY = 86400
 twitch_thumbnail = 'https://cdn.discordapp.com/attachments/898031747747426344/1005204380208869386/jimmy_neutron_hamburger.jpg'
 intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
@@ -1947,7 +1949,8 @@ async def zstrike(
 async def zrestrict(
     ctx,
     player: discord.Option(str, description='Player name', required=True),
-    reason: discord.Option(str, description='Explain why (1000 chars)', required=True)
+    reason: discord.Option(str, description='Explain why (1000 chars)', required=True),
+    ban_length: discord.Option(int, description='# of days', required=True)
     ):
     await ctx.defer()
     with DBA.DBAccess() as db:
@@ -1970,15 +1973,19 @@ async def zrestrict(
         return
     else:
         # restrict
+        unix_now = await get_unix_time_now()
+        unix_ban_length = ban_length * SECONDS_IN_A_DAY
+        unban_date = unix_now + unix_ban_length
         with DBA.DBAccess() as db:
             db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (1, player_id))
         if CHAT_RESTRICTED_ROLE in user.roles:
             pass
         else:
             await user.add_roles(CHAT_RESTRICTED_ROLE)
+            await user.send(f'You have been restricted in MK8DX 200cc Lounge for {ban_length} days\nReason: `{reason}`')
         try:
             with DBA.DBAccess() as db:
-                db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id) VALUES (%s, %s, %s, %s);', (player_id, 1, reason, ctx.author.id))
+                db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id, unban_date) VALUES (%s, %s, %s, %s, %s);', (player_id, 1, reason, ctx.author.id, unban_date))
         except Exception as e:
             await send_raw_to_debug_channel('/zrestrict error - Failed to insert punishment record', e)
         await ctx.respond(f'<@{player_id}> has been restricted')
@@ -1994,7 +2001,8 @@ async def zrestrict(
 async def zloungeless(
     ctx, 
     player: discord.Option(str, description='Player name', required=True),
-    reason: discord.Option(str, description='Explain why (1000 chars)', required=True)
+    reason: discord.Option(str, description='Explain why (1000 chars)', required=True),
+    ban_length: discord.Option(int, description='# of days', required=True)
     ):
     await ctx.defer()
     with DBA.DBAccess() as db:
@@ -2010,11 +2018,15 @@ async def zloungeless(
         await set_uid_roles(player_id)
         await ctx.respond(f'Loungeless removed from <@{player_id}>')
     else:
+        unix_now = await get_unix_time_now()
+        unix_ban_length = ban_length * SECONDS_IN_A_DAY
+        unban_date = unix_now + unix_ban_length
         await user.add_roles(LOUNGELESS_ROLE)
         await remove_rank_roles_from_uid(player_id)
+        await user.send(f'You have been lounge banned in MK8DX 200cc Lounge for {ban_length} days\nReason: `{reason}`')
         try:
             with DBA.DBAccess() as db:
-                db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id) VALUES (%s, %s, %s, %s);', (player_id, 2, reason, ctx.author.id))
+                db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id, unban_date) VALUES (%s, %s, %s, %s, %s);', (player_id, 2, reason, ctx.author.id, unban_date))
         except Exception as e:
             await send_raw_to_debug_channel('/zloungeless error - Failed to insert punishment record', e)
         await ctx.respond(f'Loungeless added to <@{player_id}>')
@@ -2639,7 +2651,12 @@ async def qwe(
     # await ctx.respond(member.display_name)
 
 
-    
+
+
+
+
+
+
 
 
 
@@ -2780,6 +2797,9 @@ async def check_if_uid_can_drop(uid):
     except Exception: # Player not in any lineups?
         return True
 
+async def convert_datetime_to_unix_timestamp(datetime_object):
+    return time.mktime(datetime_object.timetuple())
+
 async def check_if_uid_in_any_tier(uid):
     try:
         with DBA.DBAccess() as db:
@@ -2919,6 +2939,14 @@ async def check_if_is_unique_name(name):
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (name,))
     return not temp
+
+
+async def convert_unix_timestamp_to_datetime(self, unix_timestamp):
+    return datetime.datetime.utcfromtimestamp(unix_timestamp)
+
+async def convert_datetime_to_unix_timestamp(self, datetime_object):
+    return int((datetime_object - datetime.datetime(1970,1,1, tzinfo=pytz.utc)).total_seconds())
+
 
 # Returns all rank_id from DB in a list()
 async def get_list_of_rank_ids():
