@@ -30,6 +30,7 @@ from textwrap import wrap # used to split long messages into multiple parts
 
 import logging
 logging.basicConfig(filename='200lounge.log', filemode='a', level=logging.WARNING)
+
 # discord logging separate
 # logger = logging.getLogger('discord')
 # logger.setLevel(logging.DEBUG)
@@ -283,6 +284,35 @@ async def on_raw_reaction_add(payload):
         except Exception:
             pass
     return
+
+@client.event
+async def on_member_join(member):
+    try:
+        x = await set_uid_roles(member.id)
+        if not x:
+            return
+    except Exception as e:
+        logging.warning(f'on_member_join exception: {e}')
+        return
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # /verify <link>
 @client.slash_command(

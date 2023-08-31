@@ -205,6 +205,12 @@ values (1010662448715546706, 'a', 1010600237880053800, ""),
 
 
 
+
+
+
+
+
+
 -- Dev Ranks - run these 3 groups of commands in order to fix
 insert into ranks (rank_id, rank_name, mmr_min, mmr_max, placement_mmr)
 values (1041162011536527398, 'Grandmaster', 11000, 99999, NULL),
