@@ -291,6 +291,7 @@ async def on_member_join(member):
         x = await set_uid_roles(member.id)
         if not x:
             return
+        logging.warning(f'Member joined & found! {member} ')
     except Exception as e:
         logging.warning(f'on_member_join exception: {e}')
         return
