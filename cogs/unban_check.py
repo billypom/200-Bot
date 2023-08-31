@@ -69,7 +69,7 @@ class unban_check(commands.Cog):
             with DBA.DBAccess() as db:
                 db.execute('UPDATE player SET unban_date = NULL WHERE player_id = %s;', (player[0],))
     
-    @tasks.loop(seconds=5)
+    @tasks.loop(hours=1)
     async def punishment_check(self):
         logging.warning('Punishment checking...')
         # current time to compare against ban dates
@@ -117,7 +117,7 @@ class unban_check(commands.Cog):
                 except Exception as e:
                     logging.warning(f'cogs | unban_check | punishment_check | could not add user roles (OK in dev env)')
                     pass
-                    
+
                 await self.send_raw_to_debug_channel(f'<@{player[0]}>\nPlayer unbanned - {player[5]} removed\nOriginal reason: {player[1]}', player[0])
                 
             except Exception as e:
