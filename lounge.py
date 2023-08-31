@@ -2585,7 +2585,7 @@ async def zget_player_punishments(
             temp = db.query('SELECT pl.player_name, p.punishment_type, pp.reason, pp.id, pp.unban_date FROM punishment p JOIN player_punishment pp ON p.id = pp.punishment_id JOIN player pl ON pp.admin_id = pl.player_id WHERE pp.player_id = %s;', (discord_id,))
             # dynamic list of punishments
             for punishment in temp:
-                punishment_string += f'**{punishment[3]}.** {punishment[1]} - {punishment[2]}\n`issued by: {punishment[0]}` | unban: <t:{str(punishment[4])}:F>\n'
+                punishment_string += f'**{punishment[3]}.** {punishment[1]} - {punishment[2]}\nunban: <t:{str(punishment[4])}:F>\n`issued by: {punishment[0]}`\n'
             message_array = wrap(punishment_string, 1000)
         # channel = client.get_channel(ctx.channel.id)
         for message in message_array:
