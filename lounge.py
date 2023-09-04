@@ -1,4 +1,5 @@
 import DBA
+import DBA2
 import secretly
 import plotting
 import discord
@@ -840,7 +841,7 @@ async def table(
         db_mogi_id = 0
         # Create mogi
         with DBA.DBAccess() as db:
-            db.execute('INSERT INTO mogi (mogi_format, tier_id, season) values (%s, %s, %s);', (mogi_format, nya_tier_id, secretly.CURRENT_SEASON))
+            db.execute('INSERT INTO mogi (mogi_format, tier_id) values (%s, %s);', (mogi_format, nya_tier_id))
         ##########await send_raw_to_debug_channel('Mogi created' , f'{mogi_format} | {nya_tier_id}')
         # Get the results channel and tier name for later use
         with DBA.DBAccess() as db:
@@ -899,25 +900,25 @@ async def table(
         #     print(_list)
 
         # Actually calculate the MMR
-        logging.warning(f'/table | Calculating MMR')
+        logging.warning(f'POP_LOG | Calculating MMR')
         for idx, team in enumerate(sorted_list):
-            logging.warning(f'/table | {idx} | {team}')
+            logging.warning(f'POP_LOG | {idx} | {team}')
             temp_value = 0.0
             for pre_mmr_list in value_table:
-                logging.warning(f'/table | {pre_mmr_list}')
+                logging.warning(f'POP_LOG | {pre_mmr_list}')
                 # print(f'{idx}pre mmr list')
                 # print(pre_mmr_list)
                 for idx2, value in enumerate(pre_mmr_list):
-                    logging.warning(f'/table | (idx,idx2)')
-                    logging.warning(f'/table | {idx},{idx2}')
-                    logging.warning(f'/table | {temp_value} += {value}')
+                    logging.warning(f'POP_LOG | (idx,idx2)')
+                    logging.warning(f'POP_LOG | {idx},{idx2}')
+                    logging.warning(f'POP_LOG | {temp_value} += {value}')
                     # logging.warning(f'POP_LOG | {temp_value.real} += {value.real}')
                     if idx == idx2:
                         temp_value += value
                     else:
                         pass
             # print(f'appending {temp_value}+={value} | {idx} | {idx2}')
-            logging.warning(f'/table | value = {temp_value}, value.real = {temp_value.real}')
+            logging.warning(f'POP_LOG | value = {temp_value}, value.real = {temp_value.real}')
             team.append(math.floor(temp_value.real))
 
 
@@ -938,7 +939,7 @@ async def table(
 
 
         for team in sorted_list:
-            logging.warning(f'/table | team in sorted_list: {team}')
+            logging.warning(f'POP_LOG | team in sorted_list: {team}')
             ###########await send_raw_to_debug_channel('Updating team', team)
             my_player_place = team[len(team)-2]
             string_my_player_place = str(my_player_place)
@@ -1191,15 +1192,25 @@ async def stats(
     await ctx.defer()
     # Validate strings
     # Season picker
-    if season is None:
-        season = 6
+    if secretly.DTB == 'lounge_dev':
+        stats_db = 'lounge_dev'
     else:
-        if season in SEASON_NUMBER_LIST:
+        stats_db = f's{secretly.CURRENT_SEASON}200lounge'
+        if season is None:
             pass
         else:
-            await ctx.respond('Invalid season')
-            return
-
+            try:
+                if season in SEASON_NUMBER_LIST:
+                    pass
+                else:
+                    await send_raw_to_debug_channel(f'/stats invalid season {season}: ', 'lol')
+                    await ctx.respond('Invalid season')
+                    return
+                stats_db = f's{int(season)}200lounge'
+            except Exception as e:
+                await send_raw_to_debug_channel('Stats parse season db exception: ', e)
+                await ctx.respond('Invalid season')
+                return
     # Tier picker
     if tier is None:
        pass
@@ -1211,7 +1222,7 @@ async def stats(
             return
         # Retrieve tier ID and api request the discord.TextChannel object
         try:
-            with DBA.DBAccess() as db:
+            with DBA2.DBAccess(stats_db) as db:
                 tier_id = db.query('SELECT tier_id FROM tier WHERE tier_name = %s;', (tier,))[0][0]
                 tier_channel = await client.fetch_channel(tier_id)
         except Exception as e: # bad input 2 - no tier by that name
@@ -1229,7 +1240,7 @@ async def stats(
             return
         # Retrieve player ID
         try:
-            with DBA.DBAccess() as db:
+            with DBA2.DBAccess(stats_db) as db:
                 player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
         except Exception as e: # bad input 2 - no player by that name
             await ctx.respond('Invalid player')
@@ -1280,7 +1291,7 @@ async def stats(
 
     # Checks for valid player
     try: 
-        with DBA.DBAccess() as db:
+        with DBA2.DBAccess(stats_db) as db:
             temp = db.query('SELECT base_mmr, peak_mmr, mmr, player_name FROM player WHERE player_id = %s;', (my_player_id,))
             if temp[0][0] is None:
                 base = 0
@@ -1289,7 +1300,7 @@ async def stats(
             peak = temp[0][1]
             mmr = temp[0][2]
             player_name = temp[0][3]
-        with DBA.DBAccess() as db:
+        with DBA2.DBAccess(stats_db) as db:
             temp = db.query('SELECT COUNT(*) FROM player WHERE mmr >= %s ORDER BY mmr DESC;', (mmr,))
             rank = temp[0][0]
     except Exception as e:
@@ -1300,9 +1311,9 @@ async def stats(
 
     # Create matplotlib MMR history graph
     if tier is None:
-        with DBA.DBAccess() as db:
+        with DBA2.DBAccess(stats_db) as db:
 
-            sql = 'SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.mogi_format IN (%s) AND m.season = %s ORDER BY m.create_date DESC LIMIT %s;' % ('%s', mogi_format_string, season, '%s')
+            sql = 'SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.mogi_format IN (%s) ORDER BY m.create_date DESC LIMIT %s;' % ('%s', mogi_format_string, '%s')
 
             temp = db.query(sql, (my_player_id, number_of_mogis)) # order newest first
 
@@ -1322,12 +1333,12 @@ async def stats(
                         last_10_wins += 1
                     else:
                         last_10_losses += 1
-        partner_average = await get_partner_avg(my_player_id, number_of_mogis, mogi_format_string, '%', season)
+        partner_average = await get_partner_avg(my_player_id, number_of_mogis, mogi_format_string, '%', stats_db)
     elif tier_id in TIER_ID_LIST:
         try:
-            with DBA.DBAccess() as db:
+            with DBA2.DBAccess(stats_db) as db:
 
-                sql = 'SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s AND m.mogi_format IN (%s) AND m.season = %s ORDER BY m.create_date DESC LIMIT %s;' % ('%s', '%s', mogi_format_string, season, '%s')
+                sql = 'SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s AND m.mogi_format IN (%s) ORDER BY m.create_date DESC LIMIT %s;' % ('%s', '%s', mogi_format_string, '%s')
 
                 temp = db.query(sql, (my_player_id, tier_id, number_of_mogis))
 
@@ -1345,7 +1356,7 @@ async def stats(
             await send_to_debug_channel(ctx, f'/stats not played in tier | {e}')
             await ctx.respond(f'You have not played in {tier_channel}')
             return
-        partner_average = await get_partner_avg(my_player_id, number_of_mogis, mogi_format_string, tier_id, season)
+        partner_average = await get_partner_avg(my_player_id, number_of_mogis, mogi_format_string, tier_id, stats_db)
     else:
         await ctx.respond(f'``Error 30:`` {tier_channel} is not a valid tier')
         return
@@ -2738,6 +2749,22 @@ async def set_uid_roles(uid):
             await member.add_roles(restricted_role)
 
         if mmr is None:
+            # with open('200lounge.csv', 'rt', encoding='utf-8-sig') as f: # f is our filename as string
+            #     lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
+            #     if len(lines) > 0:
+            #         for line in lines:
+            #             name = line[0]
+            #             if name.lower() == (member.display_name).lower():
+            #                 mmr = int(line[2])
+            #                 with DBA.DBAccess() as db:
+            #                     ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
+            #                 for rank in ranks:
+            #                     if mmr >= int(rank[1]) and mmr < int(rank[2]):
+            #                         role = guild.get_role(rank[0])
+            #                         await member.add_roles(role)
+            #                         with DBA.DBAccess() as db:
+            #                             db.execute('UPDATE player set rank_id = %s, mmr = %s, base_mmr = %s, player_name = %s WHERE player_id = %s;', (rank[0], mmr, mmr, member.id))
+            #                         return (role.id, role)
             role = guild.get_role(PLACEMENT_ROLE_ID)
             await member.add_roles(role)
             return (role.id, role)
@@ -3008,20 +3035,19 @@ async def get_number_of_strikes(uid):
             return temp[0][0]
 
 # Takes in uid, returns avg partner score
-async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%', season=secretly.CURRENT_SEASON):
-    logging.warning(f'/table | Partner Avg | uid={uid} | #mogis={number_of_mogis} | format={mogi_format_string} | tier={tier_id}')
+async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%', db_name='s6200lounge'):
+    logging.warning(f'POP_LOG | Partner Avg | uid={uid} | #mogis={number_of_mogis} | format={mogi_format_string} | tier={tier_id}')
     try:
-        with DBA.DBAccess() as db:
+        with DBA2.DBAccess(db_name) as db:
             sql = '''
                 SELECT pm.mogi_id, pm.place, pm.mmr_change 
                 FROM player_mogi as pm 
                 JOIN mogi as m ON pm.mogi_id = m.mogi_id 
                 WHERE pm.player_id = %s 
                 AND m.mogi_format IN (%s)
-                AND m.season = %s
                 AND tier_id like %s 
                 ORDER BY m.create_date DESC LIMIT %s
-                '''  % ('%s', mogi_format_string, season, '%s', '%s')
+                '''  % ('%s', mogi_format_string, '%s', '%s')
             debug_temp1 = db.query(sql, (uid, tier_id, number_of_mogis))
 
             sql = '''
@@ -3033,13 +3059,12 @@ async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%',
                     JOIN mogi as m ON pm.mogi_id = m.mogi_id 
                     WHERE pm.player_id = %s 
                     AND m.mogi_format IN (%s)
-                    AND m.season = %s
                     AND tier_id like %s 
                     ORDER BY m.create_date DESC LIMIT %s) as pm2 
                 ON pm2.mogi_id = pm.mogi_id 
                 AND pm2.place = pm.place 
                 AND pm.mmr_change = pm2.mmr_change
-                WHERE player_id <> %s ''' % ('%s', mogi_format_string, season, '%s', '%s', '%s')
+                WHERE player_id <> %s ''' % ('%s', mogi_format_string, '%s', '%s', '%s')
             debug_temp2 = db.query(sql, (uid, tier_id, number_of_mogis, uid))
 
             sql = '''
@@ -3053,25 +3078,24 @@ async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%',
                     JOIN mogi as m ON pm.mogi_id = m.mogi_id 
                     WHERE pm.player_id = %s 
                     AND m.mogi_format IN (%s)
-                    AND m.season = %s
                     AND tier_id like %s 
                     ORDER BY m.create_date DESC LIMIT %s) as pm2 
                 ON pm2.mogi_id = pm.mogi_id 
                 AND pm2.place = pm.place 
                 AND pm.mmr_change = pm2.mmr_change
-                WHERE player_id <> %s) as a''' % ('%s', mogi_format_string, season, '%s', '%s', '%s')
+                WHERE player_id <> %s) as a''' % ('%s', mogi_format_string, '%s', '%s', '%s')
             temp = db.query(sql, (uid, tier_id, number_of_mogis, uid))
 
             try:
-                logging.warning(f'/table | Partner Avg | SQL Debug 1 returned: {debug_temp1}')
-                logging.warning(f'/table | Partner Avg | SQL Debug 2 returned: {debug_temp2}')
-                logging.warning(f'/table | Partner Avg | SQL returned: {temp}')
+                logging.warning(f'POP_LOG | Partner Avg | SQL Debug 1 returned: {debug_temp1}')
+                logging.warning(f'POP_LOG | Partner Avg | SQL Debug 2 returned: {debug_temp2}')
+                logging.warning(f'POP_LOG | Partner Avg | SQL returned: {temp}')
                 return round(float(temp[0][0]), 2)
             except Exception as e:
-                logging.warning(f'/table | Partner Avg | SQL did not return any average')
+                logging.warning(f'POP_LOG | Partner Avg | SQL did not return any average')
                 return 0
     except Exception as e:
-        await send_raw_to_debug_channel('partner average error', e)
+        await send_raw_to_debug_channel('partner average error',e)
     return 0
 
 # Takes in: ctx
