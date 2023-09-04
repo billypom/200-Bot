@@ -3036,7 +3036,7 @@ async def get_number_of_strikes(uid):
 
 # Takes in uid, returns avg partner score
 async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%', db_name='s6200lounge'):
-    logging.warning(f'POP_LOG | Partner Avg | uid={uid} | #mogis={number_of_mogis} | format={mogi_format_string} | tier={tier_id}')
+    # logging.warning(f'POP_LOG | Partner Avg | uid={uid} | #mogis={number_of_mogis} | format={mogi_format_string} | tier={tier_id}')
     try:
         with DBA2.DBAccess(db_name) as db:
             sql = '''
@@ -3087,9 +3087,9 @@ async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%',
             temp = db.query(sql, (uid, tier_id, number_of_mogis, uid))
 
             try:
-                logging.warning(f'POP_LOG | Partner Avg | SQL Debug 1 returned: {debug_temp1}')
-                logging.warning(f'POP_LOG | Partner Avg | SQL Debug 2 returned: {debug_temp2}')
-                logging.warning(f'POP_LOG | Partner Avg | SQL returned: {temp}')
+                # logging.warning(f'POP_LOG | Partner Avg | SQL Debug 1 returned: {debug_temp1}')
+                # logging.warning(f'POP_LOG | Partner Avg | SQL Debug 2 returned: {debug_temp2}')
+                # logging.warning(f'POP_LOG | Partner Avg | SQL returned: {temp}')
                 return round(float(temp[0][0]), 2)
             except Exception as e:
                 logging.warning(f'POP_LOG | Partner Avg | SQL did not return any average')
