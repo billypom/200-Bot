@@ -905,13 +905,13 @@ async def table(
             logging.warning(f'POP_LOG | {idx} | {team}')
             temp_value = 0.0
             for pre_mmr_list in value_table:
-                logging.warning(f'POP_LOG | {pre_mmr_list}')
+                # logging.warning(f'POP_LOG | {pre_mmr_list}')
                 # print(f'{idx}pre mmr list')
                 # print(pre_mmr_list)
                 for idx2, value in enumerate(pre_mmr_list):
-                    logging.warning(f'POP_LOG | (idx,idx2)')
-                    logging.warning(f'POP_LOG | {idx},{idx2}')
-                    logging.warning(f'POP_LOG | {temp_value} += {value}')
+                    # logging.warning(f'POP_LOG | (idx,idx2)')
+                    # logging.warning(f'POP_LOG | {idx},{idx2}')
+                    # logging.warning(f'POP_LOG | {temp_value} += {value}')
                     # logging.warning(f'POP_LOG | {temp_value.real} += {value.real}')
                     if idx == idx2:
                         temp_value += value
@@ -1190,6 +1190,12 @@ async def stats(
     season: discord.Option(int, description='Season number (5, 6)', required=False)
     ):
     await ctx.defer()
+    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    if lounge_ban:
+        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+        return
+    else:
+        pass
     # Validate strings
     # Season picker
     if secretly.DTB == 'lounge_dev':
@@ -2631,7 +2637,7 @@ async def zget_player_punishments(
     description='Add MMR to a player',
     guild_ids=Lounge
 )
-@commands.has_any_role(ADMIN_ROLE_ID)
+@commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
 async def zadd_mmr(
     ctx,
     player: discord.Option(str, 'Player name', required=True),
