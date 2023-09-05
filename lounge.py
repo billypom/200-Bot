@@ -3151,7 +3151,14 @@ async def handle_score_input(ctx, score_string, mogi_format):
     return chunked_list
 
 async def handle_suggestion_decision(suggestion_id, suggestion, author_id, message_id, admin_id, approved, reason):
-    author = await GUILD.fetch_member(author_id)
+    try:
+        author = await GUILD.fetch_member(author_id)
+    except Exception as e:
+        logging.warning(f'Suggestion author {author_id} not in server. Suggestion id [{suggestion_id}] will be deleted. - "{suggestion}"')
+        channel = client.get_channel(secretly.suggestion_voting_channel)
+        suggestion_message_to_delete = await channel.fetch_message(message_id)
+        await suggestion_message_to_delete.delete()
+        await channel.send(f'Suggestion author not in server. Suggestion id [{suggestion_id}] will be deleted. - "{suggestion}"')
     admin = await GUILD.fetch_member(admin_id)
     if approved is None:
         return
