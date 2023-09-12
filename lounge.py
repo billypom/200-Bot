@@ -1694,36 +1694,7 @@ async def zstrikes(ctx,
     await ctx.respond('This player has no strikes')
     return
 
-# /zcancel_mogi
-@client.slash_command(
-    name='zcancel_mogi',
-    description='Cancel an ongoing mogi [Admin only]',
-    guild_ids=Lounge
-)
-@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-async def zcancel_mogi(ctx):
-    await ctx.defer()
-    # Check for ongoing mogi in current channel
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
-        if len(temp) == 12:
-            pass
-        else:
-            await ctx.respond('There is no mogi being played in this tier.')
-            return
-    except Exception as e:
-        await send_to_debug_channel(ctx, f'Cancel Error Check: {e}')
-        return
-    # Delete from lineups & sub_leaver
-    try:
-        with DBA.DBAccess() as db:
-            db.execute('DELETE FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
-            # db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (ctx.channel.id,))
-        await ctx.respond('The mogi has been cancelled')
-    except Exception as e:
-        await send_to_debug_channel(ctx, f'Cancel Error Deletion:{e}')
-        return
+
 
 # /zrevert
 @client.slash_command(
@@ -2105,18 +2076,7 @@ async def zmmr_penalty(
         await send_to_debug_channel(ctx, f'/zmmr_penalty error 38 {e}')
         await ctx.respond('`Error 38:` Could not apply penalty')
 
-# /zsendmsg
-@client.slash_command(
-    name='zsendmsg',
-    description='bot send message here',
-    guild_ids=Lounge
-)
-@commands.has_any_role(ADMIN_ROLE_ID)
-async def zsendmsg(ctx):
-    await ctx.defer()
-    channel = client.get_channel(ctx.channel.id)
-    await channel.send('a')
-    await ctx.respond('message sent')
+# 
 
 # /zreduce_loss
 @client.slash_command(
@@ -2679,19 +2639,6 @@ async def zlog_file(ctx):
 
 
 
-
-# /qwe
-@client.slash_command(
-    name='qwe',
-    description='qwe',
-    guild_ids=Lounge
-)
-@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-async def qwe(
-    ctx,
-    player: discord.Option(discord.Member, 'player', required=False)):
-    await ctx.defer()
-    await ctx.respond('qwe')
     
 
 
@@ -3668,6 +3615,31 @@ client.run(secretly.token)
 
 
 
+
+
+
+# /zsendmsg
+# @client.slash_command(
+#     name='zsendmsg',
+#     description='bot send message here',
+#     guild_ids=Lounge
+# )
+# @commands.has_any_role(ADMIN_ROLE_ID)
+# async def zsendmsg(ctx):
+#     await ctx.defer()
+#     channel = client.get_channel(ctx.channel.id)
+#     await channel.send('a')
+#     await ctx.respond('message sent')
+
+
+
+
+
+
+
+
+
+
 # # /c
 # @client.slash_command(
 #     name='c',
@@ -4063,6 +4035,42 @@ client.run(secretly.token)
 #     except Exception as e:
 #         response = "Use `/teams` in a tier channel"
 #     await ctx.respond(response)
+
+
+
+
+
+
+# # /zcancel_mogi
+# @client.slash_command(
+#     name='zcancel_mogi',
+#     description='Cancel an ongoing mogi [Admin only]',
+#     guild_ids=Lounge
+# )
+# @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+# async def zcancel_mogi(ctx):
+#     await ctx.defer()
+#     # Check for ongoing mogi in current channel
+#     try:
+#         with DBA.DBAccess() as db:
+#             temp = db.query('SELECT player_id FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
+#         if len(temp) == 12:
+#             pass
+#         else:
+#             await ctx.respond('There is no mogi being played in this tier.')
+#             return
+#     except Exception as e:
+#         await send_to_debug_channel(ctx, f'Cancel Error Check: {e}')
+#         return
+#     # Delete from lineups & sub_leaver
+#     try:
+#         with DBA.DBAccess() as db:
+#             db.execute('DELETE FROM lineups WHERE tier_id = %s AND can_drop = %s ORDER BY create_date ASC LIMIT %s;', (ctx.channel.id, 0, MAX_PLAYERS_IN_MOGI))
+#             # db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (ctx.channel.id,))
+#         await ctx.respond('The mogi has been cancelled')
+#     except Exception as e:
+#         await send_to_debug_channel(ctx, f'Cancel Error Deletion:{e}')
+#         return
 
 
 
