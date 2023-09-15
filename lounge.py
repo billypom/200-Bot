@@ -606,7 +606,7 @@ async def table(
     if not chunked_list:
         await ctx.respond(f'``Error 73:`` Invalid input. There must be 12 players and 12 scores.')
         return
-    logging.warning(f'POP_LOG | chunked_list: {chunked_list}')
+    # logging.warning(f'POP_LOG | chunked_list: {chunked_list}')
     
     # Check if mogi has started
     # try:
@@ -902,7 +902,7 @@ async def table(
         # Actually calculate the MMR
         logging.warning(f'POP_LOG | Calculating MMR')
         for idx, team in enumerate(sorted_list):
-            logging.warning(f'POP_LOG | {idx} | {team}')
+            # logging.warning(f'POP_LOG | {idx} | {team}')
             temp_value = 0.0
             for pre_mmr_list in value_table:
                 # logging.warning(f'POP_LOG | {pre_mmr_list}')
@@ -918,7 +918,7 @@ async def table(
                     else:
                         pass
             # print(f'appending {temp_value}+={value} | {idx} | {idx2}')
-            logging.warning(f'POP_LOG | value = {temp_value}, value.real = {temp_value.real}')
+            # logging.warning(f'POP_LOG | value = {temp_value}, value.real = {temp_value.real}')
             team.append(math.floor(temp_value.real))
 
 

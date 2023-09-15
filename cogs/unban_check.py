@@ -71,7 +71,6 @@ class unban_check(commands.Cog):
     
     @tasks.loop(hours=1)
     async def punishment_check(self):
-        logging.warning('Punishment checking...')
         # current time to compare against ban dates
         unix_now = await self.get_unix_time_now()
         current_time = datetime.datetime.now()
