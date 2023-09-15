@@ -1905,6 +1905,7 @@ async def zstrike(
         with DBA.DBAccess() as db:
             temp = db.query('SELECT times_strike_limit_reached FROM player WHERE player_id = %s;', (player_id,))
             times_strike_limit_reached = temp[0][0] + 1
+            logging.warning(f'Strike limit reached. {7*times_strike_limit_reached} day ban will be applied to: {player_id}')
             unban_unix_time = await get_unix_time_now() + 7*24*60*60*times_strike_limit_reached # multiply their ban length by 7x how many times they have reached strike limit before
             dt = datetime.datetime.utcfromtimestamp(unban_unix_time).strftime('%Y-%m-%d %H:%M:%S') # create the dt object
             db.execute('UPDATE player SET times_strike_limit_reached = %s, unban_date = %s WHERE player_id = %s;', (times_strike_limit_reached, dt, player_id)) # insert the dt object
