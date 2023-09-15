@@ -1508,7 +1508,7 @@ async def strikes(ctx):
     await ctx.defer()
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        await ctx.respond(f'You will be unbanned after <t:{lounge_ban}:D>', delete_after=30)
         return
     else:
         pass
@@ -1547,7 +1547,7 @@ async def suggest(
     await ctx.defer(ephemeral=True)
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+        await ctx.respond(f'You will be unbanned after <t:{lounge_ban}:D>')
         return
     else:
         pass
@@ -1668,7 +1668,7 @@ async def zstrikes(ctx,
 
     lounge_ban = await check_if_uid_is_lounge_banned(player_id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        await ctx.respond(f'You will be unbanned after <t:{lounge_ban}:D>', delete_after=30)
         return
     else:
         pass
@@ -1905,15 +1905,18 @@ async def zstrike(
         with DBA.DBAccess() as db:
             temp = db.query('SELECT times_strike_limit_reached FROM player WHERE player_id = %s;', (player_id,))
             times_strike_limit_reached = temp[0][0] + 1
-            unban_unix_time = await get_unix_time_now() + 24*60*60*times_strike_limit_reached
-            dt = datetime.datetime.utcfromtimestamp(unban_unix_time).strftime('%Y-%m-%d %H:%M:%S')
-            db.execute('UPDATE player SET times_strike_limit_reached = %s, unban_date = %s WHERE player_id = %s;', (times_strike_limit_reached, dt, player_id))
-        user = await GUILD.fetch_member(player_id)
-        await user.add_roles(LOUNGELESS_ROLE)
-        ranks_list = await get_list_of_rank_ids()
-        for rank in ranks_list:
-            bye = GUILD.get_role(rank)
-            await user.remove_roles(bye)
+            unban_unix_time = await get_unix_time_now() + 24*60*60*times_strike_limit_reached # multiply their ban length by 7x how many times they have reached strike limit before
+            dt = datetime.datetime.utcfromtimestamp(unban_unix_time).strftime('%Y-%m-%d %H:%M:%S') # create the dt object
+            db.execute('UPDATE player SET times_strike_limit_reached = %s, unban_date = %s WHERE player_id = %s;', (times_strike_limit_reached, dt, player_id)) # insert the dt object
+        try:
+            user = await GUILD.fetch_member(player_id)
+            await user.add_roles(LOUNGELESS_ROLE)
+            ranks_list = await get_list_of_rank_ids()
+            for rank in ranks_list:
+                bye = GUILD.get_role(rank)
+                await user.remove_roles(bye)
+        except Exception:
+            pass
         channel = client.get_channel(secretly.strikes_channel)
         await channel.send(f'<@{player_id}> has reached 3 strikes. Loungeless role applied\n`# of offenses:` {times_strike_limit_reached}')
     await ctx.respond(f'Strike applied to <@{player_id}> | Penalty: {mmr_penalty}')
@@ -2290,7 +2293,7 @@ async def zmanually_verify_banned_player(
     if x:
         lounge_ban = await check_if_uid_is_lounge_banned(player_id)
         if lounge_ban:
-            await ctx.respond(f'This player is Lounge Banned.\nUnban date: <t:{lounge_ban}:F>')
+            await ctx.respond(f'This player is Lounge Banned.\nUnbanned after <t:{lounge_ban}:D>')
             return
         else:
             await ctx.respond(f'<@{player_id}> already exists. They should be able to `/verify` their own account.')
