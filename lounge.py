@@ -2149,7 +2149,7 @@ async def zreduce_loss(ctx,
     description='Change a players discord account [Admin only] [Developer mode required]',
     guild_ids=Lounge
 )
-@commands.has_any_role(ADMIN_ROLE_ID)
+@commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
 async def zchange_discord_account(
     ctx,
     old_discord_id: discord.Option(str, 'Original Discord ID', required=True),
@@ -2510,6 +2510,7 @@ async def zdelete_player(
     description='manually verify a player (no mkc api checks)',
     guild_ids=Lounge
 )
+@commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
 async def zmanually_verify_player(
     ctx, 
     player_id: discord.Option(str, 'Discord ID of player to be verified', required=True),
@@ -2563,7 +2564,7 @@ async def zmanually_verify_player(
     description='See all punishments for a player',
     guild_ids=Lounge
 )
-@commands.has_any_role(ADMIN_ROLE_ID)
+@commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
 async def zget_player_punishments(
     ctx,
     name: discord.Option(str, 'Name', required=False),
@@ -2657,14 +2658,6 @@ async def zdelete_bot_msgs(ctx):
     await channel.delete_messages(bot_messages)
     # Inform the user that messages have been deleted
     await ctx.respond(content="Deleted bot messages", hidden=True)
-
-
-
-    
-
-
-    # member = await GUILD.fetch_member(uid)
-    # await ctx.respond(member.display_name)
 
 
 
