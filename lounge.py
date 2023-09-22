@@ -331,7 +331,7 @@ async def verify(
     if x:
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:
-            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+            await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>')
             return
         else:
             pass
@@ -478,7 +478,7 @@ async def name(
     await ctx.defer(ephemeral=True)
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+        await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>')
         return
     else:
         pass
@@ -574,7 +574,7 @@ async def table(
     # ------- Perform access checks
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+        await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>', delete_after=30)
         return
     # Check scores for bad input
     bad = await check_if_banned_characters(scores)
@@ -1192,7 +1192,7 @@ async def stats(
     await ctx.defer()
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+        await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>')
         return
     else:
         pass
@@ -1474,7 +1474,7 @@ async def mmr(ctx):
     await ctx.defer(ephemeral=True)
     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
     if lounge_ban:
-        await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+        await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>')
         return
     else:
         pass
@@ -2640,6 +2640,19 @@ async def zlog_file(ctx):
     await ctx.respond('here u go')
     return
 
+@slash.slash_command(name="zdelete_bot_messages", description="Delete all bot messages in the current channel", guild_ids=Lounge)
+async def delete_bot_msgs(ctx):
+    await ctx.defer()
+    channel = ctx.channel
+    bot_user_id = bot.user.id
+    # Fetch a certain number of messages from the channel, you can adjust the limit
+    messages = await channel.history(limit=100).flatten()
+    # Filter messages sent by the bot
+    bot_messages = [message for message in messages if message.author.id == bot_user_id]
+    # Delete bot messages
+    await channel.delete_messages(bot_messages)
+    # Inform the user that messages have been deleted
+    await ctx.respond(content="Deleted bot messages", hidden=True)
 
 
 
