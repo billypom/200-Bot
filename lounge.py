@@ -2649,11 +2649,10 @@ async def zlog_file(ctx):
 async def zdelete_bot_msgs(ctx):
     await ctx.defer()
     channel = ctx.channel
-    bot_user_id = bot.user.id
     # Fetch a certain number of messages from the channel, you can adjust the limit
     messages = await channel.history(limit=100).flatten()
     # Filter messages sent by the bot
-    bot_messages = [message for message in messages if message.author.id == bot_user_id]
+    bot_messages = [message for message in messages if message.author.id == secretly.bot_id]
     # Delete bot messages
     await channel.delete_messages(bot_messages)
     # Inform the user that messages have been deleted
