@@ -2640,7 +2640,7 @@ async def zlog_file(ctx):
     await ctx.respond('here u go')
     return
 
-@commands.slash_command(
+@client.slash_command(
     name="zdelete_bot_messages", 
     description="Delete all bot messages in the current channel", 
     guild_ids=Lounge
