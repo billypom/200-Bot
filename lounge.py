@@ -2645,7 +2645,8 @@ async def zlog_file(ctx):
     description="Delete all bot messages in the current channel", 
     guild_ids=Lounge
 )
-async def delete_bot_msgs(ctx):
+@commands.has_any_role(ADMIN_ROLE_ID)
+async def zdelete_bot_msgs(ctx):
     await ctx.defer()
     channel = ctx.channel
     bot_user_id = bot.user.id
