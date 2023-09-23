@@ -1898,7 +1898,7 @@ async def zstrike(
                 mmr = temp[0][0]
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player_id, reason, mmr_penalty, expiration_date))
-            db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((mmr-mmr_penalty), player_id))
+            db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((max(mmr-mmr_penalty, 1)), player_id))
     num_of_strikes = await get_number_of_strikes(player_id)
     if num_of_strikes >= 3:
         times_strike_limit_reached = 0
