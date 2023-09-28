@@ -468,7 +468,7 @@ async def verify(
 # /name
 @client.slash_command(
     name='name',
-    description='Change your name',
+    description='Request a name change on the leaderboard',
     # guild_ids=Lounge
 )
 async def name(
@@ -1572,6 +1572,9 @@ async def suggest(
         return
 
 
+
+
+
 # /approve_suggestion
 @client.slash_command(
     name='approve_suggestion',
@@ -1646,6 +1649,26 @@ async def deny(
     else:
         await ctx.respond(f'Error...')
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # /zstrikes
 @client.slash_command(
     name='zstrikes',
@@ -1699,7 +1722,7 @@ async def zstrikes(ctx,
 # /zrevert
 @client.slash_command(
     name="zrevert",
-    description="Undo a table [Admin only]",
+    description="Undo a table",
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -1795,7 +1818,7 @@ async def zrevert(
 # /zswapscore
 @client.slash_command(
     name="zswapscore",
-    description="Swap the score of two players on the same team [Admin only]",
+    description="Swap the score of two players on the same team",
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -1851,7 +1874,7 @@ async def zswapscore(
 # /zstrike
 @client.slash_command(
     name='zstrike',
-    description='Add strike & -mmr penalty to a player [Admin only]',
+    description='Add strike & -mmr penalty to a player',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -1922,39 +1945,12 @@ async def zstrike(
         await channel.send(f'<@{player_id}> has reached 3 strikes. Loungeless role applied\n`# of offenses:` {times_strike_limit_reached}')
     await ctx.respond(f'Strike applied to <@{player_id}> | Penalty: {mmr_penalty}')
      
-# # /zhostban
-# @client.slash_command(
-#     name='zhostban',
-#     description='Add hostban to a player [Admin only]',
-#     guild_ids=Lounge
-# )
-# @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-# async def zhostban(
-#     ctx,
-#     player: discord.Option(discord.Member, description='Which player?', required=True)
-#     ):
-#     await ctx.defer()
-#     x = await check_if_uid_exists(player.id)
-#     if x:
-#         pass
-#     else:
-#         await ctx.respond('Player not found')
-#         return
-#     with DBA.DBAccess() as db:
-#         temp = db.query('SELECT is_host_banned FROM player WHERE player_id = %s;', (player.id,))
-#     if temp[0][0]:
-#         with DBA.DBAccess() as db:
-#             db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (0, player.id))
-#             await ctx.respond(f'{player.mention} has been un-host-banned')
-#     else:
-#         with DBA.DBAccess() as db:
-#             db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (1, player.id))
-#             await ctx.respond(f'{player.mention} has been host-banned')
+
 
 # /zrestrict
 @client.slash_command(
     name='zrestrict',
-    description='Chat restrict a player [Admin only]',
+    description='Chat restrict a player',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -2006,7 +2002,7 @@ async def zrestrict(
 # /zloungeless
 @client.slash_command(
     name='zloungeless',
-    description='Apply the loungeless role [Admin only]',
+    description='Apply the loungeless role to a player',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -2046,7 +2042,7 @@ async def zloungeless(
 # /zmmr_penalty
 @client.slash_command(
     name='zmmr_penalty',
-    description='Give a player an MMR penalty, with no strike [Admin only]',
+    description='Give a player an MMR penalty, with no strike',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -2146,7 +2142,7 @@ async def zreduce_loss(ctx,
 # /zchange_discord_account
 @client.slash_command(
     name='zchange_discord_account',
-    description='Change a players discord account [Admin only] [Developer mode required]',
+    description='Change a players discord account',
     guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
@@ -2275,7 +2271,7 @@ async def zset_player_name(ctx,
 
 @client.slash_command(
     name='zmanually_verify_banned_player',
-    description='Receive the OK from MKC staff before using this',
+    description='Allow a MKC banned player to verify in lounge',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -2413,7 +2409,7 @@ async def zmanually_verify_banned_player(
 
 @client.slash_command(
     name='zset_player_roles',
-    description='Check for proper player roles',
+    description='Fixed player roles and nickname',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -2431,7 +2427,7 @@ async def zset_player_roles(
 
 @client.slash_command(
     name='zget_player_info',
-    description='Get player DB info',
+    description='Get player DB info [Please only use in admin chats]',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
@@ -2507,7 +2503,7 @@ async def zdelete_player(
 
 @client.slash_command(
     name='zmanually_verify_player',
-    description='manually verify a player (no mkc api checks)',
+    description='Manually verify a player (no mkc api checks)',
     guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
@@ -2643,7 +2639,7 @@ async def zlog_file(ctx):
 
 @client.slash_command(
     name="zdelete_bot_messages", 
-    description="Delete all bot messages in the current channel", 
+    description="Delete all bot messages in the current channel from the past 14 days", 
     guild_ids=Lounge
 )
 @commands.has_any_role(ADMIN_ROLE_ID)
@@ -3620,6 +3616,49 @@ client.run(secretly.token)
 
 # old crap below...
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# # /zhostban
+# @client.slash_command(
+#     name='zhostban',
+#     description='Add hostban to a player [Admin only]',
+#     guild_ids=Lounge
+# )
+# @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+# async def zhostban(
+#     ctx,
+#     player: discord.Option(discord.Member, description='Which player?', required=True)
+#     ):
+#     await ctx.defer()
+#     x = await check_if_uid_exists(player.id)
+#     if x:
+#         pass
+#     else:
+#         await ctx.respond('Player not found')
+#         return
+#     with DBA.DBAccess() as db:
+#         temp = db.query('SELECT is_host_banned FROM player WHERE player_id = %s;', (player.id,))
+#     if temp[0][0]:
+#         with DBA.DBAccess() as db:
+#             db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (0, player.id))
+#             await ctx.respond(f'{player.mention} has been un-host-banned')
+#     else:
+#         with DBA.DBAccess() as db:
+#             db.execute("UPDATE player SET is_host_banned = %s WHERE player_id = %s;", (1, player.id))
+#             await ctx.respond(f'{player.mention} has been host-banned')
 
 
 
