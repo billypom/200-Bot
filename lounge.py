@@ -1888,11 +1888,10 @@ async def zstrike(
     if len(reason) > 32:
         await ctx.respond('Reason too long (32 character limit)')
         return
-    with DBA.DBAccess() as db:
-        player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
-    if player_id:
-        pass
-    else:
+    try:
+        with DBA.DBAccess() as db:
+            player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
+    except Exception as e:
         await ctx.respond('Player not found')
         return
     y = await check_if_banned_characters(reason)
@@ -1943,9 +1942,47 @@ async def zstrike(
             pass
         channel = client.get_channel(secretly.strikes_channel)
         await channel.send(f'<@{player_id}> has reached 3 strikes. Loungeless role applied\n`# of offenses:` {times_strike_limit_reached}')
-    await ctx.respond(f'Strike applied to <@{player_id}> | Penalty: {mmr_penalty}')
-     
+    with DBA.DBAccess() as db:
+        strike_id = db.query('SELECT strike_id FROM strike WHERE player_id = %s AND reason = %s AND mmr_penalty = %s AND expiration_date = %s;', (player_id, reason, mmr_penalty, expiration_date))[0][0]
+    await ctx.respond(f'Strike applied to <@{player_id}> | Penalty: {mmr_penalty}\n`ID: {strike_id}`')
 
+# /zunstrike
+@client.slash_command(
+    name='zunstrike',
+    description='Remove strike by ID',
+    guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zunstrike(ctx, strike_id: discord.Option(int, description='Enter the strike ID', required=True)):
+    await ctx.defer()
+    # Check if strike exists
+    with DBA.DBAccess() as db:
+        db_strike_id = db.query('SELECT strike_id FROM strike WHERE strike_id = %s;', (strike_id))[0][0]
+    if not db_strike_id:
+        await ctx.respond('Strike ID not found')
+        return
+        
+    # Delete the strike
+    with DBA.DBAccess() as db:
+        db.execute('DELETE FROM strike WHERE strike_id = %s;', (strike_id))
+
+    # Make sure the strike is gone
+    with DBA.DBAccess() as db:
+        db_strike_id = db.query('SELECT strike_id FROM strike WHERE strike_id = %s;', (strike_id))[0][0]
+    if db_strike_id:
+        # If the strike still exists, alert and stuff
+        logging.warning(f'UNSTRIKE FAILED - {ctx.author.id} | {ctx.author.display_name} - Attempted to remove strike {strike_id}')
+        await ctx.respond(f'Unstrike operation failed. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')
+        return
+    else:
+        # Success
+        await ctx.respond(f'Strike ID {strike_id} has been removed.')
+        return
+    
+
+
+
+    
 
 # /zrestrict
 @client.slash_command(
@@ -2075,8 +2112,6 @@ async def zmmr_penalty(
     except Exception as e:
         await send_to_debug_channel(ctx, f'/zmmr_penalty error 38 {e}')
         await ctx.respond('`Error 38:` Could not apply penalty')
-
-# 
 
 # /zreduce_loss
 @client.slash_command(
