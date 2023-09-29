@@ -2113,6 +2113,14 @@ async def zmmr_penalty(
         await send_to_debug_channel(ctx, f'/zmmr_penalty error 38 {e}')
         await ctx.respond('`Error 38:` Could not apply penalty')
 
+# missing 4 races = 2/3
+# missing 6 races = 1/2
+# missing 7 races = 5/12
+# missing 8 races = 1/3
+# missing 9 races = 1/4
+# missing 10 races = 1/6
+# missing 11 races = 1/12
+# missing the whole mogi = no loss
 # /zreduce_loss
 @client.slash_command(
     name='zreduce_loss',
@@ -2123,7 +2131,7 @@ async def zmmr_penalty(
 async def zreduce_loss(ctx,
     player: discord.Option(str, description='Player name', required=True),
     mogi_id: discord.Option(int, description='Which mogi?', required=True),
-    reduction: discord.Option(str, description='Reduction value', required=True)):
+    reduction: discord.Option(str, description='Missing # of races: (4-12) = (2/3, 2/3, 1/2, 5/12, 1/3, 1/4, 1/6, 1/12)', required=True)):
     await ctx.defer()
     with DBA.DBAccess() as db:
         player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
