@@ -1971,27 +1971,43 @@ async def zunstrike(ctx, strike_id: discord.Option(int, description='Enter the s
     await ctx.defer()
     # Check if strike exists
     with DBA.DBAccess() as db:
-        db_strike_id = db.query('SELECT strike_id FROM strike WHERE strike_id = %s;', (strike_id))[0][0]
-    if not db_strike_id:
-        await ctx.respond('Strike ID not found')
-        return
+        try:
+            temp = db.query('SELECT strike_id, player_id, reason, mmr_penalty, penalty_applied FROM strike WHERE strike_id = %s;', (strike_id,))
+            db_strike_id = temp[0][0]
+            player_id = temp[0][1]
+            reason = temp[0][2]
+            mmr_penalty = temp[0][3]
+            penalty_applied = temp[0][4]
+        except Exception as e:
+            await ctx.respond('Strike ID not found')
+            return
+    if penalty_applied:
+        # Undo the penalty
+        with DBA.DBAccess() as db:
+            # Get player mmr
+            try:
+                player_mmr = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player_id,))[0][0]
+            except Exception as e:
+                logging.warning(f'UNSTRIKE Failed - {player_id} not found')
+                await ctx.respond('Something went wrong. Player on strike not found.')
+                
+            # Do math to remove penalty
+            player_new_mmr = (max(player_mmr+mmr_penalty, 1))
+
+            # Update player MMR
+            try:
+                db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (player_new_mmr, player_id))
+            except Exception as e:
+                logging.warning(f'UNSTRIKE Failed - {player_id} MMR ({player_mmr}) could not be updated to ({player_new_mmr})')
+                await ctx.respond('Something went wrong. Player MMR could not be updated.')
+    else:
+        pass
         
     # Delete the strike
     with DBA.DBAccess() as db:
-        db.execute('DELETE FROM strike WHERE strike_id = %s;', (strike_id))
-
-    # Make sure the strike is gone
-    with DBA.DBAccess() as db:
-        db_strike_id = db.query('SELECT strike_id FROM strike WHERE strike_id = %s;', (strike_id))[0][0]
-    if db_strike_id:
-        # If the strike still exists, alert and stuff
-        logging.warning(f'UNSTRIKE FAILED - {ctx.author.id} | {ctx.author.display_name} - Attempted to remove strike {strike_id}')
-        await ctx.respond(f'Unstrike operation failed. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')
-        return
-    else:
-        # Success
-        await ctx.respond(f'Strike ID {strike_id} has been removed.')
-        return
+        db.execute('DELETE FROM strike WHERE strike_id = %s;', (strike_id,))
+    await ctx.respond(f'Strike ID {strike_id} has been removed.')
+    
     
 
 
