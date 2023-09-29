@@ -1909,7 +1909,14 @@ async def zstrike(
     player_is_placement = await check_if_uid_is_placement(player_id)
     if player_is_placement:
         with DBA.DBAccess() as db:
+            # Create strike
             db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date, penalty_applied) VALUES (%s, %s, %s, %s, %s);', (player_id, reason, mmr_penalty, expiration_date, 0))
+            # Get inserted strike
+            try:
+                strike_id = db.query('SELECT strike_id FROM strike WHERE player_id = %s AND reason = %s AND mmr_penalty = %s ORDER BY create_date DESC;', (player_id, reason, mmr_penalty))[0][0]
+            except Exception as e:
+                logging.warning(f'Strike application failed - could not retrieve last inserted strike')
+                return
     else:
         with DBA.DBAccess() as db:
             temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player_id,))
@@ -1918,8 +1925,17 @@ async def zstrike(
                 return
             else:
                 mmr = temp[0][0]
+            
         with DBA.DBAccess() as db:
+            # Create strike
             db.execute('INSERT INTO strike (player_id, reason, mmr_penalty, expiration_date) VALUES (%s, %s, %s, %s);', (player_id, reason, mmr_penalty, expiration_date))
+            # Get inserted strike
+            try:
+                strike_id = db.query('SELECT strike_id FROM strike WHERE player_id = %s AND reason = %s AND mmr_penalty = %s ORDER BY create_date DESC;', (player_id, reason, mmr_penalty))[0][0]
+            except Exception as e:
+                logging.warning(f'Strike application failed - could not retrieve last inserted strike')
+                return
+            # Update player MMR
             db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', ((max(mmr-mmr_penalty, 1)), player_id))
     num_of_strikes = await get_number_of_strikes(player_id)
     if num_of_strikes >= 3:
@@ -1942,8 +1958,6 @@ async def zstrike(
             pass
         channel = client.get_channel(secretly.strikes_channel)
         await channel.send(f'<@{player_id}> has reached 3 strikes. Loungeless role applied\n`# of offenses:` {times_strike_limit_reached}')
-    with DBA.DBAccess() as db:
-        strike_id = db.query('SELECT strike_id FROM strike WHERE player_id = %s AND reason = %s AND mmr_penalty = %s AND expiration_date = %s;', (player_id, reason, mmr_penalty, expiration_date))[0][0]
     await ctx.respond(f'Strike applied to <@{player_id}> | Penalty: {mmr_penalty}\n`ID: {strike_id}`')
 
 # /zunstrike

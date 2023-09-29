@@ -5,3 +5,5 @@ py-cord
 beautifulsoup4
 pykakasi
 korean-romanizer
+pytz
+requests
