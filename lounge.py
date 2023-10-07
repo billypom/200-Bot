@@ -164,9 +164,9 @@ async def on_message(ctx):
         return
     user = await GUILD.fetch_member(ctx.author.id)
     if CHAT_RESTRICTED_ROLE in user.roles: # restricted players
-        if ctx.content in secretly.chat_restricted_words:
-            return
-        else:
+        # if ctx.content in secretly.chat_restricted_words:
+        #     return
+        # else:
             await ctx.delete()
             return
     # if ctx.channel.id in TIER_ID_LIST: # Only care if messages are in a tier
@@ -662,13 +662,14 @@ async def table(
     #   A comment about how people "never thought anyone could reach 10k mmr" made me think this very high integer was a
     #       replacement for getting the highest existing mmr (or at least my formula could emulate that high integer 
     #       with some variance :shrug: its probably fine... no1 going 2 read this)
+
     # try:
         # with DBA.DBAccess() as db:
             # h = db.query('SELECT max(mmr) from player where player_id > %s;',(0,))
             # highest_mmr = h[0][0]
     # except Exception as e:
         # await ctx.respond(f'``Error 76:`` `/table` error. Make a <#{secretly.support_channel}> if you need assistance.')
-    # print(f'player score chunked list: {player_score_chunked_list}')
+
     highest_mmr = 10999
 
 
@@ -833,10 +834,6 @@ async def table(
     await table_view.wait()
     if table_view.value is None:
         await ctx.respond('No response from reporter. Timed out')
-
-
-
-
     elif table_view.value: # yes
         db_mogi_id = 0
         # Create mogi
@@ -1553,7 +1550,7 @@ async def suggest(
         pass
     x = await check_if_banned_characters(message)
     if x:
-        await ctx.respond(f'Oops! There was an error with your suggestion. Try using less symbols :P')
+        await ctx.respond(f"Oops! There was an error with your suggestion. Try using less symbols - just use letters and numbers.")
         return
     try:
         with DBA.DBAccess() as db:
@@ -2545,7 +2542,7 @@ async def zget_player_info(
     description='ADMIN ONLY [DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING]',
     guild_ids=Lounge
 )
-@commands.has_any_role(ADMIN_ROLE_ID)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zdelete_player(
     ctx,
     discord_id: discord.Option(str, 'Discord ID', required=True)):
@@ -2715,7 +2712,7 @@ async def zlog_file(ctx):
     description="Delete all bot messages in the current channel from the past 14 days", 
     guild_ids=Lounge
 )
-@commands.has_any_role(ADMIN_ROLE_ID)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zdelete_bot_msgs(ctx):
     await ctx.defer()
     channel = ctx.channel
