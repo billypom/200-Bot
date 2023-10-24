@@ -1503,12 +1503,12 @@ async def mmr(ctx):
 )
 async def strikes(ctx):
     await ctx.defer()
-    lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-    if lounge_ban:
-        await ctx.respond(f'You will be unbanned after <t:{lounge_ban}:D>', delete_after=30)
-        return
-    else:
-        pass
+    # lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+    # if lounge_ban:
+    #     await ctx.respond(f'You will be unbanned after <t:{lounge_ban}:D>', delete_after=30)
+    #     return
+    # else:
+    #     pass
     x = await check_if_uid_exists(ctx.author.id)
     if x:
         pass
@@ -1686,12 +1686,6 @@ async def zstrikes(ctx,
         await ctx.respond('Player not found')
         return
 
-    lounge_ban = await check_if_uid_is_lounge_banned(player_id)
-    if lounge_ban:
-        await ctx.respond(f'You will be unbanned after <t:{lounge_ban}:D>', delete_after=30)
-        return
-    else:
-        pass
     x = await check_if_uid_exists(player_id)
     if x:
         pass
