@@ -40,8 +40,8 @@ logging.basicConfig(filename='200lounge.log', filemode='a', level=logging.WARNIN
 
 Lounge = secretly.Lounge
 # mogi_media_message_id = 1005205285817831455
-TIER_ID_LIST = list()
-RANK_ID_LIST = secretly.RANK_ID_LIST
+TIER_ID_LIST = list() # gets initialized below extensions - used to make sure certain actions only happen in the tiers
+RANK_ID_LIST = list() # gets initialized below - not used anymore??? used to be used in looping function during voting
 MAX_PLAYERS_IN_MOGI = secretly.MAX_PLAYERS_IN_MOGI
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = secretly.SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT
 NAME_CHANGE_DELTA_LIMIT = secretly.NAME_CHANGE_DELTA_LIMIT
@@ -74,6 +74,11 @@ with DBA.DBAccess() as db:
     get_tier_list = db.query('SELECT tier_id FROM tier WHERE tier_id > %s;', (0,))
     for i in range(len(get_tier_list)):
         TIER_ID_LIST.append(get_tier_list[i][0])
+
+with DBA.DBAccess() as db:
+    get_rank_list = db.query('SELECT rank_id FROM ranks WHERE rank_id > %s;', (0,))
+    for i in range(len(get_rank_list)):
+        RANK_ID_LIST.append(get_rank_list[i][0])
 
 # Discord UI button - Confirmation button
 class Confirm(View):
@@ -164,11 +169,15 @@ async def on_message(ctx):
         return
     user = await GUILD.fetch_member(ctx.author.id)
     if CHAT_RESTRICTED_ROLE in user.roles: # restricted players
+        # We removed allowing certain phrases because people were avoiding this functionality by
+        # sending an allowed message, then editing it to harrass players.
+
         # if ctx.content in secretly.chat_restricted_words:
         #     return
         # else:
             await ctx.delete()
             return
+    # Voting code
     # if ctx.channel.id in TIER_ID_LIST: # Only care if messages are in a tier
     #     # If player in lineup, set player chat activity timer
     #     try:
@@ -650,7 +659,7 @@ async def table(
         MULTIPLIER_SPECIAL = 3.5
         table_color = ['#F1948A', '#F5B7B1']
     else:
-        await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, 4, or 6.')
+        await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, or 4.')
         return
 
 
@@ -1941,8 +1950,7 @@ async def zstrike(
         try:
             user = await GUILD.fetch_member(player_id)
             await user.add_roles(LOUNGELESS_ROLE)
-            ranks_list = await get_list_of_rank_ids()
-            for rank in ranks_list:
+            for rank in RANK_ID_LIST:
                 bye = GUILD.get_role(rank)
                 await user.remove_roles(bye)
         except Exception:
@@ -2642,16 +2650,24 @@ async def zget_player_punishments(
     try:
         punishment_string = ''
         channel = client.get_channel(ctx.channel.id)
-        await ctx.respond(f"# {name}'s punishments")
+
         with DBA.DBAccess() as db:
             temp = db.query('SELECT pl.player_name, p.punishment_type, pp.reason, pp.id, pp.unban_date FROM punishment p JOIN player_punishment pp ON p.id = pp.punishment_id JOIN player pl ON pp.admin_id = pl.player_id WHERE pp.player_id = %s;', (discord_id,))
             # dynamic list of punishments
+            punishment_array = []
+            emoji = ''
             for punishment in temp:
-                punishment_string += f'**{punishment[3]}.** {punishment[1]} - {punishment[2]}\n\n unban: <t:{str(punishment[4])}:F>\n`issued by: {punishment[0]}`\n'
-            message_array = wrap(punishment_string, 1000)
-        # channel = client.get_channel(ctx.channel.id)
-        for message in message_array:
+                if punishment[1] == 'Restriction':
+                    emoji = '🚫'
+                if punishment[1] == 'Loungeless':
+                    emoji = '🔰'
+                punishment_array.append(f'**{punishment[3]}.** {emoji} {punishment[1]}\n `Reason:` {punishment[2]} \n `Unban date:` <t:{str(punishment[4])}:F> \n `Issued by:` {punishment[0]}')
+
+        await ctx.respond(f"# {name}'s punishments")
+
+        for message in punishment_array:
             await channel.send(message)
+
     except Exception as e:
         await ctx.respond(f'Invalid name or discord ID')
         await send_raw_to_debug_channel('Player punishment retrieval error 1', e)
@@ -2739,11 +2755,8 @@ async def zdelete_bot_msgs(ctx):
 
 async def remove_rank_roles_from_uid(uid):
     member = await GUILD.fetch_member(uid)
-    # Get ranks
-    with DBA.DBAccess() as db:
-        ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
     # Remove any ranks from member
-    for rank in ranks: 
+    for rank in RANK_ID_LIST: 
         remove_rank = GUILD.get_role(rank[0])
         await member.remove_roles(remove_rank)
 
@@ -3018,18 +3031,6 @@ async def convert_unix_timestamp_to_datetime(self, unix_timestamp):
 async def convert_datetime_to_unix_timestamp(self, datetime_object):
     return int((datetime_object - datetime.datetime(1970,1,1, tzinfo=pytz.utc)).total_seconds())
 
-
-# Returns all rank_id from DB in a list()
-async def get_list_of_rank_ids():
-    my_list = []
-    try:
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT rank_id FROM ranks;', ())
-        for item in temp:
-            my_list.append(item[0])
-        return my_list
-    except Exception:
-        return []
 
 # Returns a random player name that is not taken
 async def get_random_name():
