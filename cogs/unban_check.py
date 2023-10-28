@@ -17,11 +17,18 @@ class unban_check(commands.Cog):
     async def get_unix_time_now(self):
         return time.mktime(datetime.datetime.now().timetuple())
 
-    async def send_raw_to_debug_channel(self, anything, error):
+    async def send_embed(self, anything, error):
         channel = self.client.get_channel(secretly.debug_channel)
-        embed = discord.Embed(title='Error', description='>.<', color = discord.Color.orange())
+        embed = discord.Embed(title='Hourly Unban Check', description='🔨', color = discord.Color.pink())
         embed.add_field(name='Description: ', value=anything, inline=False)
-        embed.add_field(name='Error: ', value=str(error), inline=False)
+        embed.add_field(name='Details: ', value=str(error), inline=False)
+        await channel.send(content=None, embed=embed)
+    
+    async def send_error_embed(self, anything, error):
+        channel = self.client.get_channel(secretly.debug_channel)
+        embed = discord.Embed(title='Hourly Unban Check', description='🔨', color = discord.Color.red())
+        embed.add_field(name='Description: ', value=anything, inline=False)
+        embed.add_field(name='Details: ', value=str(error), inline=False)
         await channel.send(content=None, embed=embed)
 
     async def set_player_roles(self, uid):
@@ -39,7 +46,7 @@ class unban_check(commands.Cog):
             # this log will fail in dev environment bcus of rank ids
             logging.warning(f'cogs | unban_check | set_player_roles | added member roles')
         except Exception as e:
-            await self.send_raw_to_debug_channel(f'<@{uid}>', f'set_player_roles exception: {e}')
+            await self.send_error_embed(f'<@{uid}>', f'set_player_roles exception: {e}')
             return False
 
     def cog_unload(self):
@@ -53,7 +60,7 @@ class unban_check(commands.Cog):
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_id FROM player WHERE unban_date < %s;', (current_time,))
         except Exception as e:
-            await self.send_raw_to_debug_channel(f'unban_check error 1 {secretly.my_discord}', e)
+            await self.send_error_embed(f'unban_check error 1 {secretly.my_discord}', e)
             return
         guild = await self.client.fetch_guild(secretly.Lounge[0])
         loungeless_role = guild.get_role(secretly.LOUNGELESS_ROLE_ID)
@@ -62,9 +69,9 @@ class unban_check(commands.Cog):
                 user = await guild.fetch_member(player[0])
                 await user.remove_roles(loungeless_role)
                 await self.set_player_roles(player[0])
-                await self.send_raw_to_debug_channel(f'<@{player[0]}>\nPlayer unbanned - Loungeless removed', player[0])
+                await self.send_embed(f'<@{player[0]}>\nPlayer unbanned - Loungeless removed', player[0])
             except Exception as e:
-                await self.send_raw_to_debug_channel(f'<@{player[0]}>\nPlayer unbanned - Not found in server - roles not assigned', player[0])
+                await self.send_embed(f'<@{player[0]}>\nPlayer unbanned - Not found in server - roles not assigned', player[0])
                 pass
             with DBA.DBAccess() as db:
                 db.execute('UPDATE player SET unban_date = NULL WHERE player_id = %s;', (player[0],))
@@ -87,7 +94,7 @@ class unban_check(commands.Cog):
                 with DBA.DBAccess() as db:
                     player_id_retrieved = db.query('SELECT player_id FROM player WHERE unban_date > %s AND player_id = %s;', (current_time, player[0]))[0][0]
                 if player_id_retrieved == player[0]:
-                    await self.send_raw_to_debug_channel(f'cogs | unban_check | punishment_check | PLAYER <@{player[0]}> IS STILL BANNED BY STRIKES. NOT UNBANNING', 'nope')
+                    await self.send_embed(f'cogs | unban_check | punishment_check | PLAYER <@{player[0]}> IS STILL BANNED BY STRIKES. NOT UNBANNING', 'nope')
                     logging.warning(f'POP_LOG | cogs unban_check | PLAYER <@{player[0]}> IS STILL BANNED BY STRIKES. NOT UNBANNING')
                     continue # continue to go to next loop player
                 else:
@@ -117,11 +124,11 @@ class unban_check(commands.Cog):
                     logging.warning(f'cogs | unban_check | punishment_check | could not add user roles (OK in dev env)')
                     pass
 
-                await self.send_raw_to_debug_channel(f'<@{player[0]}>\nPlayer unbanned - {player[5]} removed\nOriginal reason: {player[1]}', player[0])
+                await self.send_embed(f'<@{player[0]}>\nPlayer unbanned - {player[5]} removed\nOriginal reason: {player[1]}', player[0])
                 
             except Exception as e:
-                await self.send_raw_to_debug_channel('POP_LOG | cogs unban_check | punishment check failed',e)
-                await self.send_raw_to_debug_channel(f'<@{player[0]}>\nPlayer unbanned - Not found in server - {player[5]} roles not assigned', player[0])
+                await self.send_error_embed('POP_LOG | cogs unban_check | punishment check failed',e)
+                await self.send_embed(f'<@{player[0]}>\nPlayer unbanned - Not found in server - {player[5]} roles not assigned', player[0])
                 logging.warning(f'cogs | unban_check | punishment check | failed because: {e}')
                 
             with DBA.DBAccess() as db:
