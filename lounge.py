@@ -2023,45 +2023,59 @@ async def zunstrike(ctx, strike_id: discord.Option(int, description='Enter the s
 async def zrestrict(
     ctx,
     player: discord.Option(str, description='Player name', required=True),
-    reason: discord.Option(str, description='Explain why (1000 chars)', required=True),
+    reason: discord.Option(str, description='Explain why (1000 chars). This message is sent to the player', required=True),
     ban_length: discord.Option(int, description='# of days', required=True)
     ):
     await ctx.defer()
+    # get player
     with DBA.DBAccess() as db:
         player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
-    if player_id:
-        pass
-    else:
+    # check if player exists
+    if not player_id:
         await ctx.respond('Player not found')
         return
-    user = await GUILD.fetch_member(player_id)
+
+    user = False
     is_chat_restricted = await check_if_uid_is_chat_restricted(player_id)
-    # is chat restricted
+
+    # assign/unassign restricted role if member in server
+    try:
+        user = await GUILD.fetch_member(player_id)
+        if is_chat_restricted:
+            if CHAT_RESTRICTED_ROLE in user.roles:
+                await user.remove_roles(CHAT_RESTRICTED_ROLE)
+            return
+        else:
+            # 
+            if not CHAT_RESTRICTED_ROLE in user.roles:
+                await user.add_roles(CHAT_RESTRICTED_ROLE)
+                await user.send(f'You have been restricted in MK8DX 200cc Lounge for {ban_length} days\nReason: `{reason}`')
+    except Exception as e:
+        await send_raw_to_debug_channel('/zrestrict error - member not found, roles not assigned.', e)
+
+    # update database for restricted/unrestricted
     if is_chat_restricted:
         # unrestrict
         with DBA.DBAccess() as db:
             db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (0, player_id))
-        if CHAT_RESTRICTED_ROLE in user.roles:
-            await user.remove_roles(CHAT_RESTRICTED_ROLE)
         await ctx.respond(f'<@{player_id}> has been unrestricted')
-        return
     else:
         # restrict
         unix_now = await get_unix_time_now()
         unix_ban_length = ban_length * SECONDS_IN_A_DAY
         unban_date = unix_now + unix_ban_length
-        with DBA.DBAccess() as db:
-            db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (1, player_id))
-        if CHAT_RESTRICTED_ROLE in user.roles:
-            pass
-        else:
-            await user.add_roles(CHAT_RESTRICTED_ROLE)
-            await user.send(f'You have been restricted in MK8DX 200cc Lounge for {ban_length} days\nReason: `{reason}`')
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (1, player_id))
+        except Exception as e:
+            await send_raw_to_debug_channel('/zrestrict error - Failed to set is_chat_restricted. Player does not exist maybe?')
+            return
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id, unban_date) VALUES (%s, %s, %s, %s, %s);', (player_id, 1, reason, ctx.author.id, unban_date))
         except Exception as e:
             await send_raw_to_debug_channel('/zrestrict error - Failed to insert punishment record', e)
+            logging.warning(f'ERROR: /zrestrict failed to insert punishment record for player [{player_id}] with length of [{ban_length} days] with message [{reason}]')
         await ctx.respond(f'<@{player_id}> has been restricted')
         return
 
