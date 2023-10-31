@@ -2040,7 +2040,7 @@ async def zwarn(ctx,
         await ctx.respond(f'<@{player_id}> has been warned: `{reason}`')
     except Exception as e:
         await ctx.respond(f'{player} has been warned: `{reason}`')
-        await send_raw_to_debug_channel(f'/zwarn error - member [{player}] not found')
+        await send_raw_to_debug_channel(f'/zwarn error - member [{player}] not found', e)
         logging.warning(f'/zwarn error - member [{player}] not found')
 
 
