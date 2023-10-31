@@ -2178,7 +2178,7 @@ async def zget_player_punishments(
         channel = client.get_channel(ctx.channel.id)
 
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT pl.player_name, p.punishment_type, pp.reason, pp.id, pp.unban_date, pp.create_date FROM punishment p JOIN player_punishment pp ON p.id = pp.punishment_id JOIN player pl ON pp.admin_id = pl.player_id WHERE pp.player_id = %s;', (discord_id,))
+            temp = db.query('SELECT pl.player_name, p.punishment_type, pp.reason, pp.id, pp.unban_date, UNIX_TIMESTAMP(pp.create_date) FROM punishment p JOIN player_punishment pp ON p.id = pp.punishment_id JOIN player pl ON pp.admin_id = pl.player_id WHERE pp.player_id = %s;', (discord_id,))
             # dynamic list of punishments
             punishment_array = []
             emoji = ''
