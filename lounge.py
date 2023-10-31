@@ -2018,7 +2018,7 @@ async def zunstrike(ctx, strike_id: discord.Option(int, description='Enter the s
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
 async def zwarn(ctx, 
     player: discord.Option(str, description='Player name', required=True),
-    reason: discord.Option(str, description='Log the warning sent to the player here', required=True)
+    reason: discord.Option(str, description='What did you say to the player? (this does not get sent to them)', required=True)
     ):
     await ctx.defer()
     # get player
