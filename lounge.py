@@ -2178,7 +2178,7 @@ async def zget_player_punishments(
         channel = client.get_channel(ctx.channel.id)
 
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT pl.player_name, p.punishment_type, pp.reason, pp.id, pp.unban_date FROM punishment p JOIN player_punishment pp ON p.id = pp.punishment_id JOIN player pl ON pp.admin_id = pl.player_id WHERE pp.player_id = %s;', (discord_id,))
+            temp = db.query('SELECT pl.player_name, p.punishment_type, pp.reason, pp.id, pp.unban_date, pp.create_date FROM punishment p JOIN player_punishment pp ON p.id = pp.punishment_id JOIN player pl ON pp.admin_id = pl.player_id WHERE pp.player_id = %s;', (discord_id,))
             # dynamic list of punishments
             punishment_array = []
             emoji = ''
@@ -2189,7 +2189,7 @@ async def zget_player_punishments(
                     emoji = '🔰'
                 if punishment[1] == 'Warning':
                     emoji = '⚠️'
-                punishment_array.append(f'**{punishment[3]}.** {emoji} {punishment[1]}\n `Reason:` {punishment[2]} \n `Unban date:` <t:{str(punishment[4])}:F> \n `Issued by:` {punishment[0]}')
+                punishment_array.append(f'**{punishment[3]}.** {emoji} {punishment[1]}\n `Reason:` {punishment[2]} \n `Unban date:` <t:{str(punishment[4])}:F> \n `Issued on:` <t:{str(punishment[5])}:F> \n `Issued by:` {punishment[0]}')
 
         await ctx.respond(f"# {name}'s punishments")
 
