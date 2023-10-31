@@ -182,7 +182,8 @@ CREATE TABLE sq_default_schedule(
 
 insert into punishment(punishment_type)
 values ('Restriction'),
-('Loungeless');
+('Loungeless')
+('Warning');
 
 -- Real Ranks
 insert into ranks (rank_id, rank_name, mmr_min, mmr_max, placement_mmr)

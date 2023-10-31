@@ -2010,8 +2010,39 @@ async def zunstrike(ctx, strike_id: discord.Option(int, description='Enter the s
     
 
 
+@client.slash_command(
+    name='zwarn',
+    description='Used to log warnings sent to players',
+    guild_ids=Lounge
+)
+@commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+async def zwarn(ctx, 
+    player: discord.Option(str, description='Player name', required=True),
+    reason: discord.Option(str, description='Log the warning sent to the player here', required=True)
+    ):
+    await ctx.defer()
+    # get player
+    with DBA.DBAccess() as db:
+        player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
+    if not player_id:
+        await ctx.respond('Player not found')
+        return
 
-    
+    try:
+        with DBA.DBAccess() as db:
+            db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id, unban_date) VALUES (%s, %s, %s, %s, %s);', (player_id, 3, reason, ctx.author.id, None))
+    except Exception as e:
+        await send_raw_to_debug_channel('/zwarn error - Failed to insert punishment record', e)
+        logging.warning(f'ERROR: /zwarn failed to insert punishment record for player [{player_id}] with message [{reason}]')
+
+    try:
+        user = await GUILD.fetch_member(player_id)
+        await ctx.respond(f'<@{player_id}> has been warned: `{reason}`')
+    except Exception as e:
+        await ctx.respond(f'{player} has been warned: `{reason}`')
+        await send_raw_to_debug_channel(f'/zwarn error - member [{player}] not found')
+        logging.warning(f'/zwarn error - member [{player}] not found')
+
 
 # /zrestrict
 @client.slash_command(
@@ -2051,7 +2082,8 @@ async def zrestrict(
                 await user.add_roles(CHAT_RESTRICTED_ROLE)
                 await user.send(f'You have been restricted in MK8DX 200cc Lounge for {ban_length} days\nReason: `{reason}`')
     except Exception as e:
-        await send_raw_to_debug_channel('/zrestrict error - member not found, roles not assigned.', e)
+        await send_raw_to_debug_channel(f'/zrestrict error - member [{player}] not found, roles not assigned.', e)
+        logging.warning(f'/zrestrict error - member [{player}] not found, roles not assigned.')
 
     # update database for restricted/unrestricted
     if is_chat_restricted:
@@ -2068,14 +2100,14 @@ async def zrestrict(
             with DBA.DBAccess() as db:
                 db.execute('UPDATE player SET is_chat_restricted = %s where player_id = %s;', (1, player_id))
         except Exception as e:
-            await send_raw_to_debug_channel('/zrestrict error - Failed to set is_chat_restricted. Player does not exist maybe?')
+            await send_raw_to_debug_channel(f'/zrestrict error - Failed to set is_chat_restricted. Player [{player}] does not exist maybe?')
             return
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id, unban_date) VALUES (%s, %s, %s, %s, %s);', (player_id, 1, reason, ctx.author.id, unban_date))
         except Exception as e:
             await send_raw_to_debug_channel('/zrestrict error - Failed to insert punishment record', e)
-            logging.warning(f'ERROR: /zrestrict failed to insert punishment record for player [{player_id}] with length of [{ban_length} days] with message [{reason}]')
+            logging.warning(f'ERROR: /zrestrict failed to insert punishment record for player [{player}, {player_id}] with length of [{ban_length} days] with message [{reason}]')
         await ctx.respond(f'<@{player_id}> has been restricted')
         return
 
@@ -2118,6 +2150,65 @@ async def zloungeless(
         except Exception as e:
             await send_raw_to_debug_channel('/zloungeless error - Failed to insert punishment record', e)
         await ctx.respond(f'Loungeless added to <@{player_id}>')
+
+
+# /zget_player_punishments
+@client.slash_command(
+    name='zget_player_punishments',
+    description='See all punishments for a player',
+    guild_ids=Lounge
+)
+@commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
+async def zget_player_punishments(
+    ctx,
+    name: discord.Option(str, 'Name', required=False),
+    discord_id: discord.Option(str, 'Discord ID', required=False)):
+    await ctx.defer()
+    if discord_id:
+        with DBA.DBAccess() as db:
+            name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (discord_id,))[0][0]
+    elif name:
+        with DBA.DBAccess() as db:
+            discord_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (name,))[0][0]
+    else:
+        await ctx.respond('You must provide a `name` or `discord_id`')
+        return
+    try:
+        punishment_string = ''
+        channel = client.get_channel(ctx.channel.id)
+
+        with DBA.DBAccess() as db:
+            temp = db.query('SELECT pl.player_name, p.punishment_type, pp.reason, pp.id, pp.unban_date FROM punishment p JOIN player_punishment pp ON p.id = pp.punishment_id JOIN player pl ON pp.admin_id = pl.player_id WHERE pp.player_id = %s;', (discord_id,))
+            # dynamic list of punishments
+            punishment_array = []
+            emoji = ''
+            for punishment in temp:
+                if punishment[1] == 'Restriction':
+                    emoji = '🚫'
+                if punishment[1] == 'Loungeless':
+                    emoji = '🔰'
+                if punishment[1] == 'Warning':
+                    emoji = '⚠️'
+                punishment_array.append(f'**{punishment[3]}.** {emoji} {punishment[1]}\n `Reason:` {punishment[2]} \n `Unban date:` <t:{str(punishment[4])}:F> \n `Issued by:` {punishment[0]}')
+
+        await ctx.respond(f"# {name}'s punishments")
+
+        for message in punishment_array:
+            await channel.send(message)
+
+    except Exception as e:
+        await ctx.respond(f'Invalid name or discord ID')
+        await send_raw_to_debug_channel('Player punishment retrieval error 1', e)
+        return
+
+
+
+
+
+
+
+
+
 
 # /zmmr_penalty
 @client.slash_command(
@@ -2640,52 +2731,6 @@ async def zmanually_verify_player(
             return
         return
 
-# /zget_player_punishments
-@client.slash_command(
-    name='zget_player_punishments',
-    description='See all punishments for a player',
-    guild_ids=Lounge
-)
-@commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
-async def zget_player_punishments(
-    ctx,
-    name: discord.Option(str, 'Name', required=False),
-    discord_id: discord.Option(str, 'Discord ID', required=False)):
-    await ctx.defer()
-    if discord_id:
-        with DBA.DBAccess() as db:
-            name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (discord_id,))[0][0]
-    elif name:
-        with DBA.DBAccess() as db:
-            discord_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (name,))[0][0]
-    else:
-        await ctx.respond('You must provide a `name` or `discord_id`')
-        return
-    try:
-        punishment_string = ''
-        channel = client.get_channel(ctx.channel.id)
-
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT pl.player_name, p.punishment_type, pp.reason, pp.id, pp.unban_date FROM punishment p JOIN player_punishment pp ON p.id = pp.punishment_id JOIN player pl ON pp.admin_id = pl.player_id WHERE pp.player_id = %s;', (discord_id,))
-            # dynamic list of punishments
-            punishment_array = []
-            emoji = ''
-            for punishment in temp:
-                if punishment[1] == 'Restriction':
-                    emoji = '🚫'
-                if punishment[1] == 'Loungeless':
-                    emoji = '🔰'
-                punishment_array.append(f'**{punishment[3]}.** {emoji} {punishment[1]}\n `Reason:` {punishment[2]} \n `Unban date:` <t:{str(punishment[4])}:F> \n `Issued by:` {punishment[0]}')
-
-        await ctx.respond(f"# {name}'s punishments")
-
-        for message in punishment_array:
-            await channel.send(message)
-
-    except Exception as e:
-        await ctx.respond(f'Invalid name or discord ID')
-        await send_raw_to_debug_channel('Player punishment retrieval error 1', e)
-        return
 
 @client.slash_command(
     name='zadd_mmr',
