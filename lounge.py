@@ -693,13 +693,19 @@ async def table(
 
     # Get MMR data for each team, calculate team score, and determine team placement
     mogi_score = 0
-    # print(f'length of chunked list: {len(chunked_list)}')
-    # print(f'chunked list: {chunked_list}')
+    logging.warning(f'/table | length of chunked list: {len(chunked_list)}')
+    logging.warning(f'/table | chunked list: {chunked_list}')
+    # preserve the original score formatting for
+    original_scores = {}
+    
     for team in chunked_list:
+        logging.warning(f'/table | calculating team: {team}')
         temp_mmr = 0
         team_score = 0
         count = 0
         for player in team:
+            logging.warning(f'/table | calculating player: {player}')
+            original_scores[player[0]] = player[1]
             try:
                 with DBA.DBAccess() as db:
                     temp = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player[0],))
@@ -720,19 +726,26 @@ async def table(
                     sign = ''
                     points = 0
                     for idx, char in enumerate(str(player[1])):
+                        logging.warning(f'/table | parsing char: {char}')
                         if char.isdigit():
                             current_group += char
+                            logging.warning(f'/table | parsing char: {char} | IS DIGIT, current_group = {current_group}')
                         elif char == '-' or char == '+':
-                            sign = char
+                            logging.warning(f'/table | parsing char: {char} | IS - or +, current_group = {current_group}')
                             points += int(f'{sign}{current_group}')
+                            sign = char
+                            logging.warning(f'/table | player: {player} | points: {points}')
                             current_group = ''
                         else:
                             await ctx.respond(f'``Error 26:``There was an error with the following player: <@{player[0]}>')
                             return
                     # Last item in list needs to be added
                     points += int(f'{sign}{current_group}')
+                    if sign == '-':
+                        mogi_score += int(current_group)
                     player[1] = points
                     team_score = team_score + points
+                    logging.warning(f'/table | team_score: {team_score}')
             except Exception as e:
                 # check for all 12 players exist
                 await send_to_debug_channel(ctx, f'/table Error 24:{e}')
@@ -809,7 +822,8 @@ async def table(
                 player_name = temp[0][0]
                 country_code = temp[0][1]
                 score = player[1]
-            lorenzi_query += f'{player_name} [{country_code}] {score}\n'
+            # lorenzi_query += f'{player_name} [{country_code}] {score}\n'
+            lorenzi_query += f'{player_name} [{country_code}] {original_scores[player[0]]}\n'
 
         # Assign previous values before looping
         prev_team_placement = team_placement
