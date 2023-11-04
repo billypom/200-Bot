@@ -120,6 +120,10 @@ async def on_ready():
     GUILD = client.get_guild(Lounge[0])
     CHAT_RESTRICTED_ROLE = GUILD.get_role(CHAT_RESTRICTED_ROLE_ID)
     LOUNGELESS_ROLE = GUILD.get_role(LOUNGELESS_ROLE_ID)
+    channel = client.get_channel(secretly.debug_channel)
+    embed = discord.Embed(title='Startup', description=':3', color = discord.Color.og_blurple())
+    embed.add_field(name='200-Lounge Bot Restarted', value=':D', inline=False)
+    await channel.send(content=None, embed=embed)
 
 @client.event
 async def on_application_command_error(ctx, error):
