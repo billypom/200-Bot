@@ -4,6 +4,8 @@ import time
 import datetime
 import DBA
 import secretly
+import logging
+logging.basicConfig(filename='200lounge.log', filemode='a', level=logging.WARNING)
 
 class strike_check(commands.Cog):
     def __init__(self, client):
@@ -34,15 +36,19 @@ class strike_check(commands.Cog):
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT strike_id FROM strike WHERE expiration_date < %s AND is_active = %s;', (current_time, 1))
         except Exception as e:
+            logging.warning(f'strike_check | ERROR - unable to retrieve strike | {e}')
             await self.send_error_embed(f'strike_check error 1 {secretly.my_discord}', e)
             return
-        await self.send_embed(f'Strikes expiring by strike_id', str(temp))
-        try:
-            with DBA.DBAccess() as db:
-                db.execute('UPDATE strike SET is_active = %s WHERE expiration_date < %s;', (0, current_time))
-        except Exception as e:
-            await self.send_error_embed(f'strike_check error 2 {secretly.my_discord}', e)
-            return
+        if temp:
+            logging.warning(f'strike_check | Strikes expiring: {str(temp)}')
+            await self.send_embed(f'Strikes expiring by strike_id', str(temp))
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute('UPDATE strike SET is_active = %s WHERE expiration_date < %s;', (0, current_time))
+            except Exception as e:
+                logging.warning(f'strike_check | ERROR - unable to set strikes to inactive | {e}')
+                await self.send_error_embed(f'strike_check error 2 {secretly.my_discord}', e)
+                return
 
     @check.before_loop
     async def before_check(self):
