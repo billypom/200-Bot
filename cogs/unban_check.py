@@ -130,6 +130,7 @@ class unban_check(commands.Cog):
                 await self.send_error_embed('POP_LOG | cogs unban_check | punishment check failed',e)
                 await self.send_embed(f'<@{player[0]}>\nPlayer unbanned - Not found in server - {player[5]} roles not assigned', player[0])
                 logging.warning(f'cogs | unban_check | punishment check | failed because: {e}')
+                pass
                 
             with DBA.DBAccess() as db:
                 db.execute('UPDATE player_punishment SET unban_date = NULL WHERE id = %s;', (player[3],))

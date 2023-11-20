@@ -1,5 +1,4 @@
 import DBA
-import DBA2
 import secretly
 import plotting
 import discord
@@ -477,7 +476,6 @@ async def verify(
         await send_to_verification_log(ctx, message, verify_description)
         return
 
-
 # /name
 @client.slash_command(
     name='name',
@@ -570,6 +568,22 @@ async def name(
             await send_to_debug_channel(ctx, f'Tried name: {name} |\n{e}')
             await ctx.respond(f'``Error 35:`` Oops! Something went wrong. Try again later or make a <#{secretly.support_channel}> ticket for assistance.')
             return
+
+# /fix_roles
+@client.slash_command(
+    name='fix_roles',
+    description='Fixes player roles and nickname',
+    guild_ids=Lounge
+)
+async def fix_roles(ctx):
+    await ctx.defer()
+    response = await set_uid_roles(ctx.author.id)
+    if response:
+        await ctx.respond(f'Player roles set for <@{ctx.author.id}>')
+        return
+    else:
+        await ctx.respond(f'`Error 79b:` Could not set roles ')
+        return
 
 # /table
 @client.slash_command(
@@ -1252,7 +1266,7 @@ async def stats(
             return
         # Retrieve tier ID and api request the discord.TextChannel object
         try:
-            with DBA2.DBAccess(stats_db) as db:
+            with DBA.DBAccess(stats_db) as db:
                 tier_id = db.query('SELECT tier_id FROM tier WHERE tier_name = %s;', (tier,))[0][0]
                 tier_channel = await client.fetch_channel(tier_id)
         except Exception as e: # bad input 2 - no tier by that name
@@ -1270,7 +1284,7 @@ async def stats(
             return
         # Retrieve player ID
         try:
-            with DBA2.DBAccess(stats_db) as db:
+            with DBA.DBAccess(stats_db) as db:
                 player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
         except Exception as e: # bad input 2 - no player by that name
             await ctx.respond('Invalid player')
@@ -1321,7 +1335,7 @@ async def stats(
 
     # Checks for valid player
     try: 
-        with DBA2.DBAccess(stats_db) as db:
+        with DBA.DBAccess(stats_db) as db:
             temp = db.query('SELECT base_mmr, peak_mmr, mmr, player_name FROM player WHERE player_id = %s;', (my_player_id,))
             if temp[0][0] is None:
                 base = 0
@@ -1330,7 +1344,7 @@ async def stats(
             peak = temp[0][1]
             mmr = temp[0][2]
             player_name = temp[0][3]
-        with DBA2.DBAccess(stats_db) as db:
+        with DBA.DBAccess(stats_db) as db:
             temp = db.query('SELECT COUNT(*) FROM player WHERE mmr >= %s ORDER BY mmr DESC;', (mmr,))
             rank = temp[0][0]
     except Exception as e:
@@ -1341,7 +1355,7 @@ async def stats(
 
     # Create matplotlib MMR history graph
     if tier is None:
-        with DBA2.DBAccess(stats_db) as db:
+        with DBA.DBAccess(stats_db) as db:
 
             sql = 'SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.mogi_format IN (%s) ORDER BY m.create_date DESC LIMIT %s;' % ('%s', mogi_format_string, '%s')
 
@@ -1366,7 +1380,7 @@ async def stats(
         partner_average = await get_partner_avg(my_player_id, number_of_mogis, mogi_format_string, '%', stats_db)
     elif tier_id in TIER_ID_LIST:
         try:
-            with DBA2.DBAccess(stats_db) as db:
+            with DBA.DBAccess(stats_db) as db:
 
                 sql = 'SELECT pm.mmr_change, pm.score, pm.mogi_id FROM player_mogi pm JOIN mogi m ON pm.mogi_id = m.mogi_id WHERE pm.player_id = %s AND m.tier_id = %s AND m.mogi_format IN (%s) ORDER BY m.create_date DESC LIMIT %s;' % ('%s', '%s', mogi_format_string, '%s')
 
@@ -1520,7 +1534,6 @@ async def mmr(ctx):
         await send_raw_to_debug_channel('/mmr command triggered by player without mmr: ', e)
         await ctx.respond('Use `/verify` to register for Lounge before checking your MMR.')
         return
-
 
 # /strikes
 @client.slash_command(
@@ -2603,12 +2616,12 @@ async def zmanually_verify_banned_player(
         return
 
 @client.slash_command(
-    name='zset_player_roles',
-    description='Fixed player roles and nickname',
+    name='zfix_player',
+    description='Fixes player roles and nickname',
     guild_ids=Lounge
 )
 @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-async def zset_player_roles(
+async def zfix_player(
     ctx,
     player: discord.Option(discord.Member, '@User', required=True)):
     await ctx.defer()
@@ -3143,7 +3156,7 @@ async def get_number_of_strikes(uid):
 async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%', db_name='s6200lounge'):
     # logging.warning(f'POP_LOG | Partner Avg | uid={uid} | #mogis={number_of_mogis} | format={mogi_format_string} | tier={tier_id}')
     try:
-        with DBA2.DBAccess(db_name) as db:
+        with DBA.DBAccess(db_name) as db:
             sql = '''
                 SELECT pm.mogi_id, pm.place, pm.mmr_change 
                 FROM player_mogi as pm 
