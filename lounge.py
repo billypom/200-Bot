@@ -4,16 +4,13 @@ import plotting
 import discord
 from discord.ui import Button, View
 from discord.ext import commands, tasks
-import vlog_msg
 import math
-import threading
 import re
 import datetime
 import time
 import pytz
 import json
 import requests
-import asyncio
 import random
 import string
 import csv
@@ -26,21 +23,16 @@ import pykakasi
 from korean_romanizer.romanizer import Romanizer
 import operator
 from textwrap import wrap # used to split long messages into multiple parts
+from countryinfo Import CountryInfo # used for emoji flag on stats page
 
+import vlog_msg
 import logging
 logging.basicConfig(filename='200lounge.log', filemode='a', level=logging.WARNING)
-
-# discord logging separate
-# logger = logging.getLogger('discord')
-# logger.setLevel(logging.DEBUG)
-# handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
-# handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-# logger.addHandler(handler)
 
 Lounge = secretly.Lounge
 # mogi_media_message_id = 1005205285817831455
 TIER_ID_LIST = list() # gets initialized below extensions - used to make sure certain actions only happen in the tiers
-RANK_ID_LIST = list() # gets initialized below - not used anymore??? used to be used in looping function during voting
+RANK_ID_LIST = list() # gets initialized below - not used anymore??? used to be used in looping function during voting. keeping in case we leave 255mp mogi bot
 MAX_PLAYERS_IN_MOGI = secretly.MAX_PLAYERS_IN_MOGI
 SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT = secretly.SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT
 NAME_CHANGE_DELTA_LIMIT = secretly.NAME_CHANGE_DELTA_LIMIT
@@ -74,6 +66,7 @@ with DBA.DBAccess() as db:
     for i in range(len(get_tier_list)):
         TIER_ID_LIST.append(get_tier_list[i][0])
 
+# Initialize the RANK_ID_LIST
 with DBA.DBAccess() as db:
     get_rank_list = db.query('SELECT rank_id FROM ranks WHERE rank_id > %s;', (0,))
     for i in range(len(get_rank_list)):
@@ -173,16 +166,16 @@ async def on_message(ctx):
     user = await GUILD.fetch_member(ctx.author.id)
     if CHAT_RESTRICTED_ROLE in user.roles: # restricted players
         # We removed allowing certain phrases because people were avoiding this functionality by
-        # sending an allowed message, then editing it to harrass players.
+        # sending an allowed message, then editing it to harrass players. 
 
         # if ctx.content in secretly.chat_restricted_words:
         #     return
         # else:
             await ctx.delete()
             return
-    # Voting code
+    # Voting code - keeping this here in case we need to leave 255MP's MogiBot
     # if ctx.channel.id in TIER_ID_LIST: # Only care if messages are in a tier
-    #     # If player in lineup, set player chat activity timer
+    #     # If player in lineup, set player chat activity timer   
     #     try:
     #         with DBA.DBAccess() as db:
     #             temp = db.query('SELECT player_id, tier_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
@@ -228,11 +221,13 @@ async def on_message(ctx):
 
 @client.event
 async def on_raw_reaction_add(payload):
-    if int(payload.user_id) == int(secretly.bot_id): # Return if bot reaction
+    if int(payload.user_id) == int(secretly.bot_id):
+        # Return if bot reaction
         return
     if payload.channel_id == secretly.name_change_channel:
         pass
-    else: # Return if this isnt a name change approval
+    else:
+        # Return if this isnt a name change approval
         return
 
     # Stuff relating to the current embed
@@ -299,6 +294,7 @@ async def on_raw_reaction_add(payload):
 
 @client.event
 async def on_member_join(member):
+    # Try to set roles on join
     try:
         x = await set_uid_roles(member.id)
         if not x:
@@ -1336,7 +1332,7 @@ async def stats(
     # Checks for valid player
     try: 
         with DBA.DBAccess(stats_db) as db:
-            temp = db.query('SELECT base_mmr, peak_mmr, mmr, player_name FROM player WHERE player_id = %s;', (my_player_id,))
+            temp = db.query('SELECT base_mmr, peak_mmr, mmr, player_name, country_code FROM player WHERE player_id = %s;', (my_player_id,))
             if temp[0][0] is None:
                 base = 0
             else:
@@ -1344,6 +1340,7 @@ async def stats(
             peak = temp[0][1]
             mmr = temp[0][2]
             player_name = temp[0][3]
+            country_code = temp[0][4]
         with DBA.DBAccess(stats_db) as db:
             temp = db.query('SELECT COUNT(*) FROM player WHERE mmr >= %s ORDER BY mmr DESC;', (mmr,))
             rank = temp[0][0]
@@ -1351,6 +1348,9 @@ async def stats(
         await send_to_debug_channel(ctx, f'/stats error 31 | {e}')
         await ctx.respond('``Error 31:`` Player not found.')
         return
+    
+    # Get emoji flag for iso country
+    emoji_flag = iso_country_to_emoji(country_code)
 
 
     # Create matplotlib MMR history graph
@@ -1482,7 +1482,7 @@ async def stats(
     # f=discord.File(rank_filename, filename='rank.jpg')
     sf=discord.File(stats_rank_filename, filename='stats_rank.jpg')
 
-    embed = discord.Embed(title=f'{title}', description=f'[{player_name}](https://200-lounge.com/player/{player_name})', color = discord.Color.from_rgb(red, green, blue)) # website link
+    embed = discord.Embed(title=f'{title}', description=f'[{player_name}](https://200-lounge.com/player/{player_name}) {emoji_flag}', color = discord.Color.from_rgb(red, green, blue)) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
     embed.add_field(name='Peak MMR', value=f'{peak}', inline=True)
@@ -2286,6 +2286,7 @@ async def zmmr_penalty(
 # missing 10 races = 1/6
 # missing 11 races = 1/12
 # missing the whole mogi = no loss
+
 # /zreduce_loss
 @client.slash_command(
     name='zreduce_loss',
@@ -2842,7 +2843,7 @@ async def zdelete_bot_msgs(ctx):
 
 
 
-
+# Input: discord user id
 async def remove_rank_roles_from_uid(uid):
     member = await GUILD.fetch_member(uid)
     # Remove any ranks from member
@@ -2850,7 +2851,8 @@ async def remove_rank_roles_from_uid(uid):
         remove_rank = GUILD.get_role(rank[0])
         await member.remove_roles(remove_rank)
 
-# Takes a uid, returns True for completed. returns False for error
+# Input: discord user id
+# Output: Boolean
 async def set_uid_chat_restricted(uid):
     try:
         member = await GUILD.fetch_member(uid)
@@ -2861,51 +2863,45 @@ async def set_uid_chat_restricted(uid):
         await send_raw_to_debug_channel('Could not set uid to chat restricted', uid)
         return False
 
-# Takes a ctx, returns the a response (used in re-verification when reentering lounge)
+# Input: int discord user id
+# Output Pass: Tuple(int role_id, str role_name )
+# Output Fail: False
 async def set_uid_roles(uid):
     try:
-        # Get player info
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_name, mmr, is_chat_restricted FROM player WHERE player_id = %s;', (uid,))
         player_name = temp[0][0]
         mmr = temp[0][1]
         is_chat_restricted = temp[0][2]
+        
         # Get discord.Guild and discord.Member objects
         guild = client.get_guild(Lounge[0])
         member = await guild.fetch_member(uid)
-        # handle chat restricted role
+        
+        # Outcome #1
+        
         if is_chat_restricted:
+            # Add chat restricted role
             restricted_role = guild.get_role(CHAT_RESTRICTED_ROLE_ID)
             await member.add_roles(restricted_role)
-
+            
         if mmr is None:
-            # with open('200lounge.csv', 'rt', encoding='utf-8-sig') as f: # f is our filename as string
-            #     lines = list(csv.reader(f,delimiter=',')) # lines contains all of the rows from the csv
-            #     if len(lines) > 0:
-            #         for line in lines:
-            #             name = line[0]
-            #             if name.lower() == (member.display_name).lower():
-            #                 mmr = int(line[2])
-            #                 with DBA.DBAccess() as db:
-            #                     ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
-            #                 for rank in ranks:
-            #                     if mmr >= int(rank[1]) and mmr < int(rank[2]):
-            #                         role = guild.get_role(rank[0])
-            #                         await member.add_roles(role)
-            #                         with DBA.DBAccess() as db:
-            #                             db.execute('UPDATE player set rank_id = %s, mmr = %s, base_mmr = %s, player_name = %s WHERE player_id = %s;', (rank[0], mmr, mmr, member.id))
-            #                         return (role.id, role)
+            # Add placement role & return
             role = guild.get_role(PLACEMENT_ROLE_ID)
             await member.add_roles(role)
             return (role.id, role)
-            
+        
+        # Outcome #2
+        
         # Get ranks info
         with DBA.DBAccess() as db:
             ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
+            
         # Remove any ranks from player
         for rank in ranks: 
             remove_rank = guild.get_role(rank[0])
             await member.remove_roles(remove_rank)
+        
         # Find their rank, based on MMR
         for i in range(len(ranks)):
             if mmr >= int(ranks[i][1]) and mmr < int(ranks[i][2]):
@@ -2914,12 +2910,13 @@ async def set_uid_roles(uid):
                 await member.add_roles(role)
                 with DBA.DBAccess() as db:
                     db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (ranks[i][0], member.id))
+                    
         # Edit their discord nickname
         try:
             await member.edit(nick=str(player_name))
         except Exception as e:
             await send_raw_to_debug_channel(f'<@{uid}>', f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')
-            pass
+            pass 
         return (role.id, role)
     except IndexError:
         return False
@@ -2927,10 +2924,11 @@ async def set_uid_roles(uid):
         await send_raw_to_debug_channel(f'<@{uid}>', f'set_uid_roles exception: {e}')
         return False
 
-# Cool&Create
+# Input: discord.member object, int mkc_forum_id, Alpha-2 ISO Country Code
+# Output: Response string to reply to user with
 async def create_player(member, mkc_user_id, country_code):
     altered_name = await handle_player_name(member.display_name)
-    logging.warning(f'POP_LOG | Finished handling name: {altered_name}')
+    logging.warning(f'create_player | Finished handling name: {altered_name}')
     try:
         with DBA.DBAccess() as db:
             db.execute('INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);', (member.id, altered_name, mkc_user_id, country_code, PLACEMENT_ROLE_ID))
@@ -2947,19 +2945,21 @@ async def create_player(member, mkc_user_id, country_code):
     except Exception as e:
         await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT NICK FOR USER <@{member.id}>', {e})
     role = GUILD.get_role(PLACEMENT_ROLE_ID)
-    logging.warning(f'POP_LOG | {altered_name} | Attempted to edit nickname')
+    logging.warning(f'create_player | {altered_name} | Attempted to edit nickname')
 
     # Add role
     try:
         await member.add_roles(role)
     except Exception as e:
-        await send_raw_to_debug_channel(f'create_player error 15 - CANNOT EDIT ROLE FOR USER <@{member.id}>', {e})
-    logging.warning(f'POP_LOG | {altered_name} | Attempted to add roles')
+        await send_raw_to_debug_channel(f'create_player error 16 - CANNOT EDIT ROLE FOR USER <@{member.id}>', {e})
+    logging.warning(f'create_player | {altered_name} | Attempted to add roles')
 
     # Confirmation log
     await send_raw_to_verification_log(f'player:<@{member.id}>\nrole:`{role}`\naltered name:`{altered_name}`', '**Creating player**')
     return f':flag_us:\nVerified & registered successfully - Assigned <@&{role.id}>\nNew players - check out <#{secretly.welcome_eng_channel}> & <#{secretly.faq_channel}>\n\n:flag_jp:\n認証に成功しました。{role}が割り当てられました。\n新入会員の方は、<#{secretly.welcome_jpn_channel}>と<#{secretly.faq_channel}> チャンネルをお読みください。'
 
+# Input: int discord user id
+# Output: Boolean
 async def check_if_uid_can_drop(uid):
     try:
         with DBA.DBAccess() as db:
@@ -2971,9 +2971,13 @@ async def check_if_uid_can_drop(uid):
     except Exception: # Player not in any lineups?
         return True
 
+# Input: datetime object
+# Output: UNIX timestamp
 async def convert_datetime_to_unix_timestamp(datetime_object):
     return time.mktime(datetime_object.timetuple())
 
+# Input: int discord user id
+# Output: Boolean
 async def check_if_uid_in_any_tier(uid):
     try:
         with DBA.DBAccess() as db:
@@ -2985,6 +2989,8 @@ async def check_if_uid_in_any_tier(uid):
     except Exception:
         return False
 
+# Input: int discord user id
+# Output: Boolean
 async def check_if_uid_in_any_active_tier(uid):
     try:
         with DBA.DBAccess() as db:
@@ -2996,6 +3002,8 @@ async def check_if_uid_in_any_active_tier(uid):
     except Exception:
         return False
 
+# Input: int discord user id, int discord channel id
+# Output: Boolean
 async def check_if_uid_in_specific_tier(uid, tier):
     try:
         with DBA.DBAccess() as db:
@@ -3007,6 +3015,8 @@ async def check_if_uid_in_specific_tier(uid, tier):
     except Exception:
         return False
 
+# Input: int discord user id, int discord channel id
+# Output: Boolean
 async def check_if_uid_in_first_12_of_tier(uid, tier):
     try:
         with DBA.DBAccess() as db:
@@ -3018,6 +3028,8 @@ async def check_if_uid_in_first_12_of_tier(uid, tier):
     except Exception:
         return False
 
+# Input: int discord user id
+# Output: Boolean
 async def check_if_uid_is_chat_restricted(uid):
     with DBA.DBAccess() as db:
         temp = db.query('SELECT is_chat_restricted FROM player WHERE player_id = %s;', (uid,))
@@ -3026,6 +3038,8 @@ async def check_if_uid_is_chat_restricted(uid):
     else:
         return False
 
+# Input: int mkc forum id
+# Output: Boolean
 async def check_if_mkc_user_id_used(mkc_user_id):
     try:
         with DBA.DBAccess() as db:
@@ -3039,6 +3053,8 @@ async def check_if_mkc_user_id_used(mkc_user_id):
         # await send_raw_to_debug_channel(mkc_player_id, e)
         return False
 
+# Input: user ctx from slash command
+# Output: Boolean
 async def check_if_player_exists(ctx):
     try:
         with DBA.DBAccess() as db:
@@ -3051,6 +3067,8 @@ async def check_if_player_exists(ctx):
         # await send_to_debug_channel(ctx, f'check_if_player_exists exception: {e}')
         return False
 
+# Input: int discord user id
+# Output: Boolean
 async def check_if_uid_exists(uid):
     try:
         with DBA.DBAccess() as db:
@@ -3063,6 +3081,8 @@ async def check_if_uid_exists(uid):
     except Exception:
         return False
 
+# Input: int mogi id
+# Output: Boolean
 async def check_if_mogi_exists(mogi_id):
     try:
         with DBA.DBAccess() as db:
@@ -3074,18 +3094,24 @@ async def check_if_mogi_exists(mogi_id):
     except Exception:
         return False
 
+# Input: str
+# Output: Boolean
 async def check_if_banned_characters(message):
     for value in secretly.BANNED_CHARACTERS:
         if value in message:
             return True
     return False
 
+# Input: list()
+# Output: Boolean
 async def check_for_dupes_in_list(my_list):
     if len(my_list) == len(set(my_list)):
         return False
     else:
         return True
 
+# Input: int discord user id
+# Output: Boolean
 async def check_if_uid_is_lounge_banned(uid):
     try:
         with DBA.DBAccess() as db:
@@ -3097,6 +3123,8 @@ async def check_if_uid_is_lounge_banned(uid):
     except Exception as e:
         return False
 
+# Input: int discord user id
+# Output: Boolean
 async def check_if_uid_is_placement(uid):
     try:
         with DBA.DBAccess() as db:
@@ -3109,17 +3137,19 @@ async def check_if_uid_is_placement(uid):
         await send_raw_to_debug_channel('Check if uid is placement error:', e)
         return True
 
+# Input: str
+# Output: Boolean
 async def check_if_is_unique_name(name):
     with DBA.DBAccess() as db:
         temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (name,))
     return not temp
 
+# why are these here?
+# async def convert_unix_timestamp_to_datetime(self, unix_timestamp):
+#     return datetime.datetime.utcfromtimestamp(unix_timestamp)
 
-async def convert_unix_timestamp_to_datetime(self, unix_timestamp):
-    return datetime.datetime.utcfromtimestamp(unix_timestamp)
-
-async def convert_datetime_to_unix_timestamp(self, datetime_object):
-    return int((datetime_object - datetime.datetime(1970,1,1, tzinfo=pytz.utc)).total_seconds())
+# async def convert_datetime_to_unix_timestamp(self, datetime_object):
+#     return int((datetime_object - datetime.datetime(1970,1,1, tzinfo=pytz.utc)).total_seconds())
 
 
 # Returns a random player name that is not taken
@@ -3135,7 +3165,7 @@ async def get_random_name():
             name_is_not_unique = False
     return name
 
-# Generates a random name (wow)
+# Returns a random string of length 9
 async def generate_random_name():
     return ''.join(random.choices(string.ascii_uppercase + string.digits, k=9))
 
@@ -3143,7 +3173,8 @@ async def generate_random_name():
 async def get_unix_time_now():
     return time.mktime(datetime.datetime.now().timetuple())
 
-# Returns the number of strikes that a uid has
+# Input: int discord user id
+# Output: int number of strikes
 async def get_number_of_strikes(uid):
     with DBA.DBAccess() as db:
         temp = db.query('SELECT COUNT(*) FROM strike WHERE player_id = %s AND is_active = %s;', (uid, 1))
@@ -3152,7 +3183,8 @@ async def get_number_of_strikes(uid):
         else:
             return temp[0][0]
 
-# Takes in uid, returns avg partner score
+# Input: discord user id, 
+# Output: float avg partner score (rounded 2 decimal places)
 async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%', db_name='s6200lounge'):
     # logging.warning(f'POP_LOG | Partner Avg | uid={uid} | #mogis={number_of_mogis} | format={mogi_format_string} | tier={tier_id}')
     try:
@@ -3216,8 +3248,8 @@ async def get_partner_avg(uid, number_of_mogis, mogi_format_string, tier_id='%',
         await send_raw_to_debug_channel('partner average error',e)
     return 0
 
-# Takes in: ctx
-# Returns: mmr
+# Input: ctx
+# Output: int mmr
 async def get_player_mmr(ctx):
     try:
         with DBA.DBAccess() as db:
@@ -3227,8 +3259,8 @@ async def get_player_mmr(ctx):
         return -1
     return temp[0][0]
 
-# Takes in: scores from /table
-# Returns: nicely formatted dict-type list thingie...
+# Input: ctx, str players&scores, int format
+# Output: nicely formatted dict-type list thingie...
 async def handle_score_input(ctx, score_string, mogi_format):
     # Split into list
     score_list = score_string.split()
@@ -3263,17 +3295,23 @@ async def handle_score_input(ctx, score_string, mogi_format):
     return chunked_list
 
 async def handle_suggestion_decision(suggestion_id, suggestion, author_id, message_id, admin_id, approved, reason):
+    # Retrieve the author of the suggestion
     try:
         author = await GUILD.fetch_member(author_id)
     except Exception as e:
-        logging.warning(f'Suggestion author {author_id} not in server. Suggestion id [{suggestion_id}] will be deleted. - "{suggestion}"')
-        channel = client.get_channel(secretly.suggestion_voting_channel)
-        suggestion_message_to_delete = await channel.fetch_message(message_id)
-        await suggestion_message_to_delete.delete()
-        await channel.send(f'Suggestion author not in server. Suggestion id [{suggestion_id}] will be deleted. - "{suggestion}"')
-    admin = await GUILD.fetch_member(admin_id)
+        author = None
+        
+    # Retrieve the staff member deciding
+    try:
+        admin = await GUILD.fetch_member(admin_id)
+    except Exception as e:
+        admin = None
+        logging.warning(f'handle_suggestion_decision | no admin found... among us moment')
+    # Return if no decision was made
     if approved is None:
         return
+    
+    # Edit the embed
     channel = client.get_channel(secretly.suggestion_voting_channel)
     if approved:
         decision = f'Approved by {admin.display_name}'
@@ -3284,28 +3322,27 @@ async def handle_suggestion_decision(suggestion_id, suggestion, author_id, messa
     try:
         embed = discord.Embed(title='Suggestion', description=f'', color = color)
         embed.set_author(name=author.display_name, icon_url=author.avatar.url)
-
-
+        
         embed.add_field(name=f'#{suggestion_id}', value=suggestion, inline=False)
         embed.add_field(name=decision, value=reason, inline=False)
 
         suggestion_message = await channel.fetch_message(message_id)
         await suggestion_message.edit(embed=embed)
+        # Quickly send and delete a message to mark channel as unread
         dummy_msg = await channel.send('.')
         await dummy_msg.delete()
         return True
     except Exception as e:
         return False
 
-# Takes in: name string 
-# Cleans name
-# Returns cleaned name (or a new random name)
+# Input: str
+# Output: Cleaned name (or random name)
 async def handle_player_name(name):
-    logging.warning(f'POP_LOG | Step 1 - Handling name: [{name}]')
+    logging.warning(f'handle_player_name | Step 1 - Handling name: [{name}]')
     insert_name = ""
     # Romanize the text
     insert_name = await jp_kr_romanize(str(name))
-    logging.warning(f'POP_LOG | Step 2 - romanized name: [{insert_name}]')
+    logging.warning(f'handle_player_name | Step 2 - romanized name: [{insert_name}]')
 
     # Handle name too long
     if len(insert_name) > 16:
@@ -3317,7 +3354,7 @@ async def handle_player_name(name):
             temp_name+=char
             count+=1
         insert_name = temp_name
-    logging.warning(f'POP_LOG | Step 3 - checked length: [{insert_name}]')
+    logging.warning(f'handle_player_name | Step 3 - checked length: [{insert_name}]')
 
     # Handle ä-type characters (delete them)
     allowed_name = ""
@@ -3326,18 +3363,18 @@ async def handle_player_name(name):
             allowed_name += char
         else:
             allowed_name += ""
-    logging.warning(f'POP_LOG | Step 4 - handled chars: [{allowed_name}]')
+    logging.warning(f'handle_player_name | Step 4 - handled chars: [{allowed_name}]')
     insert_name = allowed_name
 
     # Handle empty name
     if not insert_name:
         insert_name = await get_random_name()
-    logging.warning(f'POP_LOG | Step 5 - handled empty: [{insert_name}]')
+    logging.warning(f'handle_player_name | Step 5 - handled empty: [{insert_name}]')
 
     # Handle whitespace name  - generate a random name lol
     if insert_name.isspace():
         insert_name = await get_random_name()
-    logging.warning(f'POP_LOG | Step 6 - handled whitespace: [{insert_name}]')
+    logging.warning(f'handle_player_name | Step 6 - handled whitespace: [{insert_name}]')
         
     # Handle duplicate names - append underscores
     name_still_exists = True
@@ -3352,16 +3389,16 @@ async def handle_player_name(name):
         count +=1
         if count == 16:
             insert_name = await get_random_name()
-    logging.warning(f'POP_LOG | Step 7 - handled duplicates: [{insert_name}]')
+    logging.warning(f'handle_player_name | Step 7 - handled duplicates: [{insert_name}]')
 
     return str(insert_name).replace(" ", "-")
 
-# Takes in: Player object (discord_id, score), their mmr, their score, and the tier name
-# Determines what rank to place a player
-# Updates DB records
-# Assigns rank role
-# Accounts for queued penalties
-# Returns: the name of their rank role, new mmr value
+# Input: Player object (discord_id, score), their mmr, their score, and the tier name
+#   Determines what rank to place a player
+#   Updates DB records
+#   Assigns rank role
+#   Accounts for queued penalties
+# Outpit: the name of their rank role, new mmr value
 async def handle_placement_init(player, my_player_mmr, my_player_score, tier_name, results_channel):
     logging.warning(f'POP_LOG | handle_placement_init: {player} | {my_player_mmr} | {my_player_score} | {tier_name}')
     placement_name = ''
@@ -3422,8 +3459,8 @@ async def handle_placement_init(player, my_player_mmr, my_player_score, tier_nam
     
     return placement_name, my_player_new_queued_strike_adjusted_mmr
 
-# Takes in: player_id and that player's current MMR
-# Returns: total penalty, and new adjusted mmr value
+# Input: (int discord user id, int user's current MMR)
+# Returns: (int total penalty, int new adjusted mmr value)
 async def handle_queued_mmr_penalties(player_id, my_player_mmr):
     # Get all records with penalty not applied
     with DBA.DBAccess() as db:
@@ -3444,8 +3481,8 @@ async def handle_queued_mmr_penalties(player_id, my_player_mmr):
 
     return total_queued_mmr_penalty, my_player_new_queued_strike_adjusted_mmr
 
-# Takes in: string
-# Returns: romanized jp/kr string
+# Input: string
+# Output: romanized jp/kr string
 async def jp_kr_romanize(input):
     r = Romanizer(input)
     kr_result = r.romanize()
@@ -3455,6 +3492,17 @@ async def jp_kr_romanize(input):
     for item in result:
         my_string+=item['hepburn']
     return my_string
+
+# Input: str 2 char iso code
+# Output: emoji flag
+async def iso_country_to_emoji(iso_code):
+    try:
+        country_info = CountryInfo(iso_code)
+        emoji_flag = country_info.emoji()
+        return emoji_flag
+    except Exception as e:
+        logging.warning(f'iso_country_to_emoji | could not retrieve country flag. iso code = {iso_code}')
+        return ''
 
 # Somebody did a bad
 # ctx | message | discord.Color.red() | my custom message
@@ -3665,6 +3713,8 @@ async def mkc_request_registry_info(mkc_player_id):
     return return_value
 
 # returs user_id, country_code, is_banned
+# Input: mkc registry id
+# Output: (mkc user id, alpha-2 iso country code, boolean is_banned)
 def mt_mkc_request_registry_info(mkc_player_id):
     try:
         mkcresponse = requests.get("https://www.mariokartcentral.com/mkc/api/registry/players/" + str(mkc_player_id))
@@ -3696,9 +3746,11 @@ def mt_lounge_request_mkc_user_id(ctx):
     return mkc_user_id
 
 # https://imagemagick.org/script/color.php
+# Input: (str, int mmr)
+#   Determines color of input text, based on mmr value
+# Output: <span> tag
+#   See implementation in functions below
 async def new_rank_wrapper(input, mmr):
-    # print(f'input: {input}')
-    # print(f'mmr: {mmr}')
     if input:
         if mmr < 1500:
             return await iron_wrapper(input)
@@ -3946,6 +3998,16 @@ client.run(secretly.token)
 #         await channel.send(f'@here +{12-count}')
 #     return
 
+
+
+
+
+
+
+
+
+
+
 # # /d
 # @client.slash_command(
 #     name='d',
@@ -4095,6 +4157,16 @@ client.run(secretly.token)
 #     #     await send_to_debug_channel(ctx, f'Cancel Error Deletion:{e}')
 #     #     return
 
+
+
+
+
+
+
+
+
+
+
 # @client.slash_command(
 #     name='votes',
 #     description='See the current votes',
@@ -4176,6 +4248,15 @@ client.run(secretly.token)
 #         confirmation_msg = await update_friend_code(ctx, fc)
 #         await ctx.respond(confirmation_msg)
 
+
+
+
+
+
+
+
+
+
 # # /twitch
 # @client.slash_command(
 #     name='twitch',
@@ -4213,6 +4294,16 @@ client.run(secretly.token)
 #             await ctx.respond("Twitch username updated.")
 #     except Exception:
 #         await ctx.respond("``Error 33:`` Player not found. Use ``/verify <mkc link>`` to register with Lounge")
+
+
+
+
+
+
+
+
+
+
 
 # # /teams
 # @client.slash_command(
@@ -4967,10 +5058,3 @@ client.run(secretly.token)
 
 # poll_thread = threading.Thread(target=lounge_threads)
 # poll_thread.start()
-
-
-
-
-
-
-

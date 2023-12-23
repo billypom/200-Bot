@@ -14,8 +14,10 @@ season_migration.py
 log
 discord.log
 200lounge.log
+rules.txt
 
 # folders
 /__pycache__
 /magick_test
 /dont
+/venv
