@@ -57,8 +57,8 @@ client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge'))
 # send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
 
 # initial_extensions = ['cogs.inactivity_check', 'cogs.update_mogilist', 'cogs.mogi_media_check', 'cogs.strike_check']
-# initial_extensions = ['cogs.strike_check', 'cogs.unban_check']
-initial_extensions = []
+initial_extensions = ['cogs.strike_check', 'cogs.unban_check']
+# initial_extensions = []
 for extension in initial_extensions:
     client.load_extension(extension)
 
