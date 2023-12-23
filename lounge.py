@@ -23,7 +23,7 @@ import pykakasi
 from korean_romanizer.romanizer import Romanizer
 import operator
 from textwrap import wrap # used to split long messages into multiple parts
-from countryinfo Import CountryInfo # used for emoji flag on stats page
+from countryinfo import CountryInfo # used for emoji flag on stats page
 
 import vlog_msg
 import logging
