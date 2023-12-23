@@ -23,7 +23,9 @@ import pykakasi
 from korean_romanizer.romanizer import Romanizer
 import operator
 from textwrap import wrap # used to split long messages into multiple parts
-from countryinfo import CountryInfo # used for emoji flag on stats page
+
+import countries # used for emoji flag on stats page
+
 
 import vlog_msg
 import logging
@@ -55,7 +57,8 @@ client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge'))
 # send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
 
 # initial_extensions = ['cogs.inactivity_check', 'cogs.update_mogilist', 'cogs.mogi_media_check', 'cogs.strike_check']
-initial_extensions = ['cogs.strike_check', 'cogs.unban_check']
+# initial_extensions = ['cogs.strike_check', 'cogs.unban_check']
+initial_extensions = []
 for extension in initial_extensions:
     client.load_extension(extension)
 
@@ -1350,7 +1353,7 @@ async def stats(
         return
     
     # Get emoji flag for iso country
-    emoji_flag = iso_country_to_emoji(country_code)
+    emoji_flag = await iso_country_to_emoji(country_code)
 
 
     # Create matplotlib MMR history graph
@@ -1482,7 +1485,7 @@ async def stats(
     # f=discord.File(rank_filename, filename='rank.jpg')
     sf=discord.File(stats_rank_filename, filename='stats_rank.jpg')
 
-    embed = discord.Embed(title=f'{title}', description=f'[{player_name}](https://200-lounge.com/player/{player_name}) {emoji_flag}', color = discord.Color.from_rgb(red, green, blue)) # website link
+    embed = discord.Embed(title=f'{title}', description=f'{emoji_flag}[{player_name}](https://200-lounge.com/player/{player_name})', color = discord.Color.from_rgb(red, green, blue)) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
     embed.add_field(name='Peak MMR', value=f'{peak}', inline=True)
@@ -3497,8 +3500,7 @@ async def jp_kr_romanize(input):
 # Output: emoji flag
 async def iso_country_to_emoji(iso_code):
     try:
-        country_info = CountryInfo(iso_code)
-        emoji_flag = country_info.emoji()
+        emoji_flag = countries.country_to_emoji.get(iso_code, "")
         return emoji_flag
     except Exception as e:
         logging.warning(f'iso_country_to_emoji | could not retrieve country flag. iso code = {iso_code}')
