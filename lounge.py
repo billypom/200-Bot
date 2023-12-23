@@ -1485,7 +1485,7 @@ async def stats(
     # f=discord.File(rank_filename, filename='rank.jpg')
     sf=discord.File(stats_rank_filename, filename='stats_rank.jpg')
 
-    embed = discord.Embed(title=f'{title}', description=f'{emoji_flag}[{player_name}](https://200-lounge.com/player/{player_name})', color = discord.Color.from_rgb(red, green, blue)) # website link
+    embed = discord.Embed(title=f'{title}', description=f'{emoji_flag} [{player_name}](https://200-lounge.com/player/{player_name})', color = discord.Color.from_rgb(red, green, blue)) # website link
     embed.add_field(name='Rank', value=f'{rank}', inline=True)
     embed.add_field(name='MMR', value=f'{mmr}', inline=True)
     embed.add_field(name='Peak MMR', value=f'{peak}', inline=True)
