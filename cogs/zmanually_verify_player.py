@@ -52,7 +52,7 @@ class ManuallyVerifyPlayerCog(commands.Cog):
             try:
                 x = await create_player(self.client, member, mkc_id, country_code)
             except Exception:
-                await ctx.respond(f'`Error 83:` Database error on create_player. Please create a support ticket and ping <@{PING_DEVELOPER}>')
+                await ctx.respond(f'`Error 83:` Database error on create_player. Please create a support ticket and ping {PING_DEVELOPER}')
                 return
             try:
                 await ctx.respond(x)

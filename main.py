@@ -16,6 +16,7 @@ logging.basicConfig(filename='200lounge.log', filemode='a', level=logging.INFO)
 project_root = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(project_root)
 
+
 # Bot config
 # Intents:  manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
 #           send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands

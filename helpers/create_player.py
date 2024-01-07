@@ -9,6 +9,7 @@ from config import PLACEMENT_ROLE_ID, WELCOME_ENG_CHANNEL_ID, SUPPORT_CHANNEL_ID
 # Input: discord.member object, int mkc_forum_id, Alpha-2 ISO Country Code
 # Output: Response string to reply to user with
 async def create_player(client, member, mkc_user_id, country_code):
+    logging.info('create_player | start')
     altered_name = await handle_player_name(member.display_name)
     logging.info(f'create_player | Finished handling name: {altered_name}')
     try:
