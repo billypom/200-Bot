@@ -7,7 +7,7 @@ from helpers.getters import get_lounge_guild
 from helpers.getters import get_discord_role
 from helpers.senders import send_raw_to_debug_channel
 from helpers.checkers import check_if_uid_is_chat_restricted
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, CHAT_RESTRICTED_ROLE_ID, SECONDS_IN_A_DAY
+from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, CHAT_RESTRICTED_ROLE_ID, SECONDS_IN_A_DAY, LOUNGE
 
 class RestrictCog(commands.Cog):
     def __init__(self, client):
@@ -16,6 +16,7 @@ class RestrictCog(commands.Cog):
     @commands.slash_command(
         name='zrestrict',
         description='Chat restrict a player',
+        guild_ids=LOUNGE
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zrestrict(self, ctx,
@@ -30,26 +31,28 @@ class RestrictCog(commands.Cog):
         if not player_id:
             await ctx.respond('Player not found')
             return
-
         user = False
         is_chat_restricted = await check_if_uid_is_chat_restricted(player_id)
 
         # assign/unassign restricted role if member in server
-        chat_restricted_role = get_discord_role(self.client, CHAT_RESTRICTED_ROLE_ID)
         try:
+            chat_restricted_role = get_discord_role(self.client, CHAT_RESTRICTED_ROLE_ID)
             user = await get_lounge_guild(self.client).fetch_member(player_id)
+            # Currently chat restricted
             if is_chat_restricted:
                 if chat_restricted_role in user.roles:
+                    # Unrestrict (remove roles)
                     await user.remove_roles(chat_restricted_role)
-                return
+            # Not restricted
             else:
                 if chat_restricted_role not in user.roles:
+                    # Restrict (add roles)
                     await user.add_roles(chat_restricted_role)
                     await user.send(f'You have been restricted in MK8DX 200cc Lounge for {ban_length} days\nReason: `{reason}`')
         except Exception as e:
             await send_raw_to_debug_channel(self.client, f'/zrestrict error - member [{player}] not found, roles not assigned.', e)
             logging.info(f'/zrestrict error - member [{player}] not found, roles not assigned.')
-
+        
         # update database for restricted/unrestricted
         if is_chat_restricted:
             # unrestrict

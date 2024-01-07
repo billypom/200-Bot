@@ -87,8 +87,7 @@ Useful commands, available only to staff members, to manage the leaderboard and 
 - If someone is complaining that the bot didn't unban them at exactly 6:43:05.020 PM you can use this to force an unban check. The bot checks for unbans once every hour. The timer starts when the cogs are loaded.
 ### /ZMANUALLY_VERIFY_PLAYER + `discord_id` & `mkc_id` & `country_code`
 - Manually verify a player, but you MUST check for the following:
-- Make sure their forum page says they have logged in within the last week or so
-- Make sure to use the numbers in their FORUM link as the mkc_id
+- Use the numbers in their FORUM link as the mkc_id
 - Make sure to enter the proper ISO 3166-1 Alpha-2 Country Code that matches the flag on their registry page. https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes
 ### /ZCHANGE_DISCORD_ACCOUNT + `original_discord_id` & `new_discord_id`
 - Change the discord account tied to the lounge account

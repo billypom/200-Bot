@@ -1,4 +1,5 @@
 import discord
+# from i18n import Translator
 from discord.ext import commands
 import DBA
 from helpers import remove_rank_roles_from_uid
@@ -23,11 +24,21 @@ class LoungelessCog(commands.Cog):
                           reason: discord.Option(str, description='Explain why (1000 chars)', required=True),
                           ban_length: discord.Option(int, description='# of days', required=True)):
         await ctx.defer()
+        # Retrieve player from DB
         with DBA.DBAccess() as db:
-            player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
+            temp = db.query('SELECT player_id, lang FROM player WHERE player_name = %s;', (player,))
+            player_id = temp[0][0]
+            # user_language = temp[0][1]
+        # set i18n
+        # translator = Translator()
+        # translator.load_path('./translations')
+        # translator.set('user', user_language)
+        
         if player_id:
             pass
         else:
+            # translated_message = translator('player_not_found', *[])
+            # await ctx.respond(translated_message)
             await ctx.respond('Player not found')
             return
         user = await get_lounge_guild(self.client).fetch_member(player_id)
