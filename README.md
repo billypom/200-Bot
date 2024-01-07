@@ -101,6 +101,9 @@ Useful commands, available only to staff members, to manage the leaderboard and 
 
 # Credits
 [Lorenzi Table Maker](https://github.com/hlorenzi/mk8d_ocr)
+
 [150cc Lounge API](https://github.com/VikeMK/Lounge-API)
+
 [mariokartcentral.com](https://www.mariokartcentral.com/)
+
 Shout out to Lorenzi, Cynda, Vike, Trom, and other MK developers for being awesome 😎
