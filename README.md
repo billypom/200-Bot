@@ -7,7 +7,7 @@ This bot is the primary driver for all things related to the MK8DX 200cc Lounge 
 - View player stats on [200-lounge.com](https://200-lounge.com), or use the commands below.
 
 
-# 🤖 Commands
+## 🤖 Commands
 ### /VERIFY + `[mkc link]`
 - Verify your MKC identity (registry or forum link) with this command to participate in mogis.
 ### /TABLE + `[format]` & `[scores]`
@@ -33,7 +33,8 @@ Submit a name-change request to staff.
 Displays your strikes & their expiration dates
 
 # 🖲️ Staff Utilities
-# __200-LOUNGE MOGI COMMANDS__
+Useful commands, available only to staff members, to manage the leaderboard and Discord community.
+## __🌆 MOGI COMMANDS__
 ### /ZREVERT + `mogi_id` 
 - Deletes a specific mogi by ID. 
 - **DO NOT** `/ZREVERT` a mogi that has `/ZREDUCE_LOSS` reduced loss.
@@ -50,7 +51,7 @@ Displays your strikes & their expiration dates
 ### /ZMMR_PENALTY + `player_name` & `mmr penalty` 
 - Give a player an MMR penalty.
 
-# __200-LOUNGE PLAYER COMMANDS__
+## __🧑‍🦲 PLAYER COMMANDS__
 ### /ZRESTRICT + `player_name` & `reason` & `ban length`
 - Give the restricted role to a player. 
 - Having this role means that the 200-Lounge bot will immediately delete every message sent.
@@ -74,13 +75,13 @@ Displays your strikes & their expiration dates
 ### /ZSTRIKES + `player_name`
 - View a player's strikes
 
-# __200-LOUNGE COMMUNITY COMMANDS__
+## __👪 COMMUNITY COMMANDS__
 ### /ZDENY_SUGGESTION + `suggestion_id` & `reason`
 - Deny a suggestion
 ### /ZAPPROVE_SUGGESTION + `suggestion_id` & `reason`
 - Approve a suggestion
 
-# __200-LOUNGE CONFIGURATION COMMANDS__
+## __⚙️ CONFIGURATION COMMANDS__
 ### /ZRELOAD_COGS
 - Reloads the persistent looping functions (~~inactivity checker, mogilist/lu~~, strike checker, ~~mogi media checker~~, unban checker).
 - If someone is complaining that the bot didn't unban them at exactly 6:43:05.020 PM you can use this to force an unban check. The bot checks for unbans once every hour. The timer starts when the cogs are loaded.
