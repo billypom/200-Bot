@@ -1,3 +1,4 @@
+USE lounge_dev;
 DROP TABLE IF EXISTS sq_default_schedule;
 DROP TABLE IF EXISTS sq_schedule;
 DROP TABLE IF EXISTS player_punishment;
@@ -12,6 +13,7 @@ DROP TABLE IF EXISTS mogi;
 DROP TABLE IF EXISTS tier;
 DROP TABLE IF EXISTS player;
 DROP TABLE IF EXISTS ranks;
+DROP PROCEDURE IF EXISTS copy_data_to_dev;
 
 
 CREATE TABLE ranks (
@@ -48,7 +50,7 @@ CREATE TABLE tier (
     tier_name varchar(4),
     results_id bigint unsigned,
     voting boolean default 0,
-    teams_string varchar(800), --using 713 maximum right now
+    teams_string varchar(800),
     CONSTRAINT tierpk PRIMARY KEY (tier_id)
 );
 
@@ -179,40 +181,126 @@ CREATE TABLE sq_default_schedule(
     CONSTRAINT default_sq_schedulepk PRIMARY KEY (id)
 );
 
-CREATE TABLE mogi_queue(
-    id int unsigned auto_increment,
-    channel_id int unsigned,
+-- Migrate production data to dev db
+CREATE PROCEDURE copy_data_to_dev(IN source_schema VARCHAR(255))
+BEGIN
+  SET @sql = CONCAT('INSERT INTO lounge_dev.ranks SELECT * FROM ', source_schema, '.ranks');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
 
-);
+  SET @sql = CONCAT('INSERT INTO lounge_dev.tier SELECT * FROM ', source_schema, '.tier');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
 
-CREATE TABLE player_queue(
-    player_id int unsigned,
-    create_date TIMESTAMP default CURRENT_TIMESTAMP,
-    CONSTRAINT player_queuepk PRIMARY KEY (player_id)
-);
+  SET @sql = CONCAT('INSERT INTO lounge_dev.punishment SELECT * FROM ', source_schema, '.punishment');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
 
-insert into punishment(punishment_type)
-values ('Restriction'),
-('Loungeless')
-('Warning');
+  SET @sql = CONCAT('INSERT INTO lounge_dev.mogi SELECT * FROM ', source_schema, '.mogi');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
 
--- Real Ranks
+  SET @sql = CONCAT('INSERT INTO lounge_dev.player SELECT * FROM ', source_schema, '.player');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+
+  SET @sql = CONCAT('INSERT INTO lounge_dev.player_mogi SELECT * FROM ', source_schema, '.player_mogi');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+
+  SET @sql = CONCAT('INSERT INTO lounge_dev.player_name_request SELECT * FROM ', source_schema, '.player_name_request');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+
+  SET @sql = CONCAT('INSERT INTO lounge_dev.player_punishment SELECT * FROM ', source_schema, '.player_punishment');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+
+  SET @sql = CONCAT('INSERT INTO lounge_dev.sq_default_schedule SELECT * FROM ', source_schema, '.sq_default_schedule');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+
+  SET @sql = CONCAT('INSERT INTO lounge_dev.sq_schedule SELECT * FROM ', source_schema, '.sq_schedule');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+
+  SET @sql = CONCAT('INSERT INTO lounge_dev.strike SELECT * FROM ', source_schema, '.strike');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+
+  SET @sql = CONCAT('INSERT INTO lounge_dev.sub_leaver SELECT * FROM ', source_schema, '.sub_leaver');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+
+  SET @sql = CONCAT('INSERT INTO lounge_dev.suggestion SELECT * FROM ', source_schema, '.suggestion');
+  PREPARE stmt FROM @sql;
+  EXECUTE stmt;
+  DEALLOCATE PREPARE stmt;
+END;
+
+-- Call the stored procedure with the current database name as a parameter
+CALL copy_data_to_dev('s6200lounge');
+
+-- Dev Ranks
 insert into ranks (rank_id, rank_name, mmr_min, mmr_max, placement_mmr)
-values (791874714434797589, 'Grandmaster', 11000, 99999, NULL),
-(794262638518730772, 'Master', 9000, 10999, NULL),
-(794262898423627857, 'Diamond', 7500, 8999, NULL),
-(794262916627038258, 'Platinum', 6000, 7499, NULL),
-(794262925098745858, 'Gold', 4500, 5999, 5250),
-(794262959084797984, 'Silver', 3000, 4499, 3750),
-(794263467581374524, 'Bronze', 1500, 2999, 2250),
-(970028275789365368, 'Iron', 0, 1499, 1000),
-(846497627508047872, 'Placement', -2, -1, 2500);
+values (1041162011536527398, 'Grandmaster', 11000, 99999, NULL),
+(1041162011536527397, 'Master', 9000, 10999, NULL),
+(1041162011536527396, 'Diamond', 7500, 8999, NULL),
+(1041162011536527395, 'Platinum', 6000, 7499, NULL),
+(1041162011536527394, 'Gold', 4500, 5999, 5250),
+(1041162011536527393, 'Silver', 3000, 4499, 3750),
+(1041162011536527392, 'Bronze', 1500, 2999, 2250),
+(1041162011536527391, 'Iron', 0, 1499, 1000),
+(1041162011536527390, 'Placement', -2, -1, 2500);
 
--- Real Tiers
+UPDATE player SET rank_id = 1041162011536527398 WHERE rank_id = 791874714434797589;
+UPDATE player SET rank_id = 1041162011536527397 WHERE rank_id = 794262638518730772;
+UPDATE player SET rank_id = 1041162011536527396 WHERE rank_id = 794262898423627857;
+UPDATE player SET rank_id = 1041162011536527395 WHERE rank_id = 794262916627038258;
+UPDATE player SET rank_id = 1041162011536527394 WHERE rank_id = 794262925098745858;
+UPDATE player SET rank_id = 1041162011536527393 WHERE rank_id = 794262959084797984;
+UPDATE player SET rank_id = 1041162011536527392 WHERE rank_id = 794263467581374524;
+UPDATE player SET rank_id = 1041162011536527391 WHERE rank_id = 970028275789365368;
+UPDATE player SET rank_id = 1041162011536527390 WHERE rank_id = 846497627508047872;
+
+DELETE FROM ranks WHERE rank_id = 791874714434797589;
+DELETE FROM ranks WHERE rank_id = 794262638518730772;
+DELETE FROM ranks WHERE rank_id = 794262898423627857;
+DELETE FROM ranks WHERE rank_id = 794262916627038258;
+DELETE FROM ranks WHERE rank_id = 794262925098745858;
+DELETE FROM ranks WHERE rank_id = 794262959084797984;
+DELETE FROM ranks WHERE rank_id = 794263467581374524;
+DELETE FROM ranks WHERE rank_id = 970028275789365368;
+DELETE FROM ranks WHERE rank_id = 846497627508047872;
+
+-- Dev Tiers
 insert into tier (tier_id, tier_name, results_id, teams_string)
-values (1010662448715546706, 's', 1010600237880053800, ""),
-(1010662448715546706, 'a', 1010600237880053800, ""),
-(1010662628793786448, 'b', 1010600376187244655, ""),
-(1010663000987934771, 'c', 1010600418524532889, ""),
-(1010663109536534539, 'all', 1010600464003387542, ""),
-(965286774098260029, 'sq', 1010600944209244210, "");
+values(1041162013730164812, 'a', 1041162013730164817, ""),
+(1041162013730164813, 'b', 1041162014086668359, ""),
+(1041162013730164814, 'c', 1041162014086668360, ""),
+(1041162013730164815, 'all', 1041162014086668362, ""),
+(1041162013356855406, 'sq', 1041162013356855407, "");
+
+UPDATE mogi SET tier_id = 1041162013730164812 WHERE tier_id = 1010662448715546706; -- a
+UPDATE mogi SET tier_id = 1041162013730164813 WHERE tier_id = 1010662628793786448; -- b
+UPDATE mogi SET tier_id = 1041162013730164814 WHERE tier_id = 1010663000987934771; -- c
+UPDATE mogi SET tier_id = 1041162013730164815 WHERE tier_id = 1010663109536534539; -- all
+UPDATE mogi SET tier_id = 1041162013356855406 WHERE tier_id = 965286774098260029; -- sq
+
+DELETE FROM tier WHERE tier_id = 1010662448715546706; -- a
+DELETE FROM tier WHERE tier_id = 1010662628793786448; -- b
+DELETE FROM tier WHERE tier_id = 1010663000987934771; -- c
+DELETE FROM tier WHERE tier_id = 1010663109536534539; -- all
+DELETE FROM tier WHERE tier_id = 965286774098260029; -- sq

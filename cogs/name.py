@@ -1,0 +1,129 @@
+import discord
+from discord.ext import commands
+import DBA
+from helpers.senders import send_to_verification_log
+from helpers.senders import send_to_name_change_log
+from helpers.senders import send_to_debug_channel
+from helpers.checkers import check_if_uid_exists
+from helpers.checkers import check_if_uid_is_lounge_banned
+from helpers.checkers import check_if_uid_can_drop 
+from helpers.checkers import check_if_banned_characters
+from helpers import jp_kr_romanize
+from helpers.getters import get_unix_time_now
+import vlog_msg
+from config import NAME_CHANGE_DELTA_LIMIT, SUPPORT_CHANNEL_ID
+from helpers import Confirm
+
+class NameChangeCog(commands.Cog):
+    def __init__(self, client):
+        self.client = client
+
+    @commands.slash_command(
+        name='name',
+        description='Request a name change on the leaderboard',
+    )
+    async def name(
+        self,
+        ctx,
+        name: discord.Option(str, 'Enter a new nickname here', required=True)
+        ):
+        await ctx.defer(ephemeral=True)
+        lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+        if lounge_ban:
+            await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>')
+            return
+        else:
+            pass
+        y = await check_if_uid_exists(ctx.author.id)
+        if y:
+            pass
+        else:
+            await ctx.respond('Use `/verify <mkc link>` to register with Lounge')
+            return
+        z = await check_if_uid_can_drop(ctx.author.id)
+        if z:
+            pass
+        else:
+            await ctx.respond('You cannot change your name while playing a Mogi.')
+            return
+        x = await check_if_banned_characters(name)
+        if x:
+            await send_to_verification_log(self.client, ctx, name, vlog_msg.error1)
+            await ctx.respond('You cannot use this name')
+            return
+        else:
+            pass
+        input_name = name
+        name = await jp_kr_romanize(name)
+        name = name.replace(" ", "-")
+        
+        # Confirm the player name request
+        confirmation = Confirm(ctx.author.id)
+        channel = self.client.get_channel(ctx.channel.id)
+        await channel.send(f'Requested name: `{name}`\nIs this the name you want to request?', view=confirmation, delete_after=30)
+        await confirmation.wait()
+        if confirmation.value is None:
+            await ctx.respond('No response. Timed out.')
+        elif confirmation.value:
+            pass
+        else:
+            await ctx.respond('Name change request cancelled.', delete_after=60)
+        # Name length check
+        if len(name) > 16:
+            await ctx.respond(f'Requested name: `{name}` | Name is too long. 16 characters max')
+            return
+        # Name taken check
+        is_name_taken = True
+        try:
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT player_name FROM player WHERE player_name = %s;', (name,))
+                if temp[0][0] is None:
+                    is_name_taken = False
+                else:
+                    is_name_taken = True
+        except Exception:
+            is_name_taken = False
+        if is_name_taken:
+            await ctx.respond('Name is taken. Please try again.')
+            return
+        # Good to request
+        else:
+            try:
+                with DBA.DBAccess() as db:
+                    temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM player_name_request WHERE player_id = %s ORDER BY create_date DESC;', (ctx.author.id,))
+                    last_change = temp[0][0]
+                    unix_now = await get_unix_time_now()
+                    difference = unix_now - last_change
+                    # 2 months for every name change
+                    if difference > NAME_CHANGE_DELTA_LIMIT:
+                        pass
+                    else:
+                        await ctx.respond(f'Request denied. You can change your name again on <t:{str(int(last_change) + int(NAME_CHANGE_DELTA_LIMIT))}:F>')
+                        return
+            except Exception as e:
+                await send_to_debug_channel(self.client, ctx, f'First name change request from <@{ctx.author.id}>. Still logging this error 34 in case...\n{e}')
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute('INSERT INTO player_name_request (player_id, requested_name) VALUES (%s, %s);', (ctx.author.id, name))
+                    temp = db.query('SELECT id FROM player_name_request WHERE player_id = %s AND requested_name = %s ORDER BY create_date DESC LIMIT 1;', (ctx.author.id, name))
+                    player_name_request_id = temp[0][0]
+                request_message = await send_to_name_change_log(self.client, ctx, player_name_request_id, name)
+                request_message_id = request_message.id
+                await request_message.add_reaction('✅')
+                await request_message.add_reaction('❌')
+            except Exception as e:
+                await send_to_debug_channel(self.client, ctx, f'Tried name: {name} |\n{e}')
+                await ctx.respond(f'``Error 44:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.')
+                return
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute('UPDATE player_name_request SET embed_message_id = %s WHERE id = %s;', (request_message_id, player_name_request_id))
+                await ctx.respond(f'Your request: {input_name} -> {name} | Your name change request was submitted to the staff team for review.')
+                return
+            except Exception as e:
+                await send_to_debug_channel(self.client, ctx, f'Tried name: {name} |\n{e}')
+                await ctx.respond(f'``Error 35:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.')
+                return
+            
+def setup(client):
+    client.add_cog(NameChangeCog(client))
