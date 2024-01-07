@@ -1,14 +1,6 @@
 # python files
-secrets.py
-secretly.py
-secretly2.py
+config.py
 vlog_msg.py
-magicktest.py
-url_encode.py
-twitch_test.py
-unit_test.py
-migration_commands.py
-season_migration.py
 
 # other files
 log
@@ -17,7 +9,7 @@ discord.log
 rules.txt
 
 # folders
-/__pycache__
-/magick_test
 /dont
 /venv
+__pycache__
+.pytest_cache
