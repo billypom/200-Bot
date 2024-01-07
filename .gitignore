@@ -1,5 +1,6 @@
 # python files
 config.py
+live_config.py
 vlog_msg.py
 
 # other files
