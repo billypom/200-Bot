@@ -5,7 +5,7 @@ from config import CHAT_RESTRICTED_ROLE_ID
 # Output: Boolean
 async def set_uid_chat_restricted(client, uid):
     try:
-        member = get_lounge_guild(client).fetch_member(uid)
+        member = await get_lounge_guild(client).fetch_member(uid)
         role = get_lounge_guild(client).get_role(CHAT_RESTRICTED_ROLE_ID)
         await member.add_roles(role)
         return True

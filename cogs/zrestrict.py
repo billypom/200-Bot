@@ -37,7 +37,7 @@ class RestrictCog(commands.Cog):
         # assign/unassign restricted role if member in server
         chat_restricted_role = get_discord_role(self.client, CHAT_RESTRICTED_ROLE_ID)
         try:
-            user = get_lounge_guild(self.client).fetch_member(player_id)
+            user = await get_lounge_guild(self.client).fetch_member(player_id)
             if is_chat_restricted:
                 if chat_restricted_role in user.roles:
                     await user.remove_roles(chat_restricted_role)

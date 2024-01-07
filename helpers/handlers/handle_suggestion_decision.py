@@ -6,13 +6,13 @@ from discord import Color, Embed
 async def handle_suggestion_decision(client, suggestion_id, suggestion, author_id, message_id, admin_id, approved, reason):
     # Retrieve the author of the suggestion
     try:
-        author = get_lounge_guild(client).fetch_member(author_id)
+        author = await get_lounge_guild(client).fetch_member(author_id)
     except Exception:
         author = None
         
     # Retrieve the staff member deciding
     try:
-        admin = get_lounge_guild(client).fetch_member(admin_id)
+        admin = await get_lounge_guild(client).fetch_member(admin_id)
     except Exception:
         admin = None
         logging.info('handle_suggestion_decision | no admin found... among us moment')

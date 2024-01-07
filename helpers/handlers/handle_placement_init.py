@@ -49,7 +49,7 @@ async def handle_placement_init(client, player, my_player_mmr, my_player_score, 
     
     # Assign rank role
     try:
-        discord_member = get_lounge_guild(client).fetch_member(player[0])
+        discord_member = await get_lounge_guild(client).fetch_member(player[0])
         init_role = get_lounge_guild(client).get_role(init_rank)
         placement_role = get_lounge_guild(client).get_role(PLACEMENT_ROLE_ID)
         await discord_member.add_roles(init_role)

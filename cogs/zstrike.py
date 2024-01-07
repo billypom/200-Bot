@@ -94,7 +94,7 @@ class StrikeCog(commands.Cog):
                 db.execute('UPDATE player SET times_strike_limit_reached = %s, unban_date = %s WHERE player_id = %s;', (times_strike_limit_reached, dt, player_id))  # insert the dt object
 
             try:
-                user = get_lounge_guild(self.client).fetch_member(player_id)
+                user = await get_lounge_guild(self.client).fetch_member(player_id)
                 loungeless_role = get_discord_role(self.client, LOUNGELESS_ROLE_ID)
                 await user.add_roles(loungeless_role)
                 for rank in get_rank_id_list:

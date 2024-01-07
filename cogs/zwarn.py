@@ -34,7 +34,7 @@ class WarnCog(commands.Cog):
             logging.info(f'ERROR: /zwarn failed to insert punishment record for player [{player_id}] with message [{reason}]')
 
         try:
-            # user = get_lounge_guild(self.client).fetch_member(player_id)
+            # user = await get_lounge_guild(self.client).fetch_member(player_id)
             await ctx.respond(f'<@{player_id}> has been warned: `{reason}`')
         except Exception as e:
             await ctx.respond(f'{player} has been warned: `{reason}`')

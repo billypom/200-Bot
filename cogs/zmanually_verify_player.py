@@ -45,7 +45,7 @@ class ManuallyVerifyPlayerCog(commands.Cog):
             return
         else:
             try:
-                member = get_lounge_guild(self.client).fetch_member(player_id)
+                member = await get_lounge_guild(self.client).fetch_member(player_id)
             except Exception:
                 await ctx.respond(f'Unknown guild member: <@{player_id}>.')
                 return

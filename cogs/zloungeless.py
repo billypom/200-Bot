@@ -30,7 +30,7 @@ class LoungelessCog(commands.Cog):
         else:
             await ctx.respond('Player not found')
             return
-        user = get_lounge_guild(self.client).fetch_member(player_id)
+        user = await get_lounge_guild(self.client).fetch_member(player_id)
         loungeless_role = get_discord_role(self.client, LOUNGELESS_ROLE_ID)
         if loungeless_role in user.roles:
             await user.remove_roles(loungeless_role)

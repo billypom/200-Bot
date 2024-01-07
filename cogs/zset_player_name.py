@@ -66,7 +66,7 @@ class SetPlayerNameCog(commands.Cog):
                 await send_raw_to_debug_channel(self.client, 'Could not force name change...', e)
                 await ctx.respond('`Error 77:` Could not force player name change.')
                 return
-            member = get_lounge_guild(self.client).fetch_member(player.id)
+            member = await get_lounge_guild(self.client).fetch_member(player.id)
             try:
                 await member.edit(nick=str(name))
             except Exception as e:

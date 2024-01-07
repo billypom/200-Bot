@@ -46,7 +46,7 @@ class VerifyCog(commands.Cog):
                 pass
             response = await set_uid_roles(self.client, ctx.author.id)
             if response:
-                member = get_lounge_guild(self.client).fetch_member(ctx.author.id)
+                member = await get_lounge_guild(self.client).fetch_member(ctx.author.id)
                 msg_response = f':flag_us:\nWelcome back to 200cc Lounge.\nYou have been given the role: <@&{response[0]}>\n\n:flag_jp:\n`200ccラウンジにおかえり！`\n<@&{response[0]}>`が割り当てられています`'
                 await ctx.respond(msg_response)
                 logging.info(f'POP_LOG | {member.display_name} | Responded to verification message')
@@ -160,7 +160,7 @@ class VerifyCog(commands.Cog):
             await send_to_verification_log(self.client, ctx, f'Error 10: {message}', f'{verify_description} | <@{x[1]}> already using MKC **FORUM** ID {x[0]}')
             return
         else:
-            member = get_lounge_guild(self.client).fetch_member(ctx.author.id)
+            member = await get_lounge_guild(self.client).fetch_member(ctx.author.id)
             x = await create_player(self.client, member, mkc_user_id, country_code)
             logging.info(f'POP_LOG | Created player: discord.Member: {member} | mkc_user_id: {mkc_user_id} | country: {country_code}')
             try:
