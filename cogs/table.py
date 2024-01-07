@@ -19,7 +19,7 @@ from helpers.checkers import check_if_banned_characters
 from helpers.handlers import handle_score_input
 from helpers.handlers import handle_placement_init
 from helpers.wrappers import positive_mmr, negative_mmr, peak_mmr, new_rank
-from config import REPORTER_ROLE_ID, LOUNGE, SQ_HELPER_CHANNEL_ID, CATEGORIES_MESSAGE_ID, SQ_TIER_ID, MOGI_MEDIA_CHANNEL_ID, PING_DEVELOPER
+from config import REPORTER_ROLE_ID, LOUNGE, SQ_HELPER_CHANNEL_ID, CATEGORIES_MESSAGE_ID, SQUAD_QUEUE_CHANNEL_ID, MOGI_MEDIA_CHANNEL_ID, PING_DEVELOPER
 
 
 
@@ -65,7 +65,7 @@ class TableCog(commands.Cog):
             sq_helper_channel = self.client.get_channel(SQ_HELPER_CHANNEL_ID)
             sq_helper_message = await sq_helper_channel.fetch_message(CATEGORIES_MESSAGE_ID)
             if str(ctx.channel.category.id) in sq_helper_message.content:
-                nya_tier_id = SQ_TIER_ID
+                nya_tier_id = SQUAD_QUEUE_CHANNEL_ID
             else:
                 await ctx.respond('``Error 72a: `/table` must be used from a tier channel``')
                 return
