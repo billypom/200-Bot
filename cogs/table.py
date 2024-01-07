@@ -625,6 +625,7 @@ class TableCog(commands.Cog):
             mmr_table_succeeded = False
             try:
                 subprocess.run(['convert', '-background', 'None', '-fill', 'white', pango_string, './images/mkbg.jpg', '-compose', 'DstOver', '-layers', 'flatten', mmr_filename], check=True, text=True)
+                mmr_table_succeeded = True
             except Exception as e:
                 logging.warning(f'/table | Could not generate pango MMR table | {e}')
                 mmr_table_succeeded = False
