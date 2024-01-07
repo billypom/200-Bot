@@ -26,19 +26,11 @@ class LoungelessCog(commands.Cog):
         await ctx.defer()
         # Retrieve player from DB
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT player_id, lang FROM player WHERE player_name = %s;', (player,))
-            player_id = temp[0][0]
-            # user_language = temp[0][1]
-        # set i18n
-        # translator = Translator()
-        # translator.load_path('./translations')
-        # translator.set('user', user_language)
+            player_id = db.query('SELECT player_id, lang FROM player WHERE player_name = %s;', (player,))[0][0]
         
         if player_id:
             pass
         else:
-            # translated_message = translator('player_not_found', *[])
-            # await ctx.respond(translated_message)
             await ctx.respond('Player not found')
             return
         user = await get_lounge_guild(self.client).fetch_member(player_id)
@@ -53,7 +45,7 @@ class LoungelessCog(commands.Cog):
             unban_date = unix_now + unix_ban_length
             await user.add_roles(loungeless_role)
             await remove_rank_roles_from_uid(player_id)
-            await user.send(f'You have been lounge banned in MK8DX 200cc Lounge for {ban_length} days\nReason: `{reason}`')
+            await user.send(f'You have been banned from competing in MK8DX 200cc Lounge.\nBan length: {ban_length} days\nReason: `{reason}`')
             try:
                 with DBA.DBAccess() as db:
                     db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id, unban_date) VALUES (%s, %s, %s, %s, %s);', (player_id, 2, reason, ctx.author.id, unban_date))
