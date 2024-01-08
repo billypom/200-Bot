@@ -13,12 +13,13 @@ async def mkc_request_forum_info(mkc_user_id):
     return return_value
 
 def mt_mkc_request_forum_info(mkc_user_id):
+    headers = {'User-Agent': '200-Lounge Bot'}
     try:
         # Get shared ips
         login_url = 'https://www.mariokartcentral.com/forums/index.php?login/login'
         data_url = (f'https://www.mariokartcentral.com/forums/index.php?members/{mkc_user_id}/shared-ips')
         with requests.Session() as s:
-            html = s.get(login_url).content
+            html = s.get(login_url, headers=headers).content
             soup = Soup(html, 'html.parser')
             token = soup.select_one('[name=_xfToken]').attrs['value']
             payload = {
@@ -27,8 +28,8 @@ def mt_mkc_request_forum_info(mkc_user_id):
             '_xfToken': str(token),
             '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
             }
-            response = s.post(login_url, data=payload)
-            response = s.get(data_url)
+            response = s.post(login_url, data=payload, headers=headers)
+            response = s.get(data_url, headers=headers)
             response_string = str(response.content)
             response_lines = response_string.split('\\n')
             list_of_user_matches = []
@@ -44,7 +45,7 @@ def mt_mkc_request_forum_info(mkc_user_id):
 
         data_url = (f'https://www.mariokartcentral.com/forums/index.php?members/{mkc_user_id}')
         with requests.Session() as s:
-            html = s.get(login_url).content
+            html = s.get(login_url, headers=headers).content
             soup = Soup(html, 'html.parser')
             token = soup.select_one('[name=_xfToken]').attrs['value']
             payload = {
@@ -53,8 +54,8 @@ def mt_mkc_request_forum_info(mkc_user_id):
             '_xfToken': str(token),
             '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
             }
-            response = s.post(login_url, data=payload)
-            response = s.get(data_url)
+            response = s.post(login_url, data=payload, headers=headers)
+            response = s.get(data_url, headers=headers)
             response_string = str(response.content)
             response_lines = response_string.split('\\n')
             # \t\t\t\t\t\t\t\t\t\t\t<time  class="u-dt" dir="auto" datetime="2022-07-30T11:07:30-0400" data-time="1659193650" data-date-string="Jul 30, 2022" data-time-string="11:07 AM" title="Jul 30, 2022 at 11:07 AM">A moment ago</time> <span role="presentation" aria-hidden="true">&middot;</span> Viewing member profile <em><a href="/forums/index.php?members/popuko.154/" dir="auto">popuko</a></em>
@@ -81,11 +82,12 @@ async def mkc_request_mkc_player_id(mkc_user_id):
     return return_value
 
 def mt_mkc_request_mkc_player_id(mkc_user_id):
+    headers = {'User-Agent': '200-Lounge Bot'}
     try:
         login_url = 'https://www.mariokartcentral.com/forums/index.php?login/login'
         data_url = 'https://www.mariokartcentral.com/mkc/api/registry/players/all'
         with requests.Session() as s:
-            html = s.get(login_url).content
+            html = s.get(login_url, headers=headers).content
             soup = Soup(html, 'html.parser')
             token = soup.select_one('[name=_xfToken]').attrs['value']
             payload = {
@@ -94,8 +96,8 @@ def mt_mkc_request_mkc_player_id(mkc_user_id):
             '_xfToken': str(token),
             '_xfRedirect': 'https://www.mariokartcentral.com/mkc/'
             }
-            response = s.post(login_url, data=payload)
-            response = s.get(data_url)
+            response = s.post(login_url, data=payload, headers=headers)
+            response = s.get(data_url, headers=headers)
         registry_data = response.json()
         response = json.dumps(registry_data)
         response = json.loads(response)
@@ -122,8 +124,9 @@ async def mkc_request_registry_info(mkc_player_id):
 # Input: mkc registry id
 # Output: (mkc user id, alpha-2 iso country code, boolean is_banned)
 def mt_mkc_request_registry_info(mkc_player_id):
+    headers = {'User-Agent': '200-Lounge Bot'}
     try:
-        mkcresponse = requests.get("https://www.mariokartcentral.com/mkc/api/registry/players/" + str(mkc_player_id))
+        mkcresponse = requests.get("https://www.mariokartcentral.com/mkc/api/registry/players/" + str(mkc_player_id), headers=headers)
         mkc_data = mkcresponse.json()
         buh = json.dumps(mkc_data)
         mkc_data_dict = json.loads(buh)

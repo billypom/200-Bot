@@ -9,9 +9,10 @@ async def lounge_request_mkc_user_id(ctx):
     return return_value
 
 def mt_lounge_request_mkc_user_id(ctx):
+    headers = {'User-Agent': '200-Lounge Bot'}
     try:
         player_id = ctx.author.id
-        loungeresponse = requests.get("https://www.mk8dx-lounge.com/api/player?discordId=" + str(player_id))
+        loungeresponse = requests.get("https://www.mk8dx-lounge.com/api/player?discordId=" + str(player_id), headers=headers)
         lounge_data = loungeresponse.json()
         guh = json.dumps(lounge_data) # dump to a string
         lounge_data_dict = json.loads(guh) # loads to a dict
