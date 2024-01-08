@@ -642,12 +642,17 @@ class TableCog(commands.Cog):
             embed2.add_field(name='View on website', value=f'https://200-lounge.com/mogi/{db_mogi_id}', inline=False)
             embed2.set_image(url='attachment://table.jpg')
             table_message = await results_channel.send(content=None, embed=embed2, file=sf)
-            table_url = table_message.embeds[0].image.url
+            # Table URL for website
+            try:
+                table_url = table_message.embeds[0].image.url
+            except Exception:
+                table_url = None
+            # Upload table URL & message ID for /zrevert
             try:
                 with DBA.DBAccess() as db:
-                    db.query('UPDATE mogi SET table_url = %s WHERE mogi_id = %s;', (table_url, db_mogi_id))
+                    db.query('UPDATE mogi SET table_url = %s, table_message_id = %s WHERE mogi_id = %s;', (table_url, table_message.id, db_mogi_id))
             except Exception as e:
-                await send_to_debug_channel(self.client, ctx, f'Unable to get table url: {e}')
+                await send_to_debug_channel(self.client, ctx, f'/table | Unable to get table url: {e}')
                 pass
             
             if mmr_table_succeeded:
@@ -657,7 +662,14 @@ class TableCog(commands.Cog):
                 embed.add_field(name='Submitted by', value=f'<@{ctx.author.id}>', inline=True)
                 embed.add_field(name='View on website', value=f'https://200-lounge.com/mogi/{db_mogi_id}', inline=False)
                 embed.set_image(url='attachment://mmr.jpg')
-                await results_channel.send(content=None, embed=embed, file=f)
+                embed_message = await results_channel.send(content=None, embed=embed, file=f)
+                # Upload message ID for /zrevert
+                try:
+                    with DBA.DBAccess() as db:
+                        db.query('UPDATE mogi SET mmr_message_id = %s WHERE mogi_id = %s;', (embed_message.id, db_mogi_id))
+                except Exception as e:
+                    await send_to_debug_channel(self.client, ctx, f'/table | Unable to update mmr_message_id: {e}')
+                    pass
                 #  discord ansi coloring (doesn't work on mobile)
                 # https://gist.github.com/kkrypt0nn/a02506f3712ff2d1c8ca7c9e0aed7c06
                 # https://rebane2001.com/discord-colored-text-generator/ 

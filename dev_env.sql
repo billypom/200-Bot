@@ -59,6 +59,8 @@ CREATE TABLE mogi (
     mogi_format int,
     tier_id bigint unsigned,
     table_url varchar(240),
+    table_message_id bigint unsigned default null,
+    mmr_message_id bigint unsigned default null,
     create_date TIMESTAMP default CURRENT_TIMESTAMP NOT NULL,
     CONSTRAINT mogipk PRIMARY KEY (mogi_id),
     CONSTRAINT mogifk FOREIGN KEY (tier_id) REFERENCES tier(tier_id)

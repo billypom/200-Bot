@@ -17,15 +17,19 @@ class ZRevertCog(commands.Cog):
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zrevert(self, ctx, mogi_id: discord.Option(int, 'Mogi ID / Table ID', required=True)):
         await ctx.defer()
+        results_channel = None
         flag = 0
 
         # Make sure mogi exists
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT mogi_id FROM mogi WHERE mogi_id = %s;', (mogi_id,))
+                temp = db.query('SELECT mogi_id, table_message_id, mmr_message_id FROM mogi WHERE mogi_id = %s;', (mogi_id,))
                 if temp[0][0] is None:
                     await ctx.respond('``Error 34:`` Mogi could not be found.')
                     return
+                # Grab message IDs to delete later
+                table_message_id = temp[0][1]
+                mmr_message_id = temp[0][2]
         except Exception as e:
             await send_to_debug_channel(self.client, ctx, f'zrevert error 35 wrong mogi id? | {e}')
             await ctx.respond('``Error 35:`` Mogi could not be found')
@@ -92,10 +96,15 @@ class ZRevertCog(commands.Cog):
                 await send_to_debug_channel(self.client, ctx, f'/zrevert FATAL ERROR 2 | {e}')
                 flag = 1
                 pass
+        # Delete DB records, order matters
         with DBA.DBAccess() as db:
             db.execute('DELETE FROM player_mogi WHERE mogi_id = %s;', (mogi_id,))
             db.execute('DELETE FROM mogi WHERE mogi_id = %s;', (mogi_id,))
-
+        # Delete results channel messages
+        embed_message = await results_channel.fetch_message(table_message_id)
+        await embed_message.delete()
+        embed_message = await results_channel.fetch_message(mmr_message_id)
+        await embed_message.delete()
         if flag == 1:
             fatal_error = f"FATAL ERROR WHILE UPDATING ROLES. CONTACT {PING_DEVELOPER}"
         else:
