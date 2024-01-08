@@ -104,5 +104,3 @@ Useful commands, available only to staff members, to manage the leaderboard and 
 [150cc Lounge API](https://github.com/VikeMK/Lounge-API) used as a secondary verification method in the `/verify` command
 
 [mariokartcentral.com](https://www.mariokartcentral.com/) used in the `/verify` command
-
-Shout out to Lorenzi, Cynda, Vike, and Trom for providing info about their infrastructure.
