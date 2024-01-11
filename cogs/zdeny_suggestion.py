@@ -37,7 +37,7 @@ class DenySuggestionCog(commands.Cog):
         message_id = crap[0][3]
         admin_id = ctx.author.id
 
-        response = await handle_suggestion_decision(suggestion_id, suggestion, author_id, message_id, admin_id, 0, reason)
+        response = await handle_suggestion_decision(self.client, suggestion_id, suggestion, author_id, message_id, admin_id, 0, reason)
         if response:
             await ctx.respond(f'Suggestion #{suggestion_id} denied')
         else:
