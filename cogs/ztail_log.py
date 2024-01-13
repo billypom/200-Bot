@@ -29,7 +29,7 @@ class TailLogCog(commands.Cog):
         
         last_10_lines = lines[-10:]
         # Create string, each line < 100 char long
-        response = '\n'.join([line[:100] for line in last_10_lines])
+        response = '\n'.join([line[:200] for line in last_10_lines])
         # Send message
         await ctx.respond(f'```{response}```')
         return
