@@ -10,7 +10,9 @@ from helpers.getters import get_discord_role
 from helpers import set_uid_roles
 import config
 
-logging.basicConfig(filename='200lounge.log', filemode='a', level=logging.INFO)
+log_format = '%(asctime)s - %(levelname)s - %(message)s'
+logging.basicConfig(filename='200lounge.log', filemode='a', level=logging.INFO, format=log_format, datefmt='%Y-%m-%d %H:%M:%S')
+
 # os, sys | add root dir to python path to allow dynamic imports (aka i dont have to type from ..........helpers.senders.getters.etc import blah)
 # i can just type from helpers.checkers import blah
 project_root = os.path.abspath(os.path.dirname(__file__))
