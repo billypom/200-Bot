@@ -6,7 +6,7 @@ from helpers.senders import send_to_name_change_log
 from helpers.senders import send_to_debug_channel
 from helpers.checkers import check_if_uid_exists
 from helpers.checkers import check_if_uid_is_lounge_banned
-from helpers.checkers import check_if_uid_can_drop 
+from helpers.checkers import check_if_uid_can_drop
 from helpers.checkers import check_if_banned_characters
 from helpers import jp_kr_romanize
 from helpers.getters import get_unix_time_now
@@ -21,14 +21,13 @@ class NameChangeCog(commands.Cog):
     @commands.slash_command(
         name='name',
         description='Request a name change on the leaderboard',
-        ephemeral=True
     )
     async def name(
         self,
         ctx,
         name: discord.Option(str, 'Enter a new nickname here', required=True)
         ):
-        await ctx.defer(ephemeral=True)
+        await ctx.defer(ephemeral=False)
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:
             await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>')
@@ -64,14 +63,16 @@ class NameChangeCog(commands.Cog):
         await channel.send(f'Requested name: `{name}`\nIs this the name you want to request?', view=confirmation, delete_after=30)
         await confirmation.wait()
         if confirmation.value is None:
-            await ctx.respond('No response. Timed out.')
+            await channel.send('No response. Timed out.', delete_after=30)
+            return
         elif confirmation.value:
             pass
         else:
-            await ctx.respond('Name change request cancelled.', delete_after=60)
+            await channel.send('Name change request cancelled.', delete_after=30)
+            return
         # Name length check
         if len(name) > 16:
-            await ctx.respond(f'Requested name: `{name}` | Name is too long. 16 characters max')
+            await channel.send(f'Requested name: `{name}` | Name is too long. 16 characters max', delete_after=30)
             return
         # Name taken check
         is_name_taken = True
@@ -83,12 +84,13 @@ class NameChangeCog(commands.Cog):
                 else:
                     is_name_taken = True
         except Exception:
-            is_name_taken = False
+            is_name_taken = True #False? idk
         if is_name_taken:
-            await ctx.respond('Name is taken. Please try again.')
+            await channel.send('Name is taken. Please try again.', delete_after=30)
             return
         # Good to request
         else:
+            await ctx.respond('Sending request...')
             try:
                 with DBA.DBAccess() as db:
                     temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM player_name_request WHERE player_id = %s ORDER BY create_date DESC;', (ctx.author.id,))
@@ -99,31 +101,36 @@ class NameChangeCog(commands.Cog):
                     if difference > NAME_CHANGE_DELTA_LIMIT:
                         pass
                     else:
-                        await ctx.respond(f'Request denied. You can change your name again on <t:{str(int(last_change) + int(NAME_CHANGE_DELTA_LIMIT))}:F>')
+                        await channel.send(f'Request denied. You can change your name again on <t:{str(int(last_change) + int(NAME_CHANGE_DELTA_LIMIT))}:F>', delete_after=30)
                         return
+            except IndexError:
+                pass # If this player has never sent a request before, this will throw IndexError
             except Exception as e:
                 await send_to_debug_channel(self.client, ctx, f'First name change request from <@{ctx.author.id}>. Still logging this error 34 in case...\n{e}')
+            # Insert record of player name request
             try:
                 with DBA.DBAccess() as db:
                     db.execute('INSERT INTO player_name_request (player_id, requested_name) VALUES (%s, %s);', (ctx.author.id, name))
                     temp = db.query('SELECT id FROM player_name_request WHERE player_id = %s AND requested_name = %s ORDER BY create_date DESC LIMIT 1;', (ctx.author.id, name))
                     player_name_request_id = temp[0][0]
+                # Send request to staff channel for review
                 request_message = await send_to_name_change_log(self.client, ctx, player_name_request_id, name)
                 request_message_id = request_message.id
                 await request_message.add_reaction('✅')
                 await request_message.add_reaction('❌')
             except Exception as e:
                 await send_to_debug_channel(self.client, ctx, f'Tried name: {name} |\n{e}')
-                await ctx.respond(f'``Error 44:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.')
+                await channel.send(f'``Error 44:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.', delete_after=30)
                 return
-            try:
+            # Store the message ID of the embed that staff is reviewing
+            try: # Once a decision, via reaction, is made - use this ID to automatically delete the request message from the channel
                 with DBA.DBAccess() as db:
                     db.execute('UPDATE player_name_request SET embed_message_id = %s WHERE id = %s;', (request_message_id, player_name_request_id))
-                await ctx.respond(f'Your request: {input_name} -> {name} | Your name change request was submitted to the staff team for review.')
+                await channel.send(f'Your request: {input_name} -> {name} | Your name change request was submitted to the staff team for review.', delete_after=30)
                 return
             except Exception as e:
                 await send_to_debug_channel(self.client, ctx, f'Tried name: {name} |\n{e}')
-                await ctx.respond(f'``Error 35:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.')
+                await channel.send(f'``Error 35:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.', delete_after=30)
                 return
             
 def setup(client):

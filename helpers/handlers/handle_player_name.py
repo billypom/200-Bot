@@ -12,7 +12,6 @@ async def handle_player_name(name) -> str:
     insert_name = ""
     logging.info(f"insert_name = {insert_name}")
     # Romanize the text
-    print('hello????????')
     try:
         insert_name = await jp_kr_romanize(name)
     except Exception as e:

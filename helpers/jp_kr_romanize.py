@@ -6,7 +6,6 @@ import logging
 # Input: string
 # Output: romanized jp/kr string
 async def jp_kr_romanize(input):
-    print('hello?')
     logging.info(f"jp_kr_romanize | input: {input}")
     r = Romanizer(input)
     logging.info(f"jp_kr_romanize | Romanizer(input) = {r}")

@@ -7,7 +7,6 @@ async def check_if_uid_exists(uid):
         with DBA.DBAccess() as db:
             temp = db.query('SELECT player_id FROM player WHERE player_id = %s;', (uid,))
             if str(temp[0][0]) == str(uid):
-                print(f'{temp[0][0]} = {uid}')
                 return True
             else:
                 return False
