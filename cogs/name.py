@@ -21,6 +21,7 @@ class NameChangeCog(commands.Cog):
     @commands.slash_command(
         name='name',
         description='Request a name change on the leaderboard',
+        ephemeral=True
     )
     async def name(
         self,

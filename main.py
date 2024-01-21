@@ -22,7 +22,7 @@ sys.path.append(project_root)
 # Bot config
 # Intents:  manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
 #           send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
-intents = discord.Intents(messages=True, guilds=True, message_content=True, members=True, reactions=True)
+intents = discord.Intents(guilds=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 
 # Load cogs  
@@ -75,75 +75,26 @@ async def on_application_command_error(ctx, error):
         raise error
         return
 
-@client.event
-async def on_message(ctx):
-    try:
-        if ctx.guild == get_lounge_guild(client): # Only care if messages are in 200 Lounge
-            pass
-        else:
-            return
-    except Exception:
-        return
-    if ctx.author.id == config.BOT_ID: # ignore self messages
-        return
-    if ctx.channel.id == 558096949337915413: # ignore carl bot logging
-        return
-    user = await get_lounge_guild(client).fetch_member(ctx.author.id)
-    if get_discord_role(client, config.CHAT_RESTRICTED_ROLE_ID) in user.roles: # restricted players
-        # We removed allowing certain phrases because people were avoiding this functionality by
-        # sending an allowed message, then editing it to harrass players. 
-
-        # if ctx.content in config.CHAT_RESTRICTED_WORDS:
-        #     return
-        # else:
-        await ctx.delete()
-        return
-    
-    # Voting code - keeping this here in case we need to leave 255MP's MogiBot
-    # if ctx.channel.id in await get_tier_id_list(): # Only care if messages are in a tier
-    #     # If player in lineup, set player chat activity timer   
-    #     try:
-    #         with DBA.DBAccess() as db:
-    #             temp = db.query('SELECT player_id, tier_id FROM lineups WHERE player_id = %s;', (ctx.author.id,))
-    #     except Exception as e:
-    #         await send_to_debug_channel(client, ctx, f'on_message error 1 | {e}')
-    #         return
-    #     try:
-    #         test_assign = temp[0][0]
-    #     except Exception:
-    #         # player not in lineup talked. dont care
-    #         return
-    #     if temp[0][0] is None:
-    #         return
-    #     else:
-    #         if ctx.channel.id == temp[0][1]: # Type activity in correct channel
-    #             try:
-    #                 with DBA.DBAccess() as db:
-    #                     db.execute('UPDATE lineups SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
-    #             except Exception as e:
-    #                 await send_to_debug_channel(client, ctx, f'on_message error 2 | {e}')
-    #                 return
-    #     try:
-    #         with DBA.DBAccess() as db:
-    #             get_tier = db.query('SELECT voting, tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
-    #     except Exception as e:
-    #         await send_to_debug_channel(client, ctx, f'on_message error 3 | {e}')
-    #     # Set votes, if tier is currently voting
-    #     if get_tier[0][0]:
-    #         if get_tier[0][1] == ctx.channel.id:
-    #             if str(ctx.content) in ['1', '2', '3', '4', '6']:
-    #                 try:
-    #                     with DBA.DBAccess() as db:
-    #                         temp = db.query('SELECT player_id FROM lineups WHERE player_id = %s AND tier_id = %s ORDER BY create_date LIMIT %s;', (ctx.author.id, ctx.channel.id, MAX_PLAYERS_IN_MOGI)) # limit prevents 13th person from voting
-    #                 except Exception as e:
-    #                     await send_to_debug_channel(client, ctx, f'on_message error 4 {e}')
-    #                     return
-    #                 try:
-    #                     with DBA.DBAccess() as db:
-    #                         db.execute('UPDATE lineups SET vote = %s WHERE player_id = %s;', (int(ctx.content), ctx.author.id))
-    #                 except Exception as e:
-    #                     await send_to_debug_channel(client, ctx, f'on_message error 5 {e}')
-    #                     return
+# @client.event
+# async def on_message(ctx):
+#     try:
+#         if ctx.guild == get_lounge_guild(client): # Only care if messages are in 200 Lounge
+#             pass
+#         else:
+#             return
+#     except Exception:
+#         return
+#     if ctx.author.id == config.BOT_ID: # ignore self messages
+#         return
+#     if ctx.channel.id == 558096949337915413: # ignore carl bot logging
+#         return
+#     user = await get_lounge_guild(client).fetch_member(ctx.author.id)
+#     if get_discord_role(client, config.CHAT_RESTRICTED_ROLE_ID) in user.roles: # restricted players
+#         # if ctx.content in config.CHAT_RESTRICTED_WORDS:
+#             # return
+#         # else:
+#         await ctx.delete()
+#         return
 
 @client.event
 async def on_raw_reaction_add(payload):
