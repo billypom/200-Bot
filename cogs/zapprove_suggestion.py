@@ -12,6 +12,7 @@ class ApproveSuggestionCog(commands.Cog):
     @commands.slash_command(
         name='zapprove_suggestion',
         description='Approve a suggestion by ID',
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def approve(

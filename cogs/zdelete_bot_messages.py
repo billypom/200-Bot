@@ -1,3 +1,4 @@
+from discord import Permissions
 from discord.ext import commands
 from config import LOUNGE, ADMIN_ROLE_ID, UPDATER_ROLE_ID, BOT_ID
 
@@ -7,7 +8,8 @@ class DeleteBotMessagesCog(commands.Cog):
 
     @commands.slash_command(
         name="zdelete_bot_messages", 
-        description="Delete all bot messages in the current channel from the past 14 days", 
+        description="Delete all bot messages in the current channel from the past 14 days",
+        default_member_permissions=(Permissions(moderate_members=True)),
         guild_ids=LOUNGE
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)

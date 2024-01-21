@@ -11,6 +11,7 @@ class AddMMRCog(commands.Cog):
     @commands.slash_command(
         name='zadd_mmr',
         description='Add MMR to a player',
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
         guild_ids=LOUNGE
     )
     @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)

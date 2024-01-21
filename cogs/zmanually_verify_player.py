@@ -16,6 +16,7 @@ class ManuallyVerifyPlayerCog(commands.Cog):
     @commands.slash_command(
         name='zmanually_verify_player',
         description='Manually verify a player (no mkc api checks)',
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
         guild_ids=LOUNGE
     )
     @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)

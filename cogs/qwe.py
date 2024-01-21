@@ -1,3 +1,4 @@
+from discord import Permissions
 from discord.ext import commands
 from helpers.getters import get_lounge_guild
 from config import LOUNGE, ADMIN_ROLE_ID
@@ -10,6 +11,7 @@ class QWECog(commands.Cog):
     @commands.slash_command(
         name='qwe',
         description='popuko testing',
+        default_member_permissions=(Permissions(moderate_members=True)),
         guild_ids=LOUNGE
     )
     @commands.has_any_role(ADMIN_ROLE_ID)

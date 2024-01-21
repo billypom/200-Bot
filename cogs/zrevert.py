@@ -12,6 +12,7 @@ class ZRevertCog(commands.Cog):
     @commands.slash_command(
         name="zrevert",
         description="Undo a table",
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
         guild_ids=LOUNGE
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)

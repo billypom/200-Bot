@@ -9,7 +9,8 @@ class PlayerInfoCog(commands.Cog):
 
     @commands.slash_command(
         name='zget_player_info',
-        description='Get player DB info [Please only use in admin chats]',
+        description='Get player DB info',
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
         guild_ids=LOUNGE
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)

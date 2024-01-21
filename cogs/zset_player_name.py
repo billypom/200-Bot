@@ -7,7 +7,7 @@ from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild
 from helpers.checkers import check_if_uid_exists
 from helpers.checkers import check_if_banned_characters
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID
+from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 import vlog_msg
 
 class SetPlayerNameCog(commands.Cog):
@@ -16,7 +16,9 @@ class SetPlayerNameCog(commands.Cog):
 
     @commands.slash_command(
         name='zset_player_name',
-        description='Force a player to a new name'
+        description='Force a player to a new name',
+        guild_ids=LOUNGE,
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zset_player_name(

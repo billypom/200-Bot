@@ -6,7 +6,7 @@ from helpers.checkers import check_if_banned_characters
 from helpers.checkers import check_if_mogi_id_exists
 from helpers.senders import send_to_debug_channel
 from helpers import set_uid_roles
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID
+from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 # missing 4 races = 2/3
 # missing 6 races = 1/2
@@ -24,6 +24,8 @@ class ReduceLossCog(commands.Cog):
     @commands.slash_command(
         name='zreduce_loss',
         description='Reduce the loss for 1 player in 1 mogi',
+        guild_ids=LOUNGE,
+        default_member_permissions=(discord.Permissions(moderate_members=True))
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zreduce_loss(self, ctx,

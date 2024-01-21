@@ -11,6 +11,7 @@ class ZHostBan(commands.Cog):
     @commands.slash_command(
         name='zhostban',
         description='Add hostban to a player [Admin only]',
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
         guild_ids=LOUNGE
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)

@@ -16,6 +16,7 @@ class RestrictCog(commands.Cog):
     @commands.slash_command(
         name='zrestrict',
         description='Chat restrict a player',
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
         guild_ids=LOUNGE
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)

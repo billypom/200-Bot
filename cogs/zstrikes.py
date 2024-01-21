@@ -11,7 +11,8 @@ class ZStrikesCog(commands.Cog):
     @commands.slash_command(
         name='zstrikes',
         description='See strikes for a specific player',
-        guild_ids=LOUNGE
+        guild_ids=LOUNGE,
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zstrikes(self, ctx, player: discord.Option(str, description='Player name', required=True)):

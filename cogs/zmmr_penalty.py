@@ -4,7 +4,7 @@ import DBA
 from helpers.checkers import check_if_uid_is_placement
 from helpers.senders import send_to_debug_channel
 from helpers import set_uid_roles
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID
+from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 class MMRPenaltyCog(commands.Cog):
     def __init__(self, client):
@@ -13,6 +13,8 @@ class MMRPenaltyCog(commands.Cog):
     @commands.slash_command(
         name='zmmr_penalty',
         description='Give a player an MMR penalty, with no strike',
+        guild_ids=LOUNGE,
+        default_member_permissions=(discord.Permissions(moderate_members=True))
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zmmr_penalty(self, ctx,

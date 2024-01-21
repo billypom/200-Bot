@@ -8,7 +8,7 @@ from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_unix_time_now
 from helpers.getters import get_lounge_guild
 from helpers.getters import get_discord_role
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGELESS_ROLE_ID, SECONDS_IN_A_DAY
+from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGELESS_ROLE_ID, SECONDS_IN_A_DAY, LOUNGE
 
 class LoungelessCog(commands.Cog):
     def __init__(self, client):
@@ -17,6 +17,8 @@ class LoungelessCog(commands.Cog):
     @commands.slash_command(
         name='zloungeless',
         description='Apply the loungeless role to a player',
+        guild_ids=LOUNGE,
+        default_member_permissions=(discord.Permissions(moderate_members=True))
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zloungeless(self, ctx, 

@@ -4,7 +4,7 @@ import DBA
 import logging
 from helpers.senders import send_raw_to_debug_channel
 # from helpers.getters import get_lounge_guild
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID
+from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 class WarnCog(commands.Cog):
     def __init__(self, client):
@@ -13,6 +13,8 @@ class WarnCog(commands.Cog):
     @commands.slash_command(
         name='zwarn',
         description='Used to log warnings sent to players',
+        guild_ids=LOUNGE,
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zwarn(self, ctx, 

@@ -1,3 +1,4 @@
+from discord import Permissions
 from discord.ext import commands
 from config import LOUNGE, ADMIN_ROLE_ID
 import logging
@@ -9,7 +10,8 @@ class TailLogCog(commands.Cog):
     @commands.slash_command(
         name='ztail_log',
         description='Last 10 lines of log file',
-        guild_ids=LOUNGE
+        guild_ids=LOUNGE,
+        default_member_permissions=(Permissions(administrator=True)),
     )
     @commands.has_any_role(ADMIN_ROLE_ID)
     async def ztail_log(self, ctx):

@@ -9,6 +9,7 @@ class LogFileCog(commands.Cog):
     @commands.slash_command(
         name='zlog_file',
         description='gimme the log file pls thamks',
+        default_member_permissions=(discord.Permissions(administrator=True)),
         guild_ids=LOUNGE
     )
     @commands.has_any_role(ADMIN_ROLE_ID)

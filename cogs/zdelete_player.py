@@ -11,7 +11,8 @@ class DeletePlayerCog(commands.Cog):
 
     @commands.slash_command(
         name='zdelete_player',
-        description='ADMIN ONLY [DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING]',
+        description='[DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING]',
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
         guild_ids=LOUNGE
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)

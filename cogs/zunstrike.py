@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import DBA
 import logging
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID
+from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 class UnstrikeCog(commands.Cog):
     def __init__(self, client):
@@ -11,6 +11,8 @@ class UnstrikeCog(commands.Cog):
     @commands.slash_command(
         name='zunstrike',
         description='Remove strike by ID',
+        guild_ids=LOUNGE,
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zunstrike(self, ctx, strike_id: discord.Option(int, description='Enter the strike ID', required=True)):

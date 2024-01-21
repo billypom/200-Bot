@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from helpers import set_uid_roles  # Replace 'your_module' with the actual name of your module
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID
+from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 class FixPlayerCog(commands.Cog):
     def __init__(self, client):
@@ -9,7 +9,9 @@ class FixPlayerCog(commands.Cog):
 
     @commands.slash_command(
         name='zfix_player',
-        description='Fixes player roles and nickname'
+        description='Fixes player roles and nickname',
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
+        guild_ids=LOUNGE
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zfix_player(

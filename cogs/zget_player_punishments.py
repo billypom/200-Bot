@@ -11,6 +11,7 @@ class PlayerPunishmentsCog(commands.Cog):
     @commands.slash_command(
         name='zget_player_punishments',
         description='See all punishments for a player',
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
         guild_ids=LOUNGE
     )
     @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)

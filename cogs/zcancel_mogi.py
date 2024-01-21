@@ -1,3 +1,4 @@
+from discord import Permissions
 from discord.ext import commands
 import DBA
 from helpers.senders import send_to_debug_channel
@@ -9,8 +10,9 @@ class CancelMogiCog(commands.Cog):
 
     @commands.slash_command(
         name='zcancel_mogi',
-        description='Cancel an ongoing mogi [Admin only]',
-        guild_ids=LOUNGE  # Replace with your guild ID
+        description='Cancel an ongoing mogi',
+        default_member_permissions=(Permissions(moderate_members=True)),
+        guild_ids=LOUNGE 
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zcancel_mogi(self, ctx):

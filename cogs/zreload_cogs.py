@@ -1,5 +1,6 @@
 from discord.ext import commands
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOOP_EXTENSIONS, COMMAND_EXTENSIONS, ADMIN_COMMAND_EXTENSIONS
+from discord import Permissions
+from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOOP_EXTENSIONS, COMMAND_EXTENSIONS, ADMIN_COMMAND_EXTENSIONS, LOUNGE
 
 class ReloadCogsCog(commands.Cog):
     def __init__(self, client):
@@ -7,7 +8,9 @@ class ReloadCogsCog(commands.Cog):
 
     @commands.slash_command(
         name='zreload_cogs',
-        description='[DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING]'
+        description='[DO NOT USE UNLESS YOU KNOW WHAT YOU ARE DOING]',
+        guild_ids=LOUNGE,
+        default_member_permissions=(Permissions(moderate_members=True)),
     )
     @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
     async def zreload_cogs(self, ctx):

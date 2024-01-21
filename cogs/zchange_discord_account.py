@@ -6,7 +6,7 @@ from helpers.checkers import check_if_uid_exists
 from helpers.checkers import check_if_uid_in_any_tier
 from helpers.senders import send_raw_to_debug_channel
 from helpers.senders import send_to_danger_debug_channel
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID
+from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 import vlog_msg
 
 class ChangeDiscordAccountCog(commands.Cog):
@@ -16,6 +16,8 @@ class ChangeDiscordAccountCog(commands.Cog):
     @commands.slash_command(
         name='zchange_discord_account',
         description='Change a player\'s Discord account',
+        default_member_permissions=(discord.Permissions(moderate_members=True)),
+        guild_ids=LOUNGE
     )
     @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
     async def zchange_discord_account(
