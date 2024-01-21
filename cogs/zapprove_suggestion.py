@@ -3,7 +3,7 @@ from discord.ext import commands
 import DBA
 from helpers.senders import send_raw_to_debug_channel
 from helpers.handlers import handle_suggestion_decision
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID
+from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 class ApproveSuggestionCog(commands.Cog):
     def __init__(self, client):
@@ -13,6 +13,7 @@ class ApproveSuggestionCog(commands.Cog):
         name='zapprove_suggestion',
         description='Approve a suggestion by ID',
         default_member_permissions=(discord.Permissions(moderate_members=True)),
+        guild_ids=LOUNGE
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def approve(
