@@ -1,5 +1,6 @@
 from discord.ext import commands
 from helpers import set_uid_roles
+from config import LOUNGE
 
 class FixRolesCog(commands.Cog):
     def __init__(self, client):
@@ -7,7 +8,8 @@ class FixRolesCog(commands.Cog):
 
     @commands.slash_command(
         name='fix_roles',
-        description='Fixes player roles and nickname'
+        description='Fix your player roles and nickname',
+        guild_ids=LOUNGE
     )
     async def fix_roles(self, ctx):
         await ctx.defer()

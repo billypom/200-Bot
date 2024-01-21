@@ -84,7 +84,7 @@ class NameChangeCog(commands.Cog):
                 else:
                     is_name_taken = True
         except Exception:
-            is_name_taken = True #False? idk
+            is_name_taken = False
         if is_name_taken:
             await channel.send('Name is taken. Please try again.', delete_after=30)
             return

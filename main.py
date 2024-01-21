@@ -21,7 +21,7 @@ sys.path.append(project_root)
 
 # Bot config
 # Intents:  manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
-#           send messages, manage messages, embed links, attach files, read message history, add reactions, use slash commands
+#           send messages, manage messages, embed links, attach files, add reactions, use slash commands
 intents = discord.Intents(guilds=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 
@@ -74,27 +74,24 @@ async def on_application_command_error(ctx, error):
         # print(traceback.format_exc())
         raise error
         return
-
-# @client.event
-# async def on_message(ctx):
-#     try:
-#         if ctx.guild == get_lounge_guild(client): # Only care if messages are in 200 Lounge
-#             pass
-#         else:
-#             return
-#     except Exception:
-#         return
-#     if ctx.author.id == config.BOT_ID: # ignore self messages
-#         return
-#     if ctx.channel.id == 558096949337915413: # ignore carl bot logging
-#         return
-#     user = await get_lounge_guild(client).fetch_member(ctx.author.id)
-#     if get_discord_role(client, config.CHAT_RESTRICTED_ROLE_ID) in user.roles: # restricted players
-#         # if ctx.content in config.CHAT_RESTRICTED_WORDS:
-#             # return
-#         # else:
-#         await ctx.delete()
-#         return
+    
+@client.event
+async def on_message(ctx):
+    try:
+        if ctx.guild == get_lounge_guild(client): # Only care if messages are in 200 Lounge
+            pass
+        else:
+            return
+    except Exception:
+        return
+    if ctx.author.id == config.BOT_ID: # ignore self messages
+        return
+    if ctx.channel.id == 558096949337915413: # ignore carl bot logging
+        return
+    user = await get_lounge_guild(client).fetch_member(ctx.author.id)
+    if get_discord_role(client, config.CHAT_RESTRICTED_ROLE_ID) in user.roles: # restricted players
+        await ctx.delete()
+        return
 
 @client.event
 async def on_raw_reaction_add(payload):
@@ -189,270 +186,3 @@ async def on_member_join(member):
 
 if __name__ == "__main__":
     client.run(config.TOKEN)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# # /twitch
-# @client.slash_command(
-#     name='twitch',
-#     description='Link your Twitch stream - Enter your Username',
-#     #guild_ids=LOUNGE
-# )
-# async def twitch(
-#     ctx,
-#     username: discord.Option(str, 'Enter your twitch username - your mogi streams will appear in the media channel', required=True)
-#     ):
-#     await ctx.defer(ephemeral=True)
-#     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-#     if lounge_ban:
-#         await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
-#         return
-#     else:
-#         pass
-#     x = await check_if_uid_exists(ctx.author.id)
-#     if x:
-#         pass
-#     else:
-#         await ctx.respond('Use `/verify` to register with Lounge')
-#         return
-#     y = await check_if_banned_characters(username)
-#     if y:
-#         await ctx.respond("Invalid twitch username")
-#         await send_to_verification_log(client, ctx, username, vlog_msg.error1)
-#         return
-#     if len(str(username)) > 25:
-#         await ctx.respond("Invalid twitch username")
-#         return
-#     try:
-#         with DBA.DBAccess() as db:
-#             db.execute("UPDATE player SET twitch_link = %s WHERE player_id = %s;", (str(username), ctx.author.id))
-#             await ctx.respond("Twitch username updated.")
-#     except Exception:
-#         await ctx.respond("``Error 33:`` Player not found. Use ``/verify <mkc link>`` to register with Lounge")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# does not matter to put sub in lineups table
-# /sub
-# @client.slash_command(
-#     name='sub',
-#     description='Sub out a player',
-#     # guild_ids=LOUNGE
-# )
-# async def sub(
-#     ctx,
-#     leaving_player: discord.Option(discord.Member, 'Leaving player', required=True),
-#     subbing_player: discord.Option(discord.Member, 'Subbing player', required=True)
-#     ):
-#     await ctx.defer()
-#     lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
-#     if lounge_ban:
-#         await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
-#         return
-#     else:
-#         pass
-#     # Same player
-#     if leaving_player.id == subbing_player.id:
-#         await ctx.respond('<:bruh:1006883398607978537>')
-#         return
-#     # Player was already in lineup, got subbed out
-#     with DBA.DBAccess() as db:
-#         temp = db.query('SELECT player_id FROM sub_leaver WHERE player_id = %s;', (subbing_player.id,))
-#         if temp:
-#             if temp[0][0] == subbing_player.id:
-#                 await ctx.respond('Player cannot sub into a mogi after being subbed out.')
-#                 return
-#         else:
-#             pass
-#     # Player exists
-#     a = await check_if_uid_exists(leaving_player.id)
-#     if a:
-#         pass
-#     else:
-#         await ctx.respond('Use `/verify <mkc link>` to register for Lounge')
-#         return
-#     b = await check_if_uid_exists(subbing_player.id)
-#     if b:
-#         pass
-#     else:
-#         await ctx.respond(f'{subbing_player.name} is not registered for Lounge')
-#         return
-#     x = await check_if_mogi_is_ongoing(ctx)
-#     if x:
-#         pass
-#     else:
-#         await ctx.respond('Mogi has not started')
-#         return
-#     # Only players in the mogi can sub out others
-#     y = await check_if_uid_in_first_12_of_tier(ctx.author.id, ctx.channel.id)
-#     if y:
-#         pass
-#     else:
-#         await ctx.respond('You are not in the mogi. You cannot sub out another player')
-#         return
-#     z = await check_if_uid_in_specific_tier(leaving_player.id, ctx.channel.id)
-#     if z:
-#         pass
-#     else:
-#         await ctx.respond(f'<@{leaving_player.id}> is not in this mogi.')
-#         return
-#     try:
-#         with DBA.DBAccess() as db:
-#             first_12 = db.query('SELECT player_id FROM (SELECT player_id FROM lineups WHERE tier_id = %s ORDER BY create_date ASC LIMIT 12) as l WHERE player_id = %s;', (ctx.channel.id, subbing_player.id))
-#             if first_12: # if there are players in lineup (first 12)
-#                 if first_12[0][0] == subbing_player.id: # if subbing is already in lineup (first 12)
-#                     await ctx.respond(f'{subbing_player.mention} is already in this mogi')
-#                     return
-#                 else:
-#                     pass
-#             try:
-#                 leaving_player_name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (leaving_player.id,))[0][0]
-#                 subbing_player_name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (subbing_player.id,))[0][0]
-#                 teams_string = db.query('SELECT teams_string FROM tier WHERE tier_id = %s;', (ctx.channel.id,))[0][0]
-#                 teams_string = teams_string.replace(leaving_player_name, subbing_player_name)
-#                 teams_string += f'\n\n`EDITED`: `{leaving_player_name}` -> `{subbing_player_name}`'
-#                 db.execute('DELETE FROM lineups WHERE player_id = %s;', (subbing_player.id,))
-#                 db.execute('UPDATE lineups SET player_id = %s WHERE player_id = %s;', (subbing_player.id, leaving_player.id))
-#                 db.execute('UPDATE tier SET teams_string = %s WHERE tier_id = %s;', (teams_string, ctx.channel.id))
-#             except Exception:
-#                 await ctx.respond(f'``Error 42:`` FATAL ERROR - {config.PING_DEVELOPER} help!!!')
-#                 return
-#     except Exception as e:
-#         await ctx.respond(f'``Error 19:`` Oops! Something went wrong. Please contact {config.PING_DEVELOPER}')
-#         await send_to_debug_channel(client, ctx, f'/sub error 19 {e}')
-#         return
-#     with DBA.DBAccess() as db:
-#         db.execute('INSERT INTO sub_leaver (player_id, tier_id) VALUES (%s, %s);', (leaving_player.id, ctx.channel.id))
-#     await ctx.respond(f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}>')
-#     await send_to_sub_log(client, ctx, f'<@{leaving_player.id}> has been subbed out for <@{subbing_player.id}> in {ctx.channel.mention}')
-#     return
-
-
-
-
-
-
-
-
-
-
-# OLD MULTITHREAD CODE
-# "threading in python is a bit of a lie, python has a global interpreter lock which means that even if you have multiple threads running, 
-# it can only run one thread at a time so if you have two threads running, then python in the background just switches between them"
-# - Vike 10/19/2022
-# "i delet multi thred"
-# - me
-# # Not async because of concurrent futures
-# def get_live_streamers(temp):
-#     list_of_streams = []
-#     for i in range(0, len(temp)):
-#         streamer_name = temp[i][0]
-#         if streamer_name is None:
-#             continue
-#         else:
-#             streamer_name = str(streamer_name).strip().lower()
-#         body = {
-#             'client_id': config.TWITCH_CLIENT_ID,
-#             'client_secret': config.TWITCH_CLIENT_SECRET,
-#             "grant_type": 'client_credentials'
-#         }
-#         r = requests.post('https://id.twitch.tv/oauth2/token', body)
-#         #data output
-#         keys = r.json()
-#         #print(keys)
-#         headers = {
-#             'Client-ID': config.TWITCH_CLIENT_ID,
-#             'Authorization': 'Bearer ' + keys['access_token']
-#         }
-#         #print(headers)
-#         stream = requests.get('https://api.twitch.tv/helix/streams?user_login=' + streamer_name, headers=headers)
-#         stream_data = stream.json()
-#         try:
-#             if len(stream_data['data']) == 1:
-#                 is_live = True
-#                 streamer_name = stream_data['data'][0]['user_name']
-#                 stream_title = stream_data['data'][0]['title']
-#                 stream_thumbnail_url = stream_data['data'][0]['thumbnail_url']
-#                 list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
-#             else:
-#                 is_live = False
-#                 stream_title = ""
-#                 stream_thumbnail_url = ""
-#                 list_of_streams.append([streamer_name, stream_title, stream_thumbnail_url, is_live, temp[i][1], temp[i][2]])
-#         except Exception as e:
-#             continue
-
-#         # name, title, image, is_live, db_mogimediamessageid, db_player_id
-        
-#     return list_of_streams
