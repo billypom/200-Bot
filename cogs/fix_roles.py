@@ -1,3 +1,4 @@
+from discord import Permissions
 from discord.ext import commands
 from helpers import set_uid_roles
 from config import LOUNGE
@@ -9,7 +10,8 @@ class FixRolesCog(commands.Cog):
     @commands.slash_command(
         name='fix_roles',
         description='Fix your player roles and nickname',
-        guild_ids=LOUNGE
+        guild_ids=LOUNGE,
+        default_member_permissions=(Permissions(moderate_members=True)),
     )
     async def fix_roles(self, ctx):
         await ctx.defer()
