@@ -11,7 +11,7 @@ class FixRolesCog(commands.Cog):
         name='fix_roles',
         description='Fix your player roles and nickname',
         guild_ids=LOUNGE,
-        default_member_permissions=(Permissions(moderate_members=True)),
+        default_member_permissions=(Permissions(administrator=True)),
     )
     async def fix_roles(self, ctx):
         await ctx.defer()
