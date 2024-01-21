@@ -84,7 +84,7 @@ async def on_message(ctx):
             return
     except Exception:
         return
-    if ctx.author.id == config.BOT_ID: # ignore self messages
+    if ctx.author.id == client.user.id:
         return
     if ctx.channel.id == 558096949337915413: # ignore carl bot logging
         return
@@ -95,7 +95,7 @@ async def on_message(ctx):
 
 @client.event
 async def on_raw_reaction_add(payload):
-    if int(payload.user_id) == int(config.BOT_ID):
+    if int(payload.user_id) == int(client.user.id):
         # Return if bot reaction
         return
     if payload.channel_id == config.NAME_CHANGE_CHANNEL_ID:

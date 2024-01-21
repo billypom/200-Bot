@@ -198,7 +198,7 @@ values ('Restriction'),
 ('Loungeless')
 ('Warning');
 
--- Real Ranks
+-- Ranks
 insert into ranks (rank_id, rank_name, mmr_min, mmr_max, placement_mmr)
 values (791874714434797589, 'Grandmaster', 11000, 99999, NULL),
 (794262638518730772, 'Master', 9000, 10999, NULL),
@@ -210,7 +210,7 @@ values (791874714434797589, 'Grandmaster', 11000, 99999, NULL),
 (970028275789365368, 'Iron', 0, 1499, 1000),
 (846497627508047872, 'Placement', -2, -1, 2500);
 
--- Real Tiers
+-- Tiers
 insert into tier (tier_id, tier_name, results_id, teams_string)
 values (1010662448715546706, 's', 1010600237880053800, ""),
 (1010662448715546706, 'a', 1010600237880053800, ""),
