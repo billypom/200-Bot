@@ -90,7 +90,7 @@ class NameChangeCog(commands.Cog):
             return
         # Good to request
         else:
-            await ctx.respond('Sending request...')
+            await channel.send('Sending request...', delete_after=30)
             try:
                 with DBA.DBAccess() as db:
                     temp = db.query('SELECT UNIX_TIMESTAMP(create_date) FROM player_name_request WHERE player_id = %s ORDER BY create_date DESC;', (ctx.author.id,))
@@ -101,7 +101,7 @@ class NameChangeCog(commands.Cog):
                     if difference > NAME_CHANGE_DELTA_LIMIT:
                         pass
                     else:
-                        await channel.send(f'Request denied. You can change your name again on <t:{str(int(last_change) + int(NAME_CHANGE_DELTA_LIMIT))}:F>', delete_after=30)
+                        await ctx.respond(f'Request denied. You can change your name again on <t:{str(int(last_change) + int(NAME_CHANGE_DELTA_LIMIT))}:F>', delete_after=30)
                         return
             except IndexError:
                 pass # If this player has never sent a request before, this will throw IndexError
@@ -120,17 +120,17 @@ class NameChangeCog(commands.Cog):
                 await request_message.add_reaction('❌')
             except Exception as e:
                 await send_to_debug_channel(self.client, ctx, f'Tried name: {name} |\n{e}')
-                await channel.send(f'``Error 44:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.', delete_after=30)
+                await ctx.respond(f'``Error 44:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.', delete_after=30)
                 return
             # Store the message ID of the embed that staff is reviewing
             try: # Once a decision, via reaction, is made - use this ID to automatically delete the request message from the channel
                 with DBA.DBAccess() as db:
                     db.execute('UPDATE player_name_request SET embed_message_id = %s WHERE id = %s;', (request_message_id, player_name_request_id))
-                await channel.send(f'Your request: {input_name} -> {name} | Your name change request was submitted to the staff team for review.', delete_after=30)
+                await ctx.respond(f'Your request: {input_name} -> {name} | Your name change request was submitted to the staff team for review.', delete_after=30)
                 return
             except Exception as e:
                 await send_to_debug_channel(self.client, ctx, f'Tried name: {name} |\n{e}')
-                await channel.send(f'``Error 35:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.', delete_after=30)
+                await ctx.respond(f'``Error 35:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.', delete_after=30)
                 return
             
 def setup(client):
