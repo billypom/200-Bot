@@ -50,7 +50,7 @@ class LoungelessCog(commands.Cog):
             try:
                 await user.send(f'You have been banned from competing in MK8DX 200cc Lounge.\nBan length: {ban_length} days\nReason: `{reason}`')
             except Exception as e:
-                await send_raw_to_debug_channel(self.client, '/zloungeless error - Failed to send user DM. Probably not allowed to because they are too awesome :)')
+                await send_raw_to_debug_channel(self.client, '/zloungeless error - Failed to send user DM. Probably not allowed to because they are too awesome :)', e)
             try:
                 with DBA.DBAccess() as db:
                     db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id, unban_date) VALUES (%s, %s, %s, %s, %s);', (player_id, 2, reason, ctx.author.id, unban_date))
