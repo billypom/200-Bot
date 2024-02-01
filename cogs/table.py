@@ -299,7 +299,7 @@ class TableCog(commands.Cog):
 
         # Request a lorenzi table
         lorenzi_table_unique_filename = uuid.uuid4().hex
-        lorenzi_table_filename = f'./images/{lorenzi_table_unique_filename}.jpg'
+        lorenzi_table_filename = f'./images/tables/{lorenzi_table_unique_filename}.jpg'
         query_string = urllib.parse.quote(lorenzi_query)
         url = f'https://gb.hlorenzi.com/table.png?data={query_string}'
         response = requests.get(url, stream=True)
@@ -315,7 +315,7 @@ class TableCog(commands.Cog):
         # Ask for table confirmation
         table_view = Confirm(ctx.author.id)
         channel = self.client.get_channel(ctx.channel.id)
-        await channel.send(file=discord.File(f'./images/{lorenzi_table_unique_filename}.jpg'), delete_after=300)
+        await channel.send(file=discord.File(f'./images/tables/{lorenzi_table_unique_filename}.jpg'), delete_after=300)
         await channel.send('Is this table correct? :thinking:', view=table_view, delete_after=300)
         await table_view.wait()
         if table_view.value is None:
@@ -622,7 +622,7 @@ class TableCog(commands.Cog):
             # Create imagemagick image
             # https://imagemagick.org/script/color.php
             mmr_unique_filename = uuid.uuid4().hex
-            mmr_filename = f'./images/{mmr_unique_filename}.jpg'
+            mmr_filename = f'./images/tables/{mmr_unique_filename}.jpg'
             pango_string = f'pango:<tt>{mmr_table_string}</tt>'
             mmr_table_succeeded = False
             try:
