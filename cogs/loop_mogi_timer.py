@@ -29,7 +29,10 @@ class mogi_timer(commands.Cog):
         # Lists with exactly 12 items will be sorted by player mmr
         
         # Rooms will be created for each list
-        
+
+        # Permissions in rooms will be added for each player on the list + mods + bots
+
+ 
         # Leftover players will receive a DM or ping to perform some action to stay in the queue for the next scheduled match
         #   i.e. press the can button again, react to a message, or maybe type any message in chat
         

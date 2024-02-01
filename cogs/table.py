@@ -38,7 +38,7 @@ class TableCog(commands.Cog):
         ctx,
         mogi_format: discord.Option(int, '1=FFA, 2=2v2, 3=3v3, 4=4v4, 6=6v6', required=True),
         scores: discord.Option(str, 'player scores (i.e. popuko 12 JPGiviner 42 Technical 180...)', required=True)
-    ):
+        ):
         await ctx.defer()
 
         # ------- Perform access checks
@@ -135,6 +135,7 @@ class TableCog(commands.Cog):
         #       replacement for getting the highest existing mmr (or at least my formula could emulate that high integer 
         #       with some variance :shrug: its probably fine... no1 going 2 read this)
 
+        # this was a bad solution. there needs to be a cap or the high ranks will just gain linearly
         # try:
             # with DBA.DBAccess() as db:
                 # h = db.query('SELECT max(mmr) from player where player_id > %s;',(0,))
@@ -142,6 +143,7 @@ class TableCog(commands.Cog):
         # except Exception as e:
             # await ctx.respond(f'``Error 76:`` `/table` error. Make a <#{config.SUPPORT_CHANNEL_ID}> if you need assistance.')
 
+        # 10999 works very well
         highest_mmr = 10999
 
 

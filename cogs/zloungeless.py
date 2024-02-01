@@ -28,7 +28,7 @@ class LoungelessCog(commands.Cog):
         await ctx.defer()
         # Retrieve player from DB
         with DBA.DBAccess() as db:
-            player_id = db.query('SELECT player_id, lang FROM player WHERE player_name = %s;', (player,))[0][0]
+            player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
         
         if player_id:
             pass
