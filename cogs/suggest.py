@@ -5,7 +5,8 @@ from helpers.senders import send_to_suggestion_voting_channel
 from helpers.senders import send_raw_to_debug_channel
 from helpers.checkers import check_if_banned_characters
 from helpers.checkers import check_if_uid_is_lounge_banned
-from config import SUPPORT_CHANNEL_ID
+from helpers.checkers import check_if_uid_has_role
+from config import SUPPORT_CHANNEL_ID, SUGGESTION_RESTRICTED_ROLE_ID, LOUNGE
 
 class SuggestCog(commands.Cog):
     def __init__(self, client):
@@ -14,6 +15,7 @@ class SuggestCog(commands.Cog):
     @commands.slash_command(
         name='suggest',
         description='Suggest an improvement for the Lounge (1000 characters max)',
+        guild_ids=LOUNGE
     )
     async def suggest(
         self,
@@ -21,6 +23,10 @@ class SuggestCog(commands.Cog):
         message: discord.Option(str, 'Type your suggestion', required=True)
     ):
         await ctx.defer(ephemeral=True)
+        is_suggestion_restricted = await check_if_uid_has_role(self.client, ctx.author.id, SUGGESTION_RESTRICTED_ROLE_ID)                
+        if is_suggestion_restricted:
+            await ctx.respond('You do not have permission to use this command.')
+            return
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:
             await ctx.respond(f'You will be unbanned after <t:{lounge_ban}:D>')

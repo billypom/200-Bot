@@ -19,32 +19,27 @@ async def set_uid_roles(client, uid):
         guild = get_lounge_guild(client)
         member = await guild.fetch_member(uid)
         
-        if is_chat_restricted:
-            # Add chat restricted role
+        if is_chat_restricted: # Add chat restricted role
             restricted_role = guild.get_role(CHAT_RESTRICTED_ROLE_ID)
             await member.add_roles(restricted_role)
         
         # Outcome #1
         
-        if mmr is None:
-            # Add placement role & return
+        if mmr is None: # Add placement role & return
             role = guild.get_role(PLACEMENT_ROLE_ID)
             await member.add_roles(role)
             return (role.id, role)
         
         # Outcome #2
         
-        # Get ranks info
-        with DBA.DBAccess() as db:
+        with DBA.DBAccess() as db: # Get ranks info
             ranks = db.query('SELECT rank_id, mmr_min, mmr_max FROM ranks', ())
             
-        # Remove any ranks from player
-        for rank in ranks: 
+        for rank in ranks: # Remove any ranks from player
             remove_rank = guild.get_role(rank[0])
             await member.remove_roles(remove_rank)
         
-        # Find their rank, based on MMR
-        for i in range(len(ranks)):
+        for i in range(len(ranks)): # Find their rank, based on MMR
             if mmr >= int(ranks[i][1]) and mmr < int(ranks[i][2]):
                 # Found your rank
                 role = guild.get_role(ranks[i][0])
@@ -52,8 +47,7 @@ async def set_uid_roles(client, uid):
                 with DBA.DBAccess() as db:
                     db.execute('UPDATE player SET rank_id = %s WHERE player_id = %s;', (ranks[i][0], member.id))
                     
-        # Edit their discord nickname
-        try:
+        try: # Edit their discord nickname
             await member.edit(nick=str(player_name))
         except Exception as e:
             await send_raw_to_debug_channel(client, f'<@{uid}>', f'CANNOT EDIT NICKNAME OF STAFF MEMBER. I AM BUT A SMOLL ROBOT... {e}')

@@ -1,3 +1,4 @@
+from .check_if_uid_has_role import check_if_uid_has_role
 from .check_for_dupes_in_list import check_for_dupes_in_list
 from .check_if_banned_characters import check_if_banned_characters
 from .check_if_mkc_user_id_used import check_if_mkc_user_id_used
