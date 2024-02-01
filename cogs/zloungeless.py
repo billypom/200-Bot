@@ -46,7 +46,7 @@ class LoungelessCog(commands.Cog):
             unix_ban_length = ban_length * SECONDS_IN_A_DAY
             unban_date = unix_now + unix_ban_length
             await user.add_roles(loungeless_role)
-            await remove_rank_roles_from_uid(player_id)
+            await remove_rank_roles_from_uid(self.client, player_id)
             await user.send(f'You have been banned from competing in MK8DX 200cc Lounge.\nBan length: {ban_length} days\nReason: `{reason}`')
             try:
                 with DBA.DBAccess() as db:
