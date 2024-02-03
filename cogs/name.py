@@ -10,9 +10,9 @@ from helpers.checkers import check_if_uid_can_drop
 from helpers.checkers import check_if_banned_characters
 from helpers import jp_kr_romanize
 from helpers.getters import get_unix_time_now
-import vlog_msg
-from config import NAME_CHANGE_DELTA_LIMIT, SUPPORT_CHANNEL_ID
 from helpers import Confirm
+import vlog_msg
+from config import NAME_CHANGE_DELTA_LIMIT, SUPPORT_CHANNEL_ID, LOUNGE
 
 class NameChangeCog(commands.Cog):
     def __init__(self, client):
@@ -21,6 +21,7 @@ class NameChangeCog(commands.Cog):
     @commands.slash_command(
         name='name',
         description='Request a name change on the leaderboard',
+        guild_ids=LOUNGE
     )
     async def name(
         self,

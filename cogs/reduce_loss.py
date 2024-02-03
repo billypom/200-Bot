@@ -6,7 +6,7 @@ from helpers.checkers import check_if_banned_characters
 from helpers.checkers import check_if_mogi_id_exists
 from helpers.senders import send_to_debug_channel
 from helpers import set_uid_roles
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
+from config import REPORTER_ROLE_ID, LOUNGE
 
 # missing 4 races = 2/3
 # missing 6 races = 1/2
@@ -22,16 +22,15 @@ class ReduceLossCog(commands.Cog):
         self.client = client
 
     @commands.slash_command(
-        name='zreduce_loss',
+        name='reduce_loss',
         description='Reduce the loss for 1 player in 1 mogi',
         guild_ids=LOUNGE,
-        default_member_permissions=(discord.Permissions(moderate_members=True))
     )
-    @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-    async def zreduce_loss(self, ctx,
+    @commands.has_any_role(REPORTER_ROLE_ID)
+    async def reduce_loss(self, ctx,
                            player: discord.Option(str, description='Player name', required=True),
                            mogi_id: discord.Option(int, description='Which mogi?', required=True),
-                           reduction: discord.Option(str, description='Missing # of races: (4-12) = (2/3, 2/3, 1/2, 5/12, 1/3, 1/4, 1/6, 1/12)', required=True)):
+                           reduction: discord.Option(str, description='Enter a fraction (this acts as a multiplier)', required=True)):
         await ctx.defer()
         with DBA.DBAccess() as db:
             player_id = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player,))[0][0]
@@ -81,6 +80,17 @@ class ReduceLossCog(commands.Cog):
             await ctx.respond('``Error 41:`` FATAL ERROR uh oh uh oh uh oh')
             return
         await set_uid_roles(self.client, player_id)
+        
+        # Set the mogi to "has reduced loss" so that it cannot be reverted.
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('UPDATE mogi SET has_reduced_loss = 1 where mogi_id = %s', (mogi_id,))
+        except Exception as e:
+            await send_to_debug_channel(self.client, ctx, f'player_name: {player} | mogi id: {mogi_id} | reduction: {reduction} | {e}')
+            await ctx.respond(f'``Error 41b:`` Could not update mogi to HAS_REDUCED_LOSS. Mogi ID: {mogi_id}')
+            return
+        
+        # User feedback
         await ctx.respond(
             f'Loss was reduced for <@{player_id}>.\nChange: `{mmr_change}` -> `{adjusted_mmr_change}`\nMMR: `{mmr}` -> `{adjusted_mmr}`')
 

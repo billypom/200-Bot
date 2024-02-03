@@ -3,20 +3,19 @@ from discord.ext import commands
 import DBA
 from helpers.senders import send_to_debug_channel
 from helpers.getters import get_lounge_guild
-from config import LOUNGE, ADMIN_ROLE_ID, UPDATER_ROLE_ID, PING_DEVELOPER
+from config import LOUNGE, REPORTER_ROLE_ID, PING_DEVELOPER
 
-class ZRevertCog(commands.Cog):
+class RevertCog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @commands.slash_command(
-        name="zrevert",
-        description="Undo a table",
-        default_member_permissions=(discord.Permissions(moderate_members=True)),
+        name="revert_mogi",
+        description="Undo a mogi/table",
         guild_ids=LOUNGE
     )
-    @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-    async def zrevert(self, ctx, mogi_id: discord.Option(int, 'Mogi ID / Table ID', required=True)):
+    @commands.has_any_role(REPORTER_ROLE_ID)
+    async def revert(self, ctx, mogi_id: discord.Option(int, 'Mogi ID / Table ID', required=True)):
         await ctx.defer()
         results_channel = None
         flag = 0
@@ -24,16 +23,22 @@ class ZRevertCog(commands.Cog):
         # Make sure mogi exists
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT mogi_id, table_message_id, mmr_message_id FROM mogi WHERE mogi_id = %s;', (mogi_id,))
+                temp = db.query('SELECT mogi_id, table_message_id, mmr_message_id, has_reduced_loss FROM mogi WHERE mogi_id = %s;', (mogi_id,))
                 if temp[0][0] is None:
                     await ctx.respond('``Error 34:`` Mogi could not be found.')
                     return
                 # Grab message IDs to delete later
                 table_message_id = temp[0][1]
                 mmr_message_id = temp[0][2]
+                has_reduced_loss = temp[0][3]
         except Exception as e:
-            await send_to_debug_channel(self.client, ctx, f'zrevert error 35 wrong mogi id? | {e}')
+            await send_to_debug_channel(self.client, ctx, f'revert error 35 wrong mogi id? | {e}')
             await ctx.respond('``Error 35:`` Mogi could not be found')
+            return
+        
+        # If mogi has reduced loss, cannot revert.
+        if has_reduced_loss:
+            await ctx.respond(f'You cannot `/revert` a mogi that has reduced loss. :warning: {PING_DEVELOPER}')
             return
 
         # Check for rank changes
@@ -78,7 +83,7 @@ class ZRevertCog(commands.Cog):
                         with DBA.DBAccess() as db:
                             db.execute('UPDATE player SET rank_id = %s, mmr = %s WHERE player_id = %s;', (rank_id, my_player_new_mmr, my_player_id))
                 except Exception as e:
-                    await send_to_debug_channel(self.client, ctx, f'/zrevert FATAL ERROR | {e}')
+                    await send_to_debug_channel(self.client, ctx, f'/revert_mogi FATAL ERROR | {e}')
                     flag = 1
                     pass
         for i in range(len(players_mogi)): # this is very bad because i should just loop the other way around
@@ -94,7 +99,7 @@ class ZRevertCog(commands.Cog):
                 with DBA.DBAccess() as db:
                     db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, my_player_id))
             except Exception as e:
-                await send_to_debug_channel(self.client, ctx, f'/zrevert FATAL ERROR 2 | {e}')
+                await send_to_debug_channel(self.client, ctx, f'/revert_mogi FATAL ERROR 2 | {e}')
                 flag = 1
                 pass
         # Delete DB records, order matters
@@ -113,4 +118,4 @@ class ZRevertCog(commands.Cog):
         await ctx.respond(f'Mogi ID `{mogi_id}` has been removed. {fatal_error}')
 
 def setup(client):
-    client.add_cog(ZRevertCog(client))
+    client.add_cog(RevertCog(client))

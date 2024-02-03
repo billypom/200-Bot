@@ -22,12 +22,18 @@ async def handle_suggestion_decision(client, suggestion_id, suggestion, author_i
     
     # Edit the embed
     channel = client.get_channel(SUGGESTION_VOTING_CHANNEL_ID)
-    if approved:
+    if approved == 2:
+        decision = f'Considered by {admin.display_name}'
+        color = Color.greyple()
+        
+    elif approved:
         decision = f'Approved by {admin.display_name}'
         color = Color.green()
+        
     else:
         decision = f'Denied by {admin.display_name}'
         color = Color.red()
+        
     try:
         embed = Embed(title='Suggestion', description='', color = color)
         embed.set_author(name=author.display_name, icon_url=author.avatar.url)

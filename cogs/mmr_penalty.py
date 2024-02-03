@@ -4,20 +4,19 @@ import DBA
 from helpers.checkers import check_if_uid_is_placement
 from helpers.senders import send_to_debug_channel
 from helpers import set_uid_roles
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
+from config import REPORTER_ROLE_ID, LOUNGE
 
 class MMRPenaltyCog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @commands.slash_command(
-        name='zmmr_penalty',
+        name='mmr_penalty',
         description='Give a player an MMR penalty, with no strike',
         guild_ids=LOUNGE,
-        default_member_permissions=(discord.Permissions(moderate_members=True))
     )
-    @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-    async def zmmr_penalty(self, ctx,
+    @commands.has_any_role(REPORTER_ROLE_ID)
+    async def mmr_penalty(self, ctx,
                            player: discord.Option(str, description='Which player?', required=True),
                            mmr_penalty: discord.Option(int, description='How much penalty to apply?', required=True)):
         await ctx.defer()
@@ -43,7 +42,7 @@ class MMRPenaltyCog(commands.Cog):
             await ctx.respond(f'<@{player_id}> has been given a {mmr_penalty} mmr penalty')
             await set_uid_roles(self.client, player_id)
         except Exception as e:
-            await send_to_debug_channel(self.client, ctx, f'/zmmr_penalty error 38 {e}')
+            await send_to_debug_channel(self.client, ctx, f'/mmr_penalty error 38 {e}')
             await ctx.respond('`Error 38:` Could not apply penalty')
 
 

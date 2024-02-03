@@ -2,20 +2,19 @@ import discord
 from discord.ext import commands
 import DBA
 import logging
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
+from config import REPORTER_ROLE_ID, LOUNGE
 
 class UnstrikeCog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @commands.slash_command(
-        name='zunstrike',
+        name='unstrike_player',
         description='Remove strike by ID',
         guild_ids=LOUNGE,
-        default_member_permissions=(discord.Permissions(moderate_members=True)),
     )
-    @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-    async def zunstrike(self, ctx, strike_id: discord.Option(int, description='Enter the strike ID', required=True)):
+    @commands.has_any_role(REPORTER_ROLE_ID)
+    async def unstrike(self, ctx, strike_id: discord.Option(int, description='Enter the strike ID', required=True)):
         await ctx.defer()
         # Check if strike exists
         with DBA.DBAccess() as db:
@@ -29,6 +28,9 @@ class UnstrikeCog(commands.Cog):
             except Exception:
                 await ctx.respond('Strike ID not found')
                 return
+        if player_id == ctx.author.id:
+            await ctx.respond('You cannot unstrike yourself.')
+            return
         if penalty_applied:
             # Undo the penalty
             with DBA.DBAccess() as db:

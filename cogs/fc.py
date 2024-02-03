@@ -7,6 +7,7 @@ from helpers.checkers import check_if_uid_exists
 from helpers.senders import send_to_verification_log
 from helpers import update_friend_code
 import vlog_msg
+from config import LOUNGE
 
 class FriendCodeCog(commands.Cog):
     def __init__(self, bot):
@@ -15,7 +16,7 @@ class FriendCodeCog(commands.Cog):
     @commands.command(
         name='fc',
         description='Display or set your friend code',
-        # guild_ids=LOUNGE
+        guild_ids=LOUNGE,
     )
     async def friend_code(self, ctx, fc: discord.Option(str, 'XXXX-XXXX-XXXX', required=False)):
         if fc is None:

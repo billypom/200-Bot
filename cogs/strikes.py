@@ -1,6 +1,7 @@
 from discord.ext import commands
 import DBA
 from helpers.checkers import check_if_uid_exists
+from config import LOUNGE
 
 class StrikesCog(commands.Cog):
     def __init__(self, client):
@@ -9,6 +10,7 @@ class StrikesCog(commands.Cog):
     @commands.slash_command(
         name='strikes',
         description='See your strikes',
+        guild_ids=LOUNGE
     )
     async def strikes(self, ctx):
         await ctx.defer()

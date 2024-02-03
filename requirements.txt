@@ -1,7 +1,7 @@
 mysql-connector-python
 numpy
 matplotlib
-py-cord-dev==2.5.0rc5
+py-cord
 beautifulsoup4
 pykakasi
 korean-romanizer

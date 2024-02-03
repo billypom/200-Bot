@@ -73,7 +73,7 @@ class RestrictCog(commands.Cog):
                 return
             try:
                 with DBA.DBAccess() as db:
-                    db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id, unban_date) VALUES (%s, %s, %s, %s, %s);', (player_id, 1, reason, ctx.author.id, unban_date))
+                    db.execute('INSERT INTO player_punishment (player_id, punishment_id, reason, admin_id, unban_date, ban_length) VALUES (%s, %s, %s, %s, %s, %s);', (player_id, 1, reason, ctx.author.id, unban_date, ban_length))
             except Exception as e:
                 await send_raw_to_debug_channel(self.client, '/zrestrict error - Failed to insert punishment record', e)
                 logging.info(f'ERROR: /zrestrict failed to insert punishment record for player [{player}, {player_id}] with length of [{ban_length} days] with message [{reason}]')

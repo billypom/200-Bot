@@ -22,6 +22,7 @@ class StatsCog(commands.Cog):
     @commands.slash_command(
         name='stats',
         description='Player statistics',
+        guild_ids=config.LOUNGE
     )
     async def stats(self, ctx,
                     tier: discord.Option(str, description='Which tier? (a, b, c, all, sq)', required=False),

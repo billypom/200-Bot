@@ -10,20 +10,19 @@ from helpers.getters import get_lounge_guild
 from helpers.getters import get_unix_time_now
 from helpers.getters import get_rank_id_list
 from helpers.getters import get_discord_role
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, PING_DEVELOPER, LOUNGELESS_ROLE_ID, STRIKES_CHANNEL_ID, LOUNGE
+from config import REPORTER_ROLE_ID, PING_DEVELOPER, LOUNGELESS_ROLE_ID, STRIKES_CHANNEL_ID, LOUNGE
 
 class StrikeCog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @commands.slash_command(
-        name='zstrike',
+        name='strike_player',
         description='Add strike & -mmr penalty to a player',
         guild_ids=LOUNGE,
-        default_member_permissions=(discord.Permissions(moderate_members=True)),
     )
-    @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-    async def zstrike(self, ctx,
+    @commands.has_any_role(REPORTER_ROLE_ID)
+    async def strike(self, ctx,
                      player: discord.Option(str, description='Player name', required=True),
                      mmr_penalty: discord.Option(int, description='How much penalty to apply? (Do not put the - sign)', required=True),
                      reason: discord.Option(str, description='Why?', required=True)):

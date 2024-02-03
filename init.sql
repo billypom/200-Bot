@@ -60,6 +60,7 @@ CREATE TABLE mogi (
     table_message_id bigint unsigned default null,
     mmr_message_id bigint unsigned default null,
     create_date TIMESTAMP default CURRENT_TIMESTAMP NOT NULL,
+    has_reduced_loss boolean default 0,
     CONSTRAINT mogipk PRIMARY KEY (mogi_id),
     CONSTRAINT mogifk FOREIGN KEY (tier_id) REFERENCES tier(tier_id)
 );
@@ -157,6 +158,7 @@ CREATE TABLE player_punishment(
     player_id bigint unsigned,
     reason varchar(1000),
     unban_date bigint unsigned,
+    ban_length int,
     admin_id bigint unsigned,
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
     CONSTRAINT player_punishmentpk PRIMARY KEY (id)
