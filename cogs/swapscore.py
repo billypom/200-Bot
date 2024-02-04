@@ -4,7 +4,7 @@ import DBA
 from helpers.senders import send_to_verification_log
 from helpers.senders import send_to_debug_channel
 from helpers.checkers import check_if_banned_characters
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
+from config import LOUNGE, REPORTER_ROLE_ID
 import vlog_msg
 
 class ScoreSwapCog(commands.Cog):
@@ -12,13 +12,12 @@ class ScoreSwapCog(commands.Cog):
         self.client = client
 
     @commands.slash_command(
-        name="zswapscore",
+        name="swapscore",
         description="Swap the score of two players on the same team",
         guild_ids=LOUNGE,
-        default_member_permissions=(discord.Permissions(moderate_members=True)),
     )
-    @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
-    async def zswapscore(
+    @commands.has_any_role(REPORTER_ROLE_ID)
+    async def swapscore(
         self,
         ctx,
         player1: discord.Option(str, "Player name", required=True),

@@ -39,4 +39,4 @@ async def create_player(client, member, mkc_user_id, country_code):
 
     # Confirmation log
     await send_raw_to_verification_log(client, f'player:<@{member.id}>\nrole:`{role}`\naltered name:`{altered_name}`', '**Creating player**')
-    return f':flag_us:\nVerified & registered successfully - Assigned <@&{role.id}>\nNew players - check out <#{WELCOME_ENG_CHANNEL_ID}> & <#{FAQ_CHANNEL_ID}>\n\n:flag_jp:\n認証に成功しました。{role}が割り当てられました。\n新入会員の方は、<#{WELCOME_JPN_CHANNEL_ID}>と<#{FAQ_CHANNEL_ID}> チャンネルをお読みください。'
+    return f':flag_us:\nVerified & registered successfully. :thewman: Assigned <@&{role.id}>\n:flag_jp:認証に成功しました。{role}が割り当てられました。'
