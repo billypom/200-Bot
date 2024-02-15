@@ -5,6 +5,9 @@ DROP TABLE IF EXISTS punishment;
 DROP TABLE IF EXISTS suggestion;
 DROP TABLE IF EXISTS sub_leaver;
 DROP TABLE IF EXISTS player_name_request;
+DROP TABLE IF EXISTS lounge_queue_channel;
+DROP TABLE IF EXISTS lounge_queue_category;
+DROP TABLE IF EXISTS lounge_queue_player;
 DROP TABLE IF EXISTS lineups;
 DROP TABLE IF EXISTS player_mogi;
 DROP TABLE IF EXISTS strike;
@@ -53,7 +56,7 @@ CREATE TABLE tier (
 );
 
 CREATE TABLE mogi (
-    mogi_id int unsigned auto_increment,
+    id int unsigned auto_increment,
     mogi_format int,
     tier_id bigint unsigned,
     table_url varchar(240),
@@ -183,16 +186,24 @@ CREATE TABLE sq_default_schedule(
     CONSTRAINT default_sq_schedulepk PRIMARY KEY (id)
 );
 
-CREATE TABLE mogi_queue(
-    id int unsigned auto_increment,
-    channel_id int unsigned,
-
+CREATE TABLE lounge_queue_category(
+    category_id bigint unsigned,
+    CONSTRAINT lounge_queue_categorypk PRIMARY KEY (category_id)
 );
 
-CREATE TABLE player_queue(
-    player_id int unsigned,
+CREATE TABLE lounge_queue_channel(
+    channel_id bigint unsigned,
+    category_id bigint unsigned,
+    is_table_submitted boolean default 0,
+    CONSTRAINT lounge_queue_channelpk PRIMARY KEY (channel_id),
+    CONSTRAINT lounge_queue_channelfk FOREIGN KEY (category_id) REFERENCES lounge_queue_category(category_id)
+);
+
+CREATE TABLE lounge_queue_player(
+    player_id bigint unsigned,
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
-    CONSTRAINT player_queuepk PRIMARY KEY (player_id)
+    CONSTRAINT lounge_queue_playerpk PRIMARY KEY (player_id),
+    CONSTRAINT lounge_queue_playerfk FOREIGN KEY (player_id) REFERENCES player(player_id)
 );
 
 insert into punishment(punishment_type)

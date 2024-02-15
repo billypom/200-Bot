@@ -35,6 +35,9 @@ class DBAccess:
 
     def execute(self, sql, params):
         self.cursor.execute(sql, params or ())
+        
+    def executemany(self, sql, seq_of_params):
+        self.cursor.executemany(sql, seq_of_params)
 
     def fetchall(self):
         return self.cursor.fetchall()

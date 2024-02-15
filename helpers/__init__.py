@@ -1,3 +1,7 @@
+from .delete_discord_channel import delete_discord_channel
+from .delete_discord_category import delete_discord_category
+from .create_queue_channels_and_categories import create_queue_channels_and_categories
+from .delete_queue_channels_and_categories import delete_queue_channels_and_categories
 from .jp_kr_romanize import jp_kr_romanize
 from .lounge150 import lounge_request_mkc_user_id, mt_lounge_request_mkc_user_id
 from .Confirm import Confirm

@@ -1,64 +1,57 @@
-from discord.ext import commands
 import DBA
-from config import LOUNGE, PING_DEVELOPER
+from discord.ext import commands
 from helpers.checkers import check_if_uid_is_lounge_banned
-from helpers.checkers import check_if_uid_in_specific_tier
-from helpers.checkers import check_if_uid_can_drop
 from helpers.senders import send_to_debug_channel
+from config import LOUNGE, LOUNGE_QUEUE_JOIN_CHANNEL_ID
+import logging
 
-# Tier specific drop
-
-class DCog(commands.Cog):
+class DropCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(
+    @commands.slash_command(
         name='d',
-        description='Drop from the mogi',
+        description='Drop from Lounge Queue',
         guild_ids=LOUNGE
     )
-    async def drop_mogi(self, ctx):
-        await ctx.defer(ephemeral=True)
+    @commands.cooldown(1, 3, commands.BucketType.user)
+    async def c(self, ctx):
+        await ctx.defer(ephemeral=False)
+        sent_from_channel_id = ctx.channel.id
+        player_id = ctx.author.id
+        if sent_from_channel_id != LOUNGE_QUEUE_JOIN_CHANNEL_ID:
+            await ctx.respond('You cannot use this command in this channel', delete_after=30)
+            return
+        
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:
             await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
             return
-        else:
-            pass
-
-        x = await check_if_uid_in_specific_tier(ctx.author.id, ctx.channel.id)
-        if x:
-            y = await check_if_uid_can_drop(ctx.author.id)
-            if y:
-                pass
-            else:
-                await ctx.respond('You cannot drop from an ongoing mogi')
-                return
-
+        # Check if player already in queue
+        try:
             with DBA.DBAccess() as db:
-                tier_temp = db.query('SELECT t.tier_id, t.tier_name FROM tier as t JOIN lineups as l ON t.tier_id = l.tier_id WHERE player_id = %s AND t.tier_id = %s;', (ctx.author.id, ctx.channel.id))
-
-            try:
-                with DBA.DBAccess() as db:
-                    db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (ctx.author.id, ctx.channel.id))
-                    await ctx.respond(f'You have dropped from tier {tier_temp[0][1]}')
-            except Exception as e:
-                await send_to_debug_channel(self.bot, ctx, f'/d error 17 cant leave lineup {e}')
-                await ctx.respond(f'``Error 17:`` Oops! Something went wrong. Contact {PING_DEVELOPER}')
-                return
-
-            try:
-                with DBA.DBAccess() as db:
-                    temp = db.query('SELECT player_name FROM player WHERE player_id = %s;', (ctx.author.id,))
-                    channel = self.bot.get_channel(tier_temp[0][0])
-                    await channel.send(f'{temp[0][0]} has dropped from the lineup')
-            except Exception as e:
-                await send_to_debug_channel(self.bot, ctx, f'/d big error...WHAT! 1 {e}')
-                # i should never ever see this...
+                retrieved_id = db.query('SELECT player_id FROM lounge_queue_player WHERE player_id = %s;', (player_id,))[0][0]
+        except Exception as e:
+            logging.warning(f'DropCog error: unable to retrieve data from lounge_queue_player | {e}')
+            await ctx.respond('You are not in the queue.', delete_after=30)
             return
-        else:
-            await ctx.respond('You are not in a mogi')
+        
+        # Remove player from the queue
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('DELETE FROM lounge_queue_player WHERE player_id = %s;', (player_id,))
+        except Exception as e:
+            logging.warning(f'DropCog error: unable to remove player from lounge_queue_player | {e}')
+            return
+        
+        try:
+            with DBA.DBAccess() as db:
+                number_of_players = db.query('SELECT COUNT(*) from lounge_queue_player;', ())[0][0]
+        except Exception as e:
+            logging.warning(f'DropCog error: unable to count player from lounge_queue_player | {e}')
             return
 
+        await ctx.respond(f'You have been removed from the queue `[{number_of_players} players]`')
+        
 def setup(bot):
-    bot.add_cog(DCog(bot))
+    bot.add_cog(DropCog(bot))

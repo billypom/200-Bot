@@ -6,6 +6,9 @@ DROP TABLE IF EXISTS punishment;
 DROP TABLE IF EXISTS suggestion;
 DROP TABLE IF EXISTS sub_leaver;
 DROP TABLE IF EXISTS player_name_request;
+DROP TABLE IF EXISTS lounge_queue_channel;
+DROP TABLE IF EXISTS lounge_queue_category;
+DROP TABLE IF EXISTS lounge_queue_player;
 DROP TABLE IF EXISTS lineups;
 DROP TABLE IF EXISTS player_mogi;
 DROP TABLE IF EXISTS strike;
@@ -185,6 +188,26 @@ CREATE TABLE sq_default_schedule(
     CONSTRAINT default_sq_schedulepk PRIMARY KEY (id)
 );
 
+CREATE TABLE lounge_queue_category(
+    category_id bigint unsigned,
+    CONSTRAINT lounge_queue_categorypk PRIMARY KEY (category_id)
+);
+
+CREATE TABLE lounge_queue_channel(
+    channel_id bigint unsigned,
+    category_id bigint unsigned,
+    is_table_submitted boolean default 0,
+    CONSTRAINT lounge_queue_channelpk PRIMARY KEY (channel_id),
+    CONSTRAINT lounge_queue_channelfk FOREIGN KEY (category_id) REFERENCES lounge_queue_category(category_id)
+);
+
+CREATE TABLE lounge_queue_player(
+    player_id bigint unsigned,
+    create_date TIMESTAMP default CURRENT_TIMESTAMP,
+    CONSTRAINT lounge_queue_playerpk PRIMARY KEY (player_id),
+    CONSTRAINT lounge_queue_playerfk FOREIGN KEY (player_id) REFERENCES player(player_id)
+);
+
 -- Migrate production data to dev db
 CREATE PROCEDURE copy_data_to_dev(IN source_schema VARCHAR(255))
 BEGIN
@@ -252,6 +275,37 @@ BEGIN
   PREPARE stmt FROM @sql;
   EXECUTE stmt;
   DEALLOCATE PREPARE stmt;
+
+--   SET @sql = CONCAT(
+--         'INSERT INTO lounge_dev.lounge_queue_player SELECT * FROM ',
+--         source_schema,
+--         '.lounge_queue_player'
+--     );
+--     PREPARE stmt
+--     FROM @sql;
+--     EXECUTE stmt;
+--     DEALLOCATE PREPARE stmt;
+
+--     SET @sql = CONCAT(
+--             'INSERT INTO lounge_dev.lounge_queue_channel SELECT * FROM ',
+--             source_schema,
+--             '.lounge_queue_channel'
+--         );
+--     PREPARE stmt
+--     FROM @sql;
+--     EXECUTE stmt;
+--     DEALLOCATE PREPARE stmt;
+
+--     SET @sql = CONCAT(
+--             'INSERT INTO lounge_dev.lounge_queue_category SELECT * FROM ',
+--             source_schema,
+--             '.lounge_queue_category'
+--         );
+--     PREPARE stmt
+--     FROM @sql;
+--     EXECUTE stmt;
+--     DEALLOCATE PREPARE stmt;
+
 END;
 
 -- Call the stored procedure with the current database name as a parameter
