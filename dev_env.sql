@@ -54,6 +54,8 @@ CREATE TABLE tier (
     results_id bigint unsigned,
     voting boolean default 0,
     teams_string varchar(800),
+    min_mmr int,
+    max_mmr int,
     CONSTRAINT tierpk PRIMARY KEY (tier_id)
 );
 
@@ -197,6 +199,9 @@ CREATE TABLE lounge_queue_channel(
     channel_id bigint unsigned,
     category_id bigint unsigned,
     is_table_submitted boolean default 0,
+    average_mmr int unsigned,
+    max_mmr int unsigned,
+    min_mmr int unsigned,
     CONSTRAINT lounge_queue_channelpk PRIMARY KEY (channel_id),
     CONSTRAINT lounge_queue_channelfk FOREIGN KEY (category_id) REFERENCES lounge_queue_category(category_id)
 );
@@ -346,12 +351,12 @@ DELETE FROM ranks WHERE rank_id = 970028275789365368;
 DELETE FROM ranks WHERE rank_id = 846497627508047872;
 
 -- Dev Tiers
-insert into tier (tier_id, tier_name, results_id, teams_string)
-values(1041162013730164812, 'a', 1041162013730164817, ""),
-(1041162013730164813, 'b', 1041162014086668359, ""),
-(1041162013730164814, 'c', 1041162014086668360, ""),
-(1041162013730164815, 'all', 1041162014086668362, ""),
-(1041162013356855406, 'sq', 1041162013356855407, "");
+insert into tier (tier_id, tier_name, results_id, teams_string, min_mmr, max_mmr)
+values(1041162013730164812, 'a', 1041162013730164817, "", 6000, 99999),
+(1041162013730164813, 'b', 1041162014086668359, "", 3000, 8999),
+(1041162013730164814, 'c', 1041162014086668360, "", 0, 5999),
+(1041162013730164815, 'all', 1041162014086668362, "", 0, 99999),
+(1041162013356855406, 'sq', 1041162013356855407, "", NULL, NULL);
 
 -- Replace live mogi foreign keys with dev mogi foreign keys
 UPDATE mogi SET tier_id = 1041162013730164812 WHERE tier_id = 1010662448715546706; -- a

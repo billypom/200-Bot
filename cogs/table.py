@@ -14,6 +14,8 @@ from helpers import Confirm
 from helpers.senders import send_to_verification_log
 from helpers.senders import send_to_debug_channel
 from helpers.getters import get_lounge_guild
+from helpers.getters import get_tier_id_list
+from helpers.getters import get_lounge_queue_channel_id_list
 from helpers.checkers import check_if_uid_is_lounge_banned
 from helpers.checkers import check_if_banned_characters
 from helpers.handlers import handle_score_input
@@ -53,12 +55,15 @@ class TableCog(commands.Cog):
             await ctx.respond('``Error 32:`` Invalid input. There must be 12 players and 12 scores.')
             return
         # Check if table was submitted from a tier channel or sq
-        with DBA.DBAccess() as db:
-            temp = db.query('SELECT tier_id FROM tier WHERE tier_id = %s;', (ctx.channel.id,))
-        try:
-            # If a player submits a table from a SQ room (dynamic room ID), this will fail and throw exception
-            nya_tier_id = temp[0][0]
-        except Exception:
+        is_lounge_queue = False
+        tier_id_list = await get_tier_id_list()
+        lounge_queue_channel_id_list = await get_lounge_queue_channel_id_list()
+        valid_channel_ids = tier_id_list + lounge_queue_channel_id_list
+        if ctx.channel.id in valid_channel_ids:
+            nya_tier_id = ctx.channel.id
+            if nya_tier_id in lounge_queue_channel_id_list:
+                is_lounge_queue = True
+        else:
             # Retrieve SQ Tier ID from categories helper
             # A debug message is posted by the bot in #sq-helper
             # The category is validated here to allow submitting tables from all SQ room channels
@@ -67,33 +72,14 @@ class TableCog(commands.Cog):
             if str(ctx.channel.category.id) in sq_helper_message.content:
                 nya_tier_id = SQUAD_QUEUE_CHANNEL_ID
             else:
-                await ctx.respond('``Error 72a: `/table` must be used from a tier channel``')
+                await ctx.respond('``Error 72a: `/table` must be used from a mogi channel``')
                 return
-
-
-
 
 
         chunked_list = await handle_score_input(self.client, ctx, scores, mogi_format)
         if not chunked_list:
             await ctx.respond('``Error 73:`` Invalid input. There must be 12 players and 12 scores.')
             return
-        # logging.info(f'POP_LOG | chunked_list: {chunked_list}')
-        
-        # Check if mogi has started
-        # try:
-        #     with DBA.DBAccess() as db:
-        #         temp = db.query('SELECT COUNT(player_id) FROM lineups WHERE tier_id = %s;', (nya_tier_id,))
-        #         players_in_lineup_count = temp[0][0]
-        # except Exception as e:
-        #     await ctx.respond(f'``Error 18:`` Something went VERY wrong! Please contact {config.PING_DEVELOPER}. {e}')
-        #     await send_to_debug_channel(self.client, ctx, f'/table Error 18: {e}')
-        #     return
-        # does not matter when u make table anymore
-        # if players_in_lineup_count < 12:
-            # await ctx.respond('Mogi has not started. Cannot create a table now')
-            # return
-
 
         # Check the mogi_format
         if mogi_format == 1:
@@ -126,9 +112,6 @@ class TableCog(commands.Cog):
             return
 
 
-
-
-
         # Get the highest MMR ever
         #   There was a very high integer in the formula for calculating mmr on the original google sheet (9998)
         #   A comment about how people "never thought anyone could reach 10k mmr" made me think this very high integer was a
@@ -145,15 +128,6 @@ class TableCog(commands.Cog):
 
         # 10999 works very well
         highest_mmr = 10999
-
-
-        
-
-
-
-
-
-
 
 
         # Get MMR data for each team, calculate team score, and determine team placement
@@ -231,34 +205,16 @@ class TableCog(commands.Cog):
             return
 
 
-
-
-
-
-
-
-
-            
-
         # Sort the teams in order of score
         # [[players players players], team_score, team_mmr]
         sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-2]))
         sorted_list.reverse() 
-
-
-
-
-
-
 
         # Create hlorenzi string
         if mogi_format == 1:
             lorenzi_query='-\n'
         else:
             lorenzi_query=''
-
-
-
 
 
         # Initialize score and placement values
@@ -308,31 +264,65 @@ class TableCog(commands.Cog):
         del response
 
 
-
-
-
-
         # Ask for table confirmation
         table_view = Confirm(ctx.author.id)
         channel = self.client.get_channel(ctx.channel.id)
         await channel.send(file=discord.File(f'./images/tables/{lorenzi_table_unique_filename}.jpg'), delete_after=300)
         await channel.send('Is this table correct? :thinking:', view=table_view, delete_after=300)
+        # delete this wait????
         await table_view.wait()
         if table_view.value is None:
             await ctx.respond('No response from reporter. Timed out')
         elif table_view.value: # yes
+            if is_lounge_queue:
+                # Set lounge queue channel table submitted for deletion later
+                try:
+                    with DBA.DBAccess() as db:
+                        db.execute('UPDATE lounge_queue_channel SET is_table_submitted = 1 WHERE channel_id = %s;', (ctx.channel.id,))
+                except Exception as e:
+                    logging.warning(f'table error | could not update lounge_queue_channel.is_table_submitted | {e}')
+                    pass
+                
+                # Get the min & max mmr for this room
+                try:
+                    with DBA.DBAccess() as db:
+                        room_data = db.query('SELECT min_mmr, max_mmr FROM lounge_queue_channel WHERE channel_id = %s;', (ctx.channel.id,))[0]
+                        room_min_mmr = room_data[0]
+                        room_max_mmr = room_data[1]
+                except Exception as e:
+                    logging.warning(f'table error | could not retrieve min or max mmr from lounge queue channel | {e}')
+                
+                print(f'room min: {room_min_mmr}')
+                print(f'room max: {room_max_mmr}')
+                # Translate min & max mmr to 'tier'
+                try:
+                    with DBA.DBAccess() as db:
+                        tier_data = db.query('SELECT tier_id, tier_name FROM tier WHERE max_mmr >= %s AND min_mmr <= %s;', (room_max_mmr, room_min_mmr))
+                except Exception as e:
+                    logging.warning(f'table error | could not translate lounge queue room data to tier id | {e}')
+                if len(tier_data) > 1:
+                    for tier in tier_data:
+                        if tier[1] == 'all':
+                            continue
+                        else:
+                            nya_tier_id = tier[0]
+                else: 
+                    nya_tier_id = tier_data[0][0]
+                
+                
+            
+            
             db_mogi_id = 0
             # Create mogi
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO mogi (mogi_format, tier_id) values (%s, %s);', (mogi_format, nya_tier_id))
-            ##########await send_raw_to_debug_channel(self.client, 'Mogi created' , f'{mogi_format} | {nya_tier_id}')
+
             # Get the results channel and tier name for later use
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT results_id, tier_name FROM tier WHERE tier_id = %s;', (nya_tier_id,))
                 db_results_channel = temp[0][0]
                 tier_name = temp[0][1]
             results_channel = await self.client.fetch_channel(db_results_channel)
-            #############await send_raw_to_debug_channel(self.client, 'Results channel acquired', f'{results_channel}')
 
 
 
@@ -371,17 +361,6 @@ class TableCog(commands.Cog):
                 # print(f'working list {idx}: {working_list}')
             ############await send_raw_to_debug_channel(self.client, 'MMR calculated', 'value table loaded')
 
-
-
-
-
-
-
-            # # DEBUG
-            # print(f'\nprinting value table:\n')
-            # for _list in value_table:
-            #     print(_list)
-
             # Actually calculate the MMR
             logging.info('POP_LOG | Calculating MMR')
             for idx, team in enumerate(sorted_list):
@@ -404,10 +383,6 @@ class TableCog(commands.Cog):
                 # logging.info(f'POP_LOG | value = {temp_value}, value.real = {temp_value.real}')
                 team.append(math.floor(temp_value.real))
 
-
-
-
-
             # Create mmr table string
             if mogi_format == 1:
                 string_mogi_format = 'FFA'
@@ -416,10 +391,6 @@ class TableCog(commands.Cog):
 
             mmr_table_string = f'<big><big>{ctx.channel.name} {string_mogi_format}</big></big>\n'
             mmr_table_string += 'PLACE |       NAME       |  MMR  |  +/-  | NEW MMR |  RANKUPS\n'
-
-
-
-
 
             for team in sorted_list:
                 logging.info(f'POP_LOG | team in sorted_list: {team}')
@@ -444,41 +415,13 @@ class TableCog(commands.Cog):
                     my_player_new_rank = ''
 
 
-
-
-
-
-
                     # Place the placement players
                     if my_player_mmr is None:
                         placement_name, my_player_mmr = await handle_placement_init(self.client, player, my_player_mmr, my_player_score, ctx.channel.name, results_channel)
-                    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-                    # if is_sub: # Subs only gain on winning team
-                    #     if team[len(team)-1] < 0:
-                    #         my_player_mmr_change = 0
-                    #     else:
-                    #         my_player_mmr_change = team[len(team)-1]
-                    # else:
                     my_player_mmr_change = team[len(team)-1]
                     my_player_new_mmr = (my_player_mmr + my_player_mmr_change)
                     
-
-
-
                     # Dont go below 0 mmr
                     # Keep mogi history clean - chart doesn't go below 0
                     if my_player_new_mmr <= 0:
@@ -537,11 +480,6 @@ class TableCog(commands.Cog):
                             db.execute('INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);', (player[0], db_mogi_id, int(my_player_place), int(my_player_score), int(my_player_mmr), int(my_player_mmr_change), int(my_player_new_mmr)))
                             # Update player record
                             db.execute('UPDATE player SET mmr = %s WHERE player_id = %s;', (my_player_new_mmr, player[0]))
-                            # Remove player from lineups
-                            # db.execute('DELETE FROM lineups WHERE player_id = %s AND tier_id = %s;', (player[0], nya_tier_id)) # YOU MUST SUBMIT TABLE IN THE TIER THE MATCH WAS PLAYED
-                            # Clear sub leaver table
-                            # subs dont matter anymore
-                            # db.execute('DELETE FROM sub_leaver WHERE tier_id = %s;', (nya_tier_id,))
                     except Exception as e:
                         # print(e)
                         await send_to_debug_channel(self.client, ctx, f'FATAL TABLE ERROR: {e}')

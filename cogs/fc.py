@@ -13,7 +13,7 @@ class FriendCodeCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(
+    @commands.slash_command(
         name='fc',
         description='Display or set your friend code',
         guild_ids=LOUNGE,

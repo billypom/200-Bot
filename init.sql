@@ -3,12 +3,10 @@ DROP TABLE IF EXISTS sq_schedule;
 DROP TABLE IF EXISTS player_punishment;
 DROP TABLE IF EXISTS punishment;
 DROP TABLE IF EXISTS suggestion;
-DROP TABLE IF EXISTS sub_leaver;
 DROP TABLE IF EXISTS player_name_request;
 DROP TABLE IF EXISTS lounge_queue_channel;
 DROP TABLE IF EXISTS lounge_queue_category;
 DROP TABLE IF EXISTS lounge_queue_player;
-DROP TABLE IF EXISTS lineups;
 DROP TABLE IF EXISTS player_mogi;
 DROP TABLE IF EXISTS strike;
 DROP TABLE IF EXISTS mogi;
@@ -51,12 +49,14 @@ CREATE TABLE tier (
     tier_name varchar(4),
     results_id bigint unsigned,
     voting boolean default 0,
-    teams_string varchar(800), --using 713 maximum right now
+    teams_string varchar(800),
+    min_mmr int,
+    max_mmr int,
     CONSTRAINT tierpk PRIMARY KEY (tier_id)
 );
 
 CREATE TABLE mogi (
-    id int unsigned auto_increment,
+    mogi_id int unsigned auto_increment,
     mogi_format int,
     tier_id bigint unsigned,
     table_url varchar(240),
@@ -96,23 +96,6 @@ CREATE TABLE player_mogi (
     CONSTRAINT playermogifk2 FOREIGN KEY (mogi_id) REFERENCES mogi(mogi_id)
 );
 
--- player_tier
--- temporary table for ongoing mogis
-CREATE TABLE lineups (
-    player_id bigint unsigned,
-    tier_id bigint unsigned,
-    vote int unsigned,
-    is_sub boolean default 0,
-    can_drop boolean default 1,
-    create_date TIMESTAMP default CURRENT_TIMESTAMP NOT NULL,
-    last_active TIMESTAMP,
-    wait_for_activity boolean default 0,
-    mogi_start_time TIMESTAMP default NULL,
-    CONSTRAINT lineupspk PRIMARY KEY (player_id, tier_id),
-    CONSTRAINT lineupsfk1 FOREIGN KEY (player_id) REFERENCES player(player_id),
-    CONSTRAINT lineupsfk2 FOREIGN KEY (tier_id) REFERENCES tier(tier_id)
-);
-
 CREATE TABLE player_name_request(
     id int unsigned auto_increment,
     player_id bigint unsigned,
@@ -122,15 +105,6 @@ CREATE TABLE player_name_request(
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
     CONSTRAINT playernamerequestpk PRIMARY KEY (id),
     CONSTRAINT playernamerequestfk FOREIGN KEY (player_id) REFERENCES player(player_id)
-);
-
-CREATE TABLE sub_leaver(
-    id int unsigned auto_increment,
-    player_id bigint unsigned,
-    tier_id bigint unsigned,
-    CONSTRAINT subleaverspk PRIMARY KEY (id),
-    CONSTRAINT subleaversfk1 FOREIGN KEY (player_id) REFERENCES player(player_id),
-    CONSTRAINT subleaversfk2 FOREIGN KEY (tier_id) REFERENCES tier(tier_id)
 );
 
 -- null = suggestion sent but not responded to
@@ -195,6 +169,9 @@ CREATE TABLE lounge_queue_channel(
     channel_id bigint unsigned,
     category_id bigint unsigned,
     is_table_submitted boolean default 0,
+    average_mmr int unsigned,
+    max_mmr int unsigned,
+    min_mmr int unsigned,
     CONSTRAINT lounge_queue_channelpk PRIMARY KEY (channel_id),
     CONSTRAINT lounge_queue_channelfk FOREIGN KEY (category_id) REFERENCES lounge_queue_category(category_id)
 );
@@ -208,7 +185,7 @@ CREATE TABLE lounge_queue_player(
 
 insert into punishment(punishment_type)
 values ('Restriction'),
-('Loungeless')
+('Loungeless'),
 ('Warning');
 
 -- Ranks
@@ -224,10 +201,10 @@ values (791874714434797589, 'Grandmaster', 11000, 99999, NULL),
 (846497627508047872, 'Placement', -2, -1, 2500);
 
 -- Tiers
-insert into tier (tier_id, tier_name, results_id, teams_string)
-values (1010662448715546706, 's', 1010600237880053800, ""),
-(1010662448715546706, 'a', 1010600237880053800, ""),
-(1010662628793786448, 'b', 1010600376187244655, ""),
-(1010663000987934771, 'c', 1010600418524532889, ""),
-(1010663109536534539, 'all', 1010600464003387542, ""),
-(965286774098260029, 'sq', 1010600944209244210, "");
+insert into tier (tier_id, tier_name, results_id, teams_string, min_mmr, max_mmr)
+values (1208849780986351706, 's', 1208850019512483871, "", 7500, 99999),
+(1010662448715546706, 'a', 1010600237880053800, "", 6000, 99999),
+(1010662628793786448, 'b', 1010600376187244655, "", 3000, 8999),
+(1010663000987934771, 'c', 1010600418524532889, "", 0, 5999),
+(1010663109536534539, 'all', 1010600464003387542, "", 0, 99999),
+(965286774098260029, 'sq', 1010600944209244210, "", NULL, NULL);

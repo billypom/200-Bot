@@ -15,7 +15,7 @@ class DropCog(commands.Cog):
         guild_ids=LOUNGE
     )
     @commands.cooldown(1, 3, commands.BucketType.user)
-    async def c(self, ctx):
+    async def d(self, ctx):
         await ctx.defer(ephemeral=False)
         sent_from_channel_id = ctx.channel.id
         player_id = ctx.author.id

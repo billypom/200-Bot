@@ -1,6 +1,12 @@
-# import logging
+import logging
 import DBA
+from . import FormatVote
 from helpers.getters import get_lounge_guild
+from helpers.getters import get_unix_time_now
+from helpers import create_teams
+from config import UPDATER_ROLE_ID
+from discord import PermissionOverwrite
+import asyncio
 
 async def create_queue_channels_and_categories(client, number_of_players, groups_of_12):
     """Creates channels for lounge queue based on # of players"""
@@ -11,55 +17,104 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
     
     print(f'length of groups: {len(groups_of_12)}')
     print(f'groups: {groups_of_12}')
-    return
     
+    # each group = channel
+    # each instance of 25 channels needs category
     # handle groups_of_12
     # assign permissions to channel for each user in group
-    
-    
-    # Permissions in rooms will be added for each player on the list + mods + bots   
-    # Calculate the number of channels and categories needed
-    channels_needed = number_of_players // 12 + (1 if number_of_players % 12 != 0 else 0)
-    categories_needed = channels_needed // 25 + (1 if channels_needed % 25 != 0 else 0)
-    
-    print(f"Creating {channels_needed} channels under {categories_needed} categories.")
-
-    for category_index in range(categories_needed):
-        channels_list = []
-        # Create a new category
-        category_name = f"Rooms {category_index + 1}"
-        category = await guild.create_category(category_name)
-        category_id = int(category.id)
-        print(f"Created category: {category_name}")
-
-        # Calculate the number of channels for this category
-        channels_for_this_category = min(channels_needed, 25)
-        channels_needed -= channels_for_this_category
-
-        for channel_index in range(channels_for_this_category):
-            # Create a new channel in this category
-            channel_name = f"Channel {category_index * 25 + channel_index + 1}"
-            channel = await guild.create_text_channel(channel_name, category=category)
-            channels_list.append(channel.id)
-            print(f"Created channel: {channel_name}")
-        
-        # Insert this category
-        try:
-            with DBA.DBAccess() as db:
-                db.execute('INSERT INTO lounge_queue_category (category_id) VALUES (%s)', (category_id,))
-        except Exception as e:
-            print(f'Exception inserting specific category to lounge_queue_category table: {e}')
-            return False
-        
-        # Insert channels for this category
-        channels_tuples = [(channel, category_id) for channel in channels_list]
-        try:
-            with DBA.DBAccess() as db:
-                db.executemany('INSERT INTO lounge_queue_channel (channel_id, category_id) VALUES (%s, %s)', channels_tuples)
-        except Exception as e:
-            print(f'Exception inserting channels into specific category {category_id}: {e}')
-            return False
+    channel_count = 0
+    category_count = 1
+    vote_tasks_info = []
+    for group in groups_of_12:
+        if channel_count % 25 == 0: # 25 channels per category
+            # Create category
+            category_name = f'Rooms {category_count}'
+            category = await guild.create_category(category_name)
+            category_id = category.id
+            category_count += 1
+            # Category to DB
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute('INSERT INTO lounge_queue_category (category_id) VALUES (%s)', (category_id,))
+            except Exception as e:
+                logging.warning(f'Exception inserting specific category to lounge_queue_category table: {e}')
+                return False
             
-    
+        # Create channel
+        channel_name = f"Room {channel_count}"
+        channel = await guild.create_text_channel(channel_name, category=category)
+        channel_id = channel.id
+        channel_count += 1
+        lounge_staff = guild.get_role(UPDATER_ROLE_ID)
+        if lounge_staff is None:
+            logging.warning('create_queue_channels_and_categories oops | oops no staff in channel omg')
+        lounge_staff_permissions = PermissionOverwrite(view_channel=True, send_messages=True)
+        await channel.set_permissions(lounge_staff, overwrite=lounge_staff_permissions)
+        await channel.set_permissions(guild.default_role, view_channel=False)
+        # Average mmr calculation
+        total_mmr = 0
+        player_list = []
+        player_room_initialization_string = ''
+        for player_id, (mmr, _) in group:
+            player_room_initialization_string += f'<@{player_id}> : `{mmr}` MMR\n'
+            player_list.append(player_id)
+            total_mmr += mmr
+            # Assign permissions for player in channel
+            try:
+                user = guild.get_member(player_id)
+                permissions = PermissionOverwrite(view_channel=True, send_messages=True)
+                await channel.set_permissions(user, overwrite=permissions)
+            except Exception:
+                continue
+        average_mmr = int(total_mmr/12)
+        mmrs = [player[1][0] for player in group]
+        max_mmr = max(mmrs)
+        min_mmr = min(mmrs)
+        
+        # Channel to DB
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('INSERT INTO lounge_queue_channel (channel_id, category_id, average_mmr, max_mmr, min_mmr) VALUES (%s, %s, %s, %s, %s);', (channel_id, category_id, average_mmr, max_mmr, min_mmr))
+        except Exception as e:
+            logging.warning(f'Exception inserting channel into lounge_queue_category | {e}')
+            return False
+        
+        # Remove players from lounge queue
+        for player in player_list:
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute('DELETE FROM lounge_queue_player WHERE player_id = %s;', (player,))
+            except Exception as e:
+                logging.warning(f'create_queue_channels_and_categories error | could not remove player from lounge_queue_player | {e}')
+                        
+        # ping each player
+        pingable_player_list = []
+        for player in player_list:
+            pingable_player_list.append(f'<@{player}>,')
+        clean_pingable_player_list = ' '.join(pingable_player_list)
+        
+        # Create format vote view
+        format_vote_view = FormatVote(client, player_list, clean_pingable_player_list, channel_id)
+        format_vote_task = client.loop.create_task(format_vote_view.run())
+        vote_tasks_info.append((format_vote_task, format_vote_view, channel_id))
+        
+    # Wait for all votes to complete
+    await asyncio.gather(*[task_info[0] for task_info in vote_tasks_info])
+
+    # Process each vote's result
+    for _, format_vote_view, channel_id in vote_tasks_info:
+        vote_result = await format_vote_view.get_result()
+        channel = client.get_channel(channel_id)
+
+        # Process the vote result for each channel
+        response_string = await create_teams(client, format_vote_view.uid_list, vote_result, average_mmr)
+        await channel.send(response_string)
+
+        # Send final room start time message
+        unix_now = await get_unix_time_now()
+        room_open_time = unix_now + 120
+        penalty_time = room_open_time + 360
+        await channel.send(f'Open room at: <t:{room_open_time}:t>\nPenalty at: <t:{penalty_time}:t>')
+
     print("Creation complete.")
     return True
