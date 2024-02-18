@@ -10,7 +10,7 @@ from helpers.getters import get_next_match_time
 from helpers import delete_discord_channel, delete_discord_category
 
 
-class mogi_queue(commands.Cog):
+class lounge_queue(commands.Cog):
     def __init__(self, client):
         self.check.start()
         self.client = client
@@ -118,8 +118,8 @@ class mogi_queue(commands.Cog):
             
     @check.before_loop
     async def before_check(self):
-        print('mogi queue started')
+        print('Lounge Queue started')
         await self.client.wait_until_ready()
 
 def setup(client):
-    client.add_cog(mogi_queue(client))
+    client.add_cog(lounge_queue(client))
