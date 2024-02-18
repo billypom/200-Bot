@@ -4,7 +4,7 @@ from . import FormatVote
 from helpers.getters import get_lounge_guild
 from helpers.getters import get_unix_time_now
 from helpers import create_teams
-from config import UPDATER_ROLE_ID
+from config import UPDATER_ROLE_ID, LOUNGE_QUEUE_CATEGORY_POSITION
 from discord import PermissionOverwrite
 import asyncio
 
@@ -30,6 +30,7 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
             # Create category
             category_name = f'Rooms {category_count}'
             category = await guild.create_category(category_name)
+            await category.edit(position=LOUNGE_QUEUE_CATEGORY_POSITION)
             category_id = category.id
             category_count += 1
             # Category to DB
