@@ -172,17 +172,17 @@ async def on_raw_reaction_add(payload):
             pass
     return
 
-# @client.event
-# async def on_member_join(member):
-#     # Try to set roles on join
-#     try:
-#         x = await set_uid_roles(client, member.id)
-#         if not x:
-#             return
-#         logging.info(f'Member joined & found! {member} ')
-#     except Exception as e:
-#         logging.info(f'on_member_join exception: {e}')
-#         return
+@client.event
+async def on_member_join(member):
+    # Try to set roles on join
+    try:
+        x = await set_uid_roles(client, member.id)
+        if not x:
+            return
+        logging.info(f'Member joined & found! {member} ')
+    except Exception as e:
+        logging.info(f'on_member_join exception: {e}')
+        return
 
 if __name__ == "__main__":
     client.run(config.TOKEN)

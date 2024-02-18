@@ -36,8 +36,6 @@ class VerifyCog(commands.Cog):
         # mkc_player_id = registry id
         # mkc_user_id = forum id
         await ctx.defer(ephemeral=False)
-        await ctx.respond('We are currently migrating to a new season. Verification is closed for now.')
-        return
         x = await check_if_uid_exists(ctx.author.id)
         if x:
             lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
