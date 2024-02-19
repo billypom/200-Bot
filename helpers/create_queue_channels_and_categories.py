@@ -3,8 +3,9 @@ import DBA
 from . import FormatVote
 from helpers.getters import get_lounge_guild
 from helpers.getters import get_unix_time_now
+from helpers.getters import get_tier_from_room_range
 from helpers import create_teams
-from config import UPDATER_ROLE_ID, LOUNGE_QUEUE_CATEGORY_POSITION
+from config import UPDATER_ROLE_ID, LOUNGE_QUEUE_CATEGORY_POSITION, LOUNGE_QUEUE_LIST_CHANNEL_ID
 from discord import PermissionOverwrite
 import asyncio
 
@@ -55,9 +56,10 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
         # Average mmr calculation
         total_mmr = 0
         player_list = []
+        # Start making string for list channel
         player_room_initialization_string = ''
         for player_id, (mmr, _) in group:
-            player_room_initialization_string += f'<@{player_id}> : `{mmr}` MMR\n'
+            player_room_initialization_string += f'<@{player_id}> ({mmr} MMR)\n'
             player_list.append(player_id)
             total_mmr += mmr
             # Assign permissions for player in channel
@@ -72,13 +74,20 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
         max_mmr = max(mmrs)
         min_mmr = min(mmrs)
         
+        list_channel = client.get_channel(LOUNGE_QUEUE_LIST_CHANNEL_ID)
+        _, room_tier_name = await get_tier_from_room_range(min_mmr, max_mmr)
+        try:
+            send_room_string = f'**{channel_name} MMR: {average_mmr} - tier-{room_tier_name}**\n' + player_room_initialization_string
+            await list_channel.send(send_room_string)
+        except Exception as e:
+            logging.warning('could not send list channel room?')
+        
         # Channel to DB
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO lounge_queue_channel (channel_id, category_id, average_mmr, max_mmr, min_mmr) VALUES (%s, %s, %s, %s, %s);', (channel_id, category_id, average_mmr, max_mmr, min_mmr))
         except Exception as e:
             logging.warning(f'Exception inserting channel into lounge_queue_category | {e}')
-            return False
         
         # Remove players from lounge queue
         for player in player_list:

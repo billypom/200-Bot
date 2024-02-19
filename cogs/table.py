@@ -16,6 +16,7 @@ from helpers.senders import send_to_debug_channel
 from helpers.getters import get_lounge_guild
 from helpers.getters import get_tier_id_list
 from helpers.getters import get_lounge_queue_channel_id_list
+from helpers.getters import get_tier_from_room_range
 from helpers.checkers import check_if_uid_is_lounge_banned
 from helpers.checkers import check_if_banned_characters
 from helpers.handlers import handle_score_input
@@ -292,22 +293,8 @@ class TableCog(commands.Cog):
                 except Exception as e:
                     logging.warning(f'table error | could not retrieve min or max mmr from lounge queue channel | {e}')
                 
-                print(f'room min: {room_min_mmr}')
-                print(f'room max: {room_max_mmr}')
-                # Translate min & max mmr to 'tier'
-                try:
-                    with DBA.DBAccess() as db:
-                        tier_data = db.query('SELECT tier_id, tier_name FROM tier WHERE max_mmr >= %s AND min_mmr <= %s;', (room_max_mmr, room_min_mmr))
-                except Exception as e:
-                    logging.warning(f'table error | could not translate lounge queue room data to tier id | {e}')
-                if len(tier_data) > 1:
-                    for tier in tier_data:
-                        if tier[1] == 'all':
-                            continue
-                        else:
-                            nya_tier_id = tier[0]
-                else: 
-                    nya_tier_id = tier_data[0][0]
+                
+                nya_tier_id, _ = await get_tier_from_room_range(room_min_mmr, room_max_mmr)
                 
                 
             

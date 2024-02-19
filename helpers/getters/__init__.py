@@ -8,3 +8,4 @@ from .get_tier_id_list import get_tier_id_list
 from .get_rank_id_list import get_rank_id_list
 from .get_discord_role import get_discord_role
 from .get_next_match_time import get_next_match_time
+from .get_tier_from_room_range import get_tier_from_room_range
