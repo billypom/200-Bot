@@ -32,6 +32,8 @@ class FormatVote(View):
             # Update each button's label with the current vote count
             new_label = f"{format_number}v{format_number} - ({len(self.votes[format_number])})"
             button.label = new_label
+            if self.votes[format_number] >= 6:
+                self.on_stop()
         
     async def refresh_message(self):
         channel = self.client.get_channel(self.channel_id)
