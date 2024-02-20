@@ -35,7 +35,7 @@ class inactivity_check(commands.Cog):
             if unix_difference < 900: # if it has been less than 15 minutes
                 if unix_difference > 600: # if it has been more than 10 minutes
                     channel = self.client.get_channel(LOUNGE_QUEUE_JOIN_CHANNEL_ID)
-                    if temp[i][3] == 0: # false we are not waiting for activity
+                    if temp[i][2] == 0: # false we are not waiting for activity
                         message = f'<@{temp[i][0]}> Type anything in the chat in the next 10 minutes to keep your spot in the mogi.'
                         await channel.send(message, delete_after=300)
                         # set wait_for_activity = 1 means the ping was already sent.
