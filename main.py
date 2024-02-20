@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 import logging
 import DBA
+import datetime
 from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild
 from helpers.getters import get_discord_role
@@ -92,6 +93,29 @@ async def on_message(ctx):
     if get_discord_role(client, config.CHAT_RESTRICTED_ROLE_ID) in user.roles: # restricted players
         await ctx.delete()
         return
+    if ctx.channel.id == config.LOUNGE_QUEUE_JOIN_CHANNEL_ID: # Only care if messages are in a tier
+        # If player in lineup, set player chat activity timer
+        try:
+            with DBA.DBAccess() as db:
+                temp = db.query('SELECT player_id FROM lounge_queue_player WHERE player_id = %s;', (ctx.author.id,))
+        except Exception as e:
+            await send_raw_to_debug_channel(client, ctx, f'on_message error 1 | {e}')
+            return
+        try:
+            test_assign = temp[0][0]
+        except Exception:
+            # player not in lineup talked. dont care
+            return
+        if temp[0][0] is None:
+            return
+        else:
+            if ctx.channel.id == temp[0][1]: # Type activity in correct channel
+                try:
+                    with DBA.DBAccess() as db:
+                        db.execute('UPDATE lounge_queue_player SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
+                except Exception as e:
+                    await send_raw_to_debug_channel(client, ctx, f'on_message error 2 | {e}')
+                    return
 
 @client.event
 async def on_raw_reaction_add(payload):
