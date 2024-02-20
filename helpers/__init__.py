@@ -25,3 +25,4 @@ from .set_uid_roles import set_uid_roles
 from .remove_players_from_other_tiers import remove_players_from_other_tiers
 from .start_mogi import start_mogi
 from .cancel_mogi import cancel_mogi
+from .update_friend_code import update_friend_code
