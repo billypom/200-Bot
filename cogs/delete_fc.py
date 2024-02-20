@@ -22,10 +22,13 @@ class DeleteFriendCodeCog(commands.Cog):
         try:
             with DBA.DBAccess() as db:
                 temp = db.query('UPDATE player SET fc = NULL WHERE player_id = %s;', (ctx.author.id,))
+            await ctx.respond('Friend code deleted')
+            return
         except Exception as e:
             logging.warning(f'delete_fc error ')
             await ctx.respond('Oops! Unable to remove your friend code...')
             return
+
 
 def setup(client):
     client.add_cog(DeleteFriendCodeCog(client))
