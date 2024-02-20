@@ -32,11 +32,11 @@ class inactivity_check(commands.Cog):
                 # print('im devving?')
                 return
             # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
-            if unix_difference < 900: # if it has been less than 15 minutes
-                if unix_difference > 600: # if it has been more than 10 minutes
+            if unix_difference < 2700: # if it has been less than 45 minutes
+                if unix_difference > 1800: # if it has been more than 30 minutes
                     channel = self.client.get_channel(LOUNGE_QUEUE_JOIN_CHANNEL_ID)
                     if temp[i][2] == 0: # false we are not waiting for activity
-                        message = f'<@{temp[i][0]}> Type anything in the chat in the next 10 minutes to keep your spot in the mogi.'
+                        message = f'<@{temp[i][0]}> Type anything in the chat in the next 30 minutes to keep your spot in the mogi.'
                         await channel.send(message, delete_after=300)
                         # set wait_for_activity = 1 means the ping was already sent.
                         try:
@@ -47,7 +47,7 @@ class inactivity_check(commands.Cog):
                             return
                 else: # has not been at least 10 minutes yet
                     continue # does this make it faster? idk
-            elif unix_difference > 1200: # if its been more than 20 minutes
+            elif unix_difference > 3600: # if its been more than 60 minutes
                 # Drop player
                 try:
                     with DBA.DBAccess() as db:
