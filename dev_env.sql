@@ -66,8 +66,8 @@ CREATE TABLE mogi (
     table_url varchar(240),
     table_message_id bigint unsigned default null,
     mmr_message_id bigint unsigned default null,
-    has_reduced_loss boolean default 0,
     create_date TIMESTAMP default CURRENT_TIMESTAMP NOT NULL,
+    has_reduced_loss boolean default 0,
     CONSTRAINT mogipk PRIMARY KEY (mogi_id),
     CONSTRAINT mogifk FOREIGN KEY (tier_id) REFERENCES tier(tier_id)
 );
@@ -209,6 +209,8 @@ CREATE TABLE lounge_queue_channel(
 CREATE TABLE lounge_queue_player(
     player_id bigint unsigned,
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
+    last_active TIMESTAMP,
+    wait_for_activity boolean default 0,
     CONSTRAINT lounge_queue_playerpk PRIMARY KEY (player_id),
     CONSTRAINT lounge_queue_playerfk FOREIGN KEY (player_id) REFERENCES player(player_id)
 );
@@ -271,50 +273,45 @@ BEGIN
   EXECUTE stmt;
   DEALLOCATE PREPARE stmt;
 
-  SET @sql = CONCAT('INSERT INTO lounge_dev.sub_leaver SELECT * FROM ', source_schema, '.sub_leaver');
-  PREPARE stmt FROM @sql;
-  EXECUTE stmt;
-  DEALLOCATE PREPARE stmt;
-
   SET @sql = CONCAT('INSERT INTO lounge_dev.suggestion SELECT * FROM ', source_schema, '.suggestion');
   PREPARE stmt FROM @sql;
   EXECUTE stmt;
   DEALLOCATE PREPARE stmt;
 
---   SET @sql = CONCAT(
---         'INSERT INTO lounge_dev.lounge_queue_player SELECT * FROM ',
---         source_schema,
---         '.lounge_queue_player'
---     );
---     PREPARE stmt
---     FROM @sql;
---     EXECUTE stmt;
---     DEALLOCATE PREPARE stmt;
+  SET @sql = CONCAT(
+        'INSERT INTO lounge_dev.lounge_queue_player SELECT * FROM ',
+        source_schema,
+        '.lounge_queue_player'
+    );
+    PREPARE stmt
+    FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
 
---     SET @sql = CONCAT(
---             'INSERT INTO lounge_dev.lounge_queue_channel SELECT * FROM ',
---             source_schema,
---             '.lounge_queue_channel'
---         );
---     PREPARE stmt
---     FROM @sql;
---     EXECUTE stmt;
---     DEALLOCATE PREPARE stmt;
+    SET @sql = CONCAT(
+            'INSERT INTO lounge_dev.lounge_queue_channel SELECT * FROM ',
+            source_schema,
+            '.lounge_queue_channel'
+        );
+    PREPARE stmt
+    FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
 
---     SET @sql = CONCAT(
---             'INSERT INTO lounge_dev.lounge_queue_category SELECT * FROM ',
---             source_schema,
---             '.lounge_queue_category'
---         );
---     PREPARE stmt
---     FROM @sql;
---     EXECUTE stmt;
---     DEALLOCATE PREPARE stmt;
+    SET @sql = CONCAT(
+            'INSERT INTO lounge_dev.lounge_queue_category SELECT * FROM ',
+            source_schema,
+            '.lounge_queue_category'
+        );
+    PREPARE stmt
+    FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
 
 END;
 
 -- Call the stored procedure with the current database name as a parameter
-CALL copy_data_to_dev('s6200lounge');
+CALL copy_data_to_dev('s7200lounge');
 
 -- Dev Ranks
 insert into ranks (rank_id, rank_name, mmr_min, mmr_max, placement_mmr)

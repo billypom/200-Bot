@@ -56,12 +56,7 @@ class PlayerPunishmentsCog(commands.Cog):
                     if punishment[1] == "Warning":
                         emoji = "⚠️"
                     punishment_array.append(
-                        f"""**{punishment[3]}.** {emoji} {punishment[1]}\n
-                        `Reason:` {punishment[2]}\n
-                        `Ban length:` {punishment[6]}\n
-                        `Unban date:` <t:{str(punishment[4])}:F>\n
-                        `Issued on:` <t:{str(punishment[5])}:F>\n
-                        `Issued by:` {punishment[0]}"""
+                        f"""**{punishment[3]}.** {emoji} {punishment[1]}\n`Reason:` {punishment[2]}\n`Ban length:` {punishment[6]}\n`Unban date:` <t:{str(punishment[4])}:F>\n`Issued on:` <t:{str(punishment[5])}:F>\n`Issued by:` {punishment[0]}"""
                     )
 
             await ctx.respond(f"# {name}'s punishments")

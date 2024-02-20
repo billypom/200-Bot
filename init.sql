@@ -179,6 +179,8 @@ CREATE TABLE lounge_queue_channel(
 CREATE TABLE lounge_queue_player(
     player_id bigint unsigned,
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
+    last_active TIMESTAMP,
+    wait_for_activity boolean default 0,
     CONSTRAINT lounge_queue_playerpk PRIMARY KEY (player_id),
     CONSTRAINT lounge_queue_playerfk FOREIGN KEY (player_id) REFERENCES player(player_id)
 );

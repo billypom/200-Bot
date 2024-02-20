@@ -19,7 +19,7 @@ class ListCog(commands.Cog):
         await ctx.defer(ephemeral=False)
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:
-            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+            await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>')
             return
         try:
             with DBA.DBAccess() as db:

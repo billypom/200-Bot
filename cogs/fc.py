@@ -23,7 +23,7 @@ class FriendCodeCog(commands.Cog):
             await ctx.defer()
             lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
             if lounge_ban:
-                await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+                await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>', delete_after=30)
                 return
             else:
                 pass
@@ -37,7 +37,7 @@ class FriendCodeCog(commands.Cog):
             await ctx.defer(ephemeral=True)
             lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
             if lounge_ban:
-                await ctx.respond(f'Unban date: <t:{lounge_ban}:F>', delete_after=30)
+                await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>', delete_after=30)
                 return
             else:
                 pass

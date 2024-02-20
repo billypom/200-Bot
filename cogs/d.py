@@ -25,7 +25,7 @@ class DropCog(commands.Cog):
         
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:
-            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+            await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>')
             return
         # Check if player already in queue
         try:

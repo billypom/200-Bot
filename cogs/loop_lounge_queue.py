@@ -5,9 +5,7 @@ import logging
 from config import LOUNGE_QUEUE_START_MINUTE, LOUNGE_QUEUE_LIST_CHANNEL_ID
 from helpers import convert_datetime_to_unix_timestamp, create_queue_channels_and_categories
 from helpers.senders import send_raw_to_debug_channel
-from helpers.getters import get_lounge_guild
 from helpers.getters import get_next_match_time
-from helpers import delete_discord_channel, delete_discord_category
 
 
 class lounge_queue(commands.Cog):
@@ -48,8 +46,7 @@ class lounge_queue(commands.Cog):
         lounge_queue_list_channel = self.client.get_channel(LOUNGE_QUEUE_LIST_CHANNEL_ID)
         next_match_time = await get_next_match_time()
         if len(player_dict) < 12:
-            logging.warning('Not enough players in queue')
-            await lounge_queue_list_channel.send(f"Not enough players in queue. Next mogi <t:{next_match_time}:R>")
+            await lounge_queue_list_channel.send(f"Not enough players in queue. Next mogi <t:{next_match_time}:R>", delete_after=300)
             # do other stuff Nino mode nino time hi nino
             return
         await lounge_queue_list_channel.send("# mogi time\nCreating rooms...")
@@ -63,7 +60,7 @@ class lounge_queue(commands.Cog):
         popped_player_ids = [f'<@{player[0]}>' for player in popped_players]
         
         if popped_player_ids:
-            await lounge_queue_list_channel.send(f'The following players will have priority in the next mogi: {", ".join(popped_player_ids)}\nNext match <t:{next_match_time}:R>')
+            await lounge_queue_list_channel.send(f'The following players will have priority in the next mogi: {", ".join(popped_player_ids)}\nNext match <t:{next_match_time}:R>', delete_after=300)
         
         # Rooms will be created for each list
         # Sort the dictionary by mmr in descending order

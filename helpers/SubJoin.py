@@ -3,6 +3,7 @@ from discord.ui import View
 import DBA
 from helpers.getters import get_lounge_guild
 from discord import PermissionOverwrite
+from config import LOUNGE_QUEUE_SUB_CHANNEL_ID
 
 # Discord UI button - Confirmation button
 class SubJoin(View):
@@ -27,7 +28,8 @@ class SubJoin(View):
         if room_min_mmr <= player_mmr and player_mmr <= room_max_mmr:
             pass
         else:
-            await interaction.response.send_message(f'You cannot join this room with {player_mmr} MMR')
+            sub_channel = self.client.get_channel(LOUNGE_QUEUE_SUB_CHANNEL_ID)
+            sub_channel.send(f'<@{player_id}>, you cannot join this room with {player_mmr} MMR', delete_after=60)
             return
         
         # add interaction user to permissions for self.channel_id

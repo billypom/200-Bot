@@ -27,7 +27,7 @@ class CanCog(commands.Cog):
         
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:
-            await ctx.respond(f'Unban date: <t:{lounge_ban}:F>')
+            await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>')
             return
         # Check if player already in queue
         try:
@@ -41,7 +41,7 @@ class CanCog(commands.Cog):
         # Add player to the queue
         try:
             with DBA.DBAccess() as db:
-                db.execute('INSERT INTO lounge_queue_player (player_id) VALUES (%s)', (player_id,))
+                db.execute('INSERT INTO lounge_queue_player (player_id, last_active) VALUES (%s, %s)', (player_id, datetime.now()))
         except Exception as e:
             logging.warning(f'CanCog error: unable to add player to lounge_queue_player | {e}')
             return
