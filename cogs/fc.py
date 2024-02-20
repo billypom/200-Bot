@@ -10,8 +10,8 @@ import vlog_msg
 from config import LOUNGE
 
 class FriendCodeCog(commands.Cog):
-    def __init__(self, bot):
-        self.bot = bot
+    def __init__(self, client):
+        self.client = client
 
     @commands.slash_command(
         name='fc',
@@ -50,8 +50,8 @@ class FriendCodeCog(commands.Cog):
                 pass
             else:
                 return '``Error 25:`` Player does not exist. Use `/verify <mkc link>` to register with the Lounge.'
-            confirmation_msg = await update_friend_code(ctx, fc)
+            confirmation_msg = await update_friend_code(self.client, ctx, fc)
             await ctx.respond(confirmation_msg)
 
-def setup(bot):
-    bot.add_cog(FriendCodeCog(bot))
+def setup(client):
+    client.add_cog(FriendCodeCog(client))

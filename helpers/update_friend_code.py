@@ -9,7 +9,7 @@ async def update_friend_code(client, ctx, message):
         try:
             with DBA.DBAccess() as db:
                 db.execute('UPDATE player SET fc = %s WHERE player_id = %s;', (message, ctx.author.id))
-                return 'Friend Code updated'
+                return f'Friend Code updated to {message}'
         except Exception as e:
             await send_to_debug_channel(client, ctx, f'update_friend_code error 15 {e}')
             return '``Error 15:`` Player not found'

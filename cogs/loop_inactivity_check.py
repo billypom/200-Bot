@@ -26,10 +26,7 @@ class inactivity_check(commands.Cog):
         for i in range(len(temp)):
             name = temp[i][3]
             try:
-                print(f'unix_now: {unix_now}')
-                print(f'player last active: {temp[i][1]}')
                 unix_difference = unix_now - temp[i][1]
-                print(unix_difference)
             except Exception:
                 # await send_raw_to_debug_channel(self.client, f'inactivity_check error dev1 {PING_DEVELOPER}', e)
                 # print('im devving?')
