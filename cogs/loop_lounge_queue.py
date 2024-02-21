@@ -1,5 +1,6 @@
 from discord.ext import commands, tasks
 from datetime import datetime
+import math
 import DBA
 import logging
 from config import LOUNGE_QUEUE_START_MINUTE, LOUNGE_QUEUE_LIST_CHANNEL_ID
