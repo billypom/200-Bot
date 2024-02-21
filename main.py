@@ -71,7 +71,6 @@ async def on_application_command_error(ctx, error):
     
 @client.event
 async def on_message(ctx):
-    logging.info('message')
     if ctx.author == client.user: # ignore bot messages
         return
     if ctx.channel.id == 558096949337915413: # ignore carl bot logging
