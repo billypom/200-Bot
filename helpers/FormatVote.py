@@ -11,8 +11,12 @@ class FormatVote(View):
     uid_list = list of players in room
     clean_pingable_player_list = string of all players in room like: <@discord_id> <@discord_id> etc
     channel_id = the channel to start the vote in
+    average_mmr = average mmr of the room
+    min_mmr = smallest mmr of the room
+    max_mmr = largest mmr of the room
+    channel_name = name of the room channel
     """
-    def __init__(self, client, uid_list: list, clean_pingable_player_list: str, channel_id: int):
+    def __init__(self, client, uid_list: list, clean_pingable_player_list: str, channel_id: int, average_mmr: int, min_mmr: int, max_mmr: int, channel_name: str):
         super().__init__()
         # self.votes is a list of players who voted for a format, NOT an integer
         self.votes = {
@@ -28,6 +32,10 @@ class FormatVote(View):
         self.channel_id = channel_id
         self.message_id = None
         self.clean_pingable_player_list = clean_pingable_player_list
+        self.average_mmr = average_mmr
+        self.min_mmr = min_mmr
+        self.max_mmr = max_mmr
+        self.channel_name = channel_name
         
     async def send_vote_message(self):
         """Sends a message to the room, pings all players, displays buttons"""
@@ -85,6 +93,7 @@ class FormatVote(View):
         await interaction.response.edit_message()
     
     async def vote(self, format_number, interaction):
+        """Player clicks a button to vote for a format"""
         if interaction.user.id not in self.uid_list:
             return
         for i in range(1,5):
@@ -104,12 +113,14 @@ class FormatVote(View):
                 break
         
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        """Checks if player is eligible to vote"""
         return interaction.user.id in self.uid_list
 
     async def wait(self):
         await self.completed.wait()
     
     async def run(self):
+        """Starts the format vote. Sends the message with buttons and stuff"""
         await self.send_vote_message()
         await asyncio.sleep(self.voting_time_seconds)
         self.completed.set()

@@ -64,8 +64,5 @@ class CanCog(commands.Cog):
         # Provide feedback to player that they have joined the a queue that will start at a particular time
         await ctx.respond(f'You have been added to the queue in <t:{target_unix_time}:R> `[{number_of_players} players]`')
         
-
-        
-
 def setup(bot):
     bot.add_cog(CanCog(bot))

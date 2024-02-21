@@ -10,14 +10,14 @@ from discord import PermissionOverwrite
 import asyncio
 
 async def create_queue_channels_and_categories(client, number_of_players, groups_of_12):
-    """Creates channels for lounge queue based on # of players"""
+    """Creates channels for lounge queue based on # of players. Sorts players into rooms. Starts format votes. Sorts players in rooms into teams. Sends room messages to rooms and list channel"""
     guild = get_lounge_guild(client)
     if guild is None:
         print('create_queue_channels_and_categories error: Guild not found')
         return False
     
-    print(f'length of groups: {len(groups_of_12)}')
-    print(f'groups: {groups_of_12}')
+    #print(f'length of groups: {len(groups_of_12)}')
+    #print(f'groups: {groups_of_12}')
     
     # each group = channel
     # each instance of 25 channels needs category
@@ -59,7 +59,12 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
         # Start making string for list channel
         player_room_initialization_string = ''
         for player_id, (mmr, _) in group:
-            player_room_initialization_string += f'<@{player_id}> ({mmr} MMR)\n'
+            try:
+                with DBA.DBAccess() as db:
+                    player_name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (player_id,))[0][0]
+            except Exception as e:
+                player_name = "Unknown"
+            player_room_initialization_string += f'{player_name} ({mmr} MMR)\n'
             player_list.append(player_id)
             total_mmr += mmr
             # Assign permissions for player in channel
@@ -104,7 +109,7 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
         clean_pingable_player_list = ' '.join(pingable_player_list)
         
         # Create format vote view
-        format_vote_view = FormatVote(client, player_list, clean_pingable_player_list, channel_id)
+        format_vote_view = FormatVote(client, player_list, clean_pingable_player_list, channel_id, average_mmr, min_mmr, max_mmr, channel_name)
         format_vote_task = client.loop.create_task(format_vote_view.run())
         vote_tasks_info.append((format_vote_task, format_vote_view, channel_id))
         
@@ -117,8 +122,8 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
         channel = client.get_channel(channel_id)
 
         # Process the vote result for each channel
-        response_string = await create_teams(client, format_vote_view.uid_list, vote_result, average_mmr)
-        await channel.send(response_string)
+        room_response_string, list_response_string = await create_teams(client, format_vote_view.uid_list, vote_result, average_mmr, format_vote_view.min_mmr, format_vote_view.max_mmr, format_vote_view.channel_name)
+        await channel.send(room_response_string)
 
         # Send final room start time message
         unix_now = await get_unix_time_now()
@@ -126,5 +131,8 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
         penalty_time = room_open_time + 360
         await channel.send(f'Open room at: <t:{room_open_time}:t>\nPenalty at: <t:{penalty_time}:t>')
 
-    print("Creation complete.")
+        # Send room to list channel
+        channel = client.get_channel(LOUNGE_QUEUE_LIST_CHANNEL_ID)
+        await channel.send(list_response_string)
+
     return True
