@@ -102,7 +102,7 @@ async def on_message(ctx):
             await send_raw_to_debug_channel(client, ctx, f'on_message error 1 | {e}')
             return
         try:
-            test_assign = temp[0][0]
+            _ = temp[0][0]
         except Exception:
             # player not in lineup talked. dont care
             return

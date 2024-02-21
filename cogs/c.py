@@ -34,6 +34,7 @@ class CanCog(commands.Cog):
             with DBA.DBAccess() as db:
                 retrieved_id = db.query('SELECT player_id FROM lounge_queue_player WHERE player_id = %s;', (player_id,))[0][0]
             await ctx.respond('You are already in the queue.', delete_after=30)
+            return
         except Exception:
             # Player not in queue OK
             pass

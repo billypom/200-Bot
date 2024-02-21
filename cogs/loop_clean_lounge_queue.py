@@ -18,6 +18,8 @@ class CleanLoungeQueueCog(commands.Cog):
     async def check(self):
         # Clean the lounge queue at :33
         current_time = datetime.now()
+        if current_time.minute == 0:
+            return
         if current_time.minute % 33 != 0:
             return
         logging.info('Cleaning up the lounge queue...')

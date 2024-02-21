@@ -5,8 +5,16 @@ import logging
 from discord.ui import View
 
 class FormatVote(View):
-    def __init__(self, client, uid_list, clean_pingable_player_list, channel_id):
+    """Discord View that starts a 60 second mogi format vote
+    ## input:
+    client = discord bot/client
+    uid_list = list of players in room
+    clean_pingable_player_list = string of all players in room like: <@discord_id> <@discord_id> etc
+    channel_id = the channel to start the vote in
+    """
+    def __init__(self, client, uid_list: list, clean_pingable_player_list: str, channel_id: int):
         super().__init__()
+        # self.votes is a list of players who voted for a format, NOT an integer
         self.votes = {
             1: [],
             2: [],
@@ -22,20 +30,21 @@ class FormatVote(View):
         self.clean_pingable_player_list = clean_pingable_player_list
         
     async def send_vote_message(self):
+        """Sends a message to the room, pings all players, displays buttons"""
         channel = self.client.get_channel(self.channel_id)
         message = await channel.send(f'{self.clean_pingable_player_list}\n# Format Vote:', view=self)
         self.message_id = message.id
         
     async def refresh_vote_buttons(self):
+        """Updates the button label text"""
         vote_options = [1, 2, 3, 4]  # Corresponding to your self.votes keys
         for button, format_number in zip(self.children, vote_options):
             # Update each button's label with the current vote count
             new_label = f"{format_number}v{format_number} - ({len(self.votes[format_number])})"
             button.label = new_label
-            if self.votes[format_number] >= 6:
-                self.on_stop()
         
     async def refresh_message(self):
+        """Refreshes the vote message"""
         channel = self.client.get_channel(self.channel_id)
         if channel and self.message_id:
             try:
@@ -88,6 +97,11 @@ class FormatVote(View):
                 # remove other votes
                 if interaction.user.id in self.votes[i]:
                     self.votes[i].remove(interaction.user.id)
+        for vote_count in self.votes.values():
+            if len(vote_count) >= 6:
+                self.completed.set()
+                await self.refresh_message()
+                break
         
     async def interaction_check(self, interaction: discord.Interaction) -> bool:
         return interaction.user.id in self.uid_list
@@ -107,6 +121,7 @@ class FormatVote(View):
         self.completed.set()
         
     async def get_result(self):
+        """Returns the chosen format, if tied, chooses a random format from the ties"""
         await self.wait()
         # thank u chatgpt
         votes_count = {format_number: len(votes) for format_number, votes in self.votes.items()}
