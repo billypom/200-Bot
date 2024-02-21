@@ -29,9 +29,11 @@ class lounge_queue(commands.Cog):
         #   player_id: {mmr, create_date}
         player_dict = {}
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT l.player_id, p.mmr, l.create_date FROM lounge_queue_player l JOIN player p on l.player_id = p.player_id ORDER BY l.create_date ASC;', ())
-        
-        for player in temp:
+            temp = db.query('SELECT l.player_id, p.mmr, l.create_date, p.player_name FROM lounge_queue_player l JOIN player p on l.player_id = p.player_id ORDER BY l.create_date ASC;', ())
+       
+        player_list_message_string = '### Current Mogi Lineup:\n'
+        for idx, player in enumerate(temp):
+            player_list_message_string += f'`{idx+1}.` {player[3]}\n'
             player_id = player[0]
             if player[1] is None:
                 mmr = 1000
@@ -46,7 +48,7 @@ class lounge_queue(commands.Cog):
         lounge_queue_list_channel = self.client.get_channel(LOUNGE_QUEUE_LIST_CHANNEL_ID)
         next_match_time = await get_next_match_time()
         if len(player_dict) < 12:
-            await lounge_queue_list_channel.send(f"Not enough players in queue. Next mogi <t:{next_match_time}:R>", delete_after=300)
+            await lounge_queue_list_channel.send(f"{player_list_message_string}Not enough players in queue. Next mogi <t:{next_match_time}:R>", delete_after=300)
             # do other stuff Nino mode nino time hi nino
             return
         await lounge_queue_list_channel.send("# mogi time\nCreating rooms...")
