@@ -90,7 +90,6 @@ async def on_message(ctx):
         logging.warning(f'on_message error - could not compare chat restricted role')
     # Only care if message is in lounge queue join channel
     if ctx.channel.id == config.LOUNGE_QUEUE_JOIN_CHANNEL_ID:
-        logging.info('LOUNGE QUEUE CHAT ACTIVITY DETECTED: {ctx.author}')
         # If player in lineup, set player chat activity timer
         try:
             with DBA.DBAccess() as db:

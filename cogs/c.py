@@ -54,7 +54,7 @@ class CanCog(commands.Cog):
         except Exception as e:
             logging.warning(f'CanCog error: unable to count player from lounge_queue_player | {e}')
             return
-        
+
         # Retrieve the next queue time
         current_time = datetime.now()
         add_minutes = (LOUNGE_QUEUE_START_MINUTE - current_time.minute % LOUNGE_QUEUE_START_MINUTE) % LOUNGE_QUEUE_START_MINUTE
@@ -64,5 +64,11 @@ class CanCog(commands.Cog):
         # Provide feedback to player that they have joined the a queue that will start at a particular time
         await ctx.respond(f'You have been added to the queue in <t:{target_unix_time}:R> `[{number_of_players} players]`')
         
+        if number_of_players == 6:
+            await ctx.channel.send('@here +6')
+        if number_of_players == 11:
+            await ctx.channel.send('@here +1')
+    
+
 def setup(bot):
     bot.add_cog(CanCog(bot))
