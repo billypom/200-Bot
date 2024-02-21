@@ -23,7 +23,7 @@ sys.path.append(project_root)
 # Bot config
 # Intents:  manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
 #           send messages, manage messages, embed links, attach files, add reactions, use slash commands
-intents = discord.Intents(guilds=True, members=True, reactions=True)
+intents = discord.Intents(guilds=True, messages=True, members=True, reactions=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 
 # Load cogs  
@@ -71,7 +71,8 @@ async def on_application_command_error(ctx, error):
     
 @client.event
 async def on_message(ctx):
-    if ctx.author.id == client.user.id: # ignore bot messages
+    logging.info('message')
+    if ctx.author == client.user: # ignore bot messages
         return
     if ctx.channel.id == 558096949337915413: # ignore carl bot logging
         return
