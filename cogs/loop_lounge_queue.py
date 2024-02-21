@@ -42,7 +42,8 @@ class lounge_queue(commands.Cog):
             create_date = await convert_datetime_to_unix_timestamp(player[2])
             # print(f'Adding player to dict: {player_id} | {mmr} | {create_date}')
             player_dict[player_id] = (mmr, create_date)
-        
+
+        player_list_message_string += f'**{len(player_dict) % 12}/12** players for {math.floor(len(player_dict)/12)} rooms'
         # Split lineup list into groups of 12 max (order matters)
         # i.e. [1,2,3,4,5,6,7,8,9,10,11,12], [13,14,15,16,17,18,19,20,21,22,23,24], [25,26,27]
         lounge_queue_list_channel = self.client.get_channel(LOUNGE_QUEUE_LIST_CHANNEL_ID)
