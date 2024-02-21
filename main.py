@@ -82,24 +82,29 @@ async def on_message(ctx):
     except Exception:
         return
     user = await guild.fetch_member(ctx.author.id)
-    if get_discord_role(client, config.CHAT_RESTRICTED_ROLE_ID) in user.roles: # restricted players
-        await ctx.delete()
-        return
+    try:
+        if get_discord_role(client, config.CHAT_RESTRICTED_ROLE_ID) in user.roles: # restricted players
+            await ctx.delete()
+            return
+    except Exception as e:
+        logging.warning(f'on_message error - could not compare chat restricted role')
     # Only care if message is in lounge queue join channel
     if ctx.channel.id == config.LOUNGE_QUEUE_JOIN_CHANNEL_ID:
+        logging.info('LOUNGE QUEUE CHAT ACTIVITY DETECTED: {ctx.author}')
         # If player in lineup, set player chat activity timer
         try:
             with DBA.DBAccess() as db:
                 temp = db.query('SELECT player_id FROM lounge_queue_player WHERE player_id = %s AND wait_for_activity = %s;', (ctx.author.id, 1))
         except Exception as e:
+            logging.warning(f'on_message error - could not select player from lounge_queue_player | {e}')
             return
-        if ctx.channel.id == config.LOUNGE_QUEUE_JOIN_CHANNEL_ID: # Type activity in correct channel
-            try:
-                with DBA.DBAccess() as db:
-                    db.execute('UPDATE lounge_queue_player SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
-            except Exception as e:
-                await send_raw_to_debug_channel(client, ctx, f'on_message error 2 | could not update lounge_queue_player record for chat activity | {e}')
-                return
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('UPDATE lounge_queue_player SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
+        except Exception as e:
+            logging.warning(f'on_message error - could not update player in lounge_queue_player activity | {e}')
+            await send_raw_to_debug_channel(client, ctx, f'on_message error 2 | could not update lounge_queue_player record for chat activity | {e}')
+            return
 
 @client.event
 async def on_raw_reaction_add(payload):
