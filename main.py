@@ -46,14 +46,7 @@ async def on_ready():
 @client.event
 async def on_application_command_error(ctx, error):
     if ctx.guild is None:
-        channel = client.get_channel(config.DEBUG_CHANNEL_ID)
-        embed = discord.Embed(title='Error', description='ctx.guild = None. This message was sent in a DM...?', color = discord.Color.blurple())
-        embed.add_field(name='Name: ', value=ctx.author, inline=False)
-        embed.add_field(name='Error: ', value=str(error), inline=False)
-        embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
-        await channel.send(content=None, embed=embed)
         await ctx.respond('Sorry! My commands do not work in DMs. Please use 200cc Lounge :)')
-        raise error
         return
     elif isinstance(error, commands.CommandOnCooldown):
         await ctx.respond(error, delete_after=10)
@@ -78,44 +71,35 @@ async def on_application_command_error(ctx, error):
     
 @client.event
 async def on_message(ctx):
-    try:
-        if ctx.guild == get_lounge_guild(client): # Only care if messages are in 200 Lounge
-            pass
-        else:
-            return
-    except Exception:
-        return
-    if ctx.author.id == client.user.id:
+    if ctx.author.id == client.user.id: # ignore bot messages
         return
     if ctx.channel.id == 558096949337915413: # ignore carl bot logging
         return
-    user = await get_lounge_guild(client).fetch_member(ctx.author.id)
+    guild = get_lounge_guild(client)
+    try:
+        if ctx.guild != guild: # Only care if messages are in 200 Lounge
+            return
+    except Exception:
+        return
+    user = await guild.fetch_member(ctx.author.id)
     if get_discord_role(client, config.CHAT_RESTRICTED_ROLE_ID) in user.roles: # restricted players
         await ctx.delete()
         return
-    if ctx.channel.id == config.LOUNGE_QUEUE_JOIN_CHANNEL_ID: # Only care if messages are in a tier
+    # Only care if message is in lounge queue join channel
+    if ctx.channel.id == config.LOUNGE_QUEUE_JOIN_CHANNEL_ID:
         # If player in lineup, set player chat activity timer
         try:
             with DBA.DBAccess() as db:
-                temp = db.query('SELECT player_id FROM lounge_queue_player WHERE player_id = %s;', (ctx.author.id,))
+                temp = db.query('SELECT player_id FROM lounge_queue_player WHERE player_id = %s AND wait_for_activity = %s;', (ctx.author.id, 1))
         except Exception as e:
-            await send_raw_to_debug_channel(client, ctx, f'on_message error 1 | {e}')
             return
-        try:
-            _ = temp[0][0]
-        except Exception:
-            # player not in lineup talked. dont care
-            return
-        if temp[0][0] is None:
-            return
-        else:
-            if ctx.channel.id == temp[0][1]: # Type activity in correct channel
-                try:
-                    with DBA.DBAccess() as db:
-                        db.execute('UPDATE lounge_queue_player SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
-                except Exception as e:
-                    await send_raw_to_debug_channel(client, ctx, f'on_message error 2 | {e}')
-                    return
+        if ctx.channel.id == config.LOUNGE_QUEUE_JOIN_CHANNEL_ID: # Type activity in correct channel
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute('UPDATE lounge_queue_player SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;', (datetime.datetime.now(), 0, ctx.author.id))
+            except Exception as e:
+                await send_raw_to_debug_channel(client, ctx, f'on_message error 2 | could not update lounge_queue_player record for chat activity | {e}')
+                return
 
 @client.event
 async def on_raw_reaction_add(payload):
