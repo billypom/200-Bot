@@ -24,7 +24,7 @@ async def create_teams(client, player_list, winning_format, average_mmr, min_mmr
 
     _, room_tier_name = await get_tier_from_room_range(min_mmr, max_mmr)
     random.shuffle(players_list) # [[popuko, 7238965417831, 4000],[name, discord id, mmr]]
-    response_string = f'`{channel_name} MMR:` {math.ceil(average_mmr)} - tier-{room_tier_name}\n'
+    response_string = f'`{channel_name}` MMR: {math.ceil(average_mmr)} - tier-{room_tier_name}\n'
 
     # divide the list based on players_per_team
     chunked_list = list()
