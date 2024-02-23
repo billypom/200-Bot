@@ -49,7 +49,7 @@ async def create_teams(client, player_list, winning_format, average_mmr, min_mmr
     sorted_list = sorted(chunked_list, key = lambda x: int(x[len(chunked_list[0])-1]))
     sorted_list.reverse()
     # print(sorted_list)
-    player_score_string = f'**Table:** `/table {players_per_team}` '
+    player_score_string = f'**Table:** `/table {players_per_team} ' # open ` code block
     team_count = 0
     for team in sorted_list:
         team_count+=1
@@ -61,7 +61,7 @@ async def create_teams(client, player_list, winning_format, average_mmr, min_mmr
             except TypeError:
                 response_string += f'(MMR: {math.ceil(player)})\n'
     list_response_string = response_string
-    response_string+=f'\n{player_score_string}'
+    response_string+=f'\n{player_score_string}`' # close ` code block
     
     # choose a host
     host_string = '    '
