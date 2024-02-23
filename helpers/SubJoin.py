@@ -31,7 +31,14 @@ class SubJoin(View):
             sub_channel = self.client.get_channel(LOUNGE_QUEUE_SUB_CHANNEL_ID)
             sub_channel.send(f'<@{player_id}>, you cannot join this room with {player_mmr} MMR', delete_after=60)
             return
-        
+        # remove player from queue if exists
+        try:
+            with DBA.DBAccess() as db:
+                db.execute('DELETE FROM lounge_queue_player WHERE player_id = %s;', (player_id,))
+        except Exception as e:
+            # if this fails, they're not in the lineup, so i don't care
+            pass
+
         # add interaction user to permissions for self.channel_id
         guild = get_lounge_guild(self.client)
         user = guild.get_member(player_id)

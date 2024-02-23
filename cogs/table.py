@@ -294,7 +294,7 @@ class TableCog(commands.Cog):
                     logging.warning(f'table error | could not retrieve min or max mmr from lounge queue channel | {e}')
                 
                 
-                nya_tier_id, _ = await get_tier_from_room_range(room_min_mmr, room_max_mmr)
+                nya_tier_id, room_tier_name = await get_tier_from_room_range(room_min_mmr, room_max_mmr)
                 
                 
             
@@ -376,7 +376,7 @@ class TableCog(commands.Cog):
             else:
                 string_mogi_format = f'{str(mogi_format)}v{str(mogi_format)}'
 
-            mmr_table_string = f'<big><big>{ctx.channel.name} {string_mogi_format}</big></big>\n'
+            mmr_table_string = f'<big><big>tier-{room_tier_name} {string_mogi_format}</big></big>\n'
             mmr_table_string += 'PLACE |       NAME       |  MMR  |  +/-  | NEW MMR |  RANKUPS\n'
 
             for team in sorted_list:

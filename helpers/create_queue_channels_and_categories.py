@@ -83,7 +83,7 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
         _, room_tier_name = await get_tier_from_room_range(min_mmr, max_mmr)
         try:
             send_room_string = f'**{channel_name} MMR: {average_mmr} - tier-{room_tier_name}**\n' + player_room_initialization_string
-            await list_channel.send(send_room_string)
+            #await list_channel.send(send_room_string)
         except Exception as e:
             logging.warning('could not send list channel room?')
         
