@@ -57,7 +57,7 @@ async def create_teams(client, player_list, winning_format, average_mmr, min_mmr
         for player in team:
             try:
                 player_score_string += f'{player[0]} 0 '
-                response_string += f'{player[0]} '
+                response_string += f'`{player[0]}` '
             except TypeError:
                 response_string += f'(MMR: {math.ceil(player)})\n'
     list_response_string = response_string

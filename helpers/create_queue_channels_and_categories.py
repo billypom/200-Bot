@@ -43,7 +43,7 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
                 return False
             
         # Create channel
-        channel_name = f"Room {channel_count}"
+        channel_name = f"Room {channel_count+1}"
         channel = await guild.create_text_channel(channel_name, category=category)
         channel_id = channel.id
         channel_count += 1
