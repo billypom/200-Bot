@@ -14,7 +14,7 @@ class AddMMRCog(commands.Cog):
         default_member_permissions=(discord.Permissions(moderate_members=True)),
         guild_ids=LOUNGE
     )
-    @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
+    @commands.has_any_role(ADMIN_ROLE_ID)
     async def zadd_mmr(self, ctx,
                        player: discord.Option(str, 'Player name', required=True),
                        mmr: discord.Option(int, 'Amount of MMR to add to the player', required=True)):
