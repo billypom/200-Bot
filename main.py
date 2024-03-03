@@ -63,6 +63,7 @@ async def on_application_command_error(ctx, error):
         embed.add_field(name='Name: ', value=ctx.author, inline=False)
         embed.add_field(name='Error: ', value=str(error), inline=False)
         embed.add_field(name='Discord ID: ', value=ctx.author.id, inline=False)
+        logging.warning(f'{error} | {ctx}')
         await channel.send(content=None, embed=embed)
         await ctx.respond(f'Sorry! An unknown error occurred. Try again later or make a <#{config.SUPPORT_CHANNEL_ID}> ticket for assistance.')
         # print(traceback.format_exc())
