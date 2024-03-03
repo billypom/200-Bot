@@ -1,13 +1,25 @@
 from config import HERE_PING_SECONDS_DELTA_LIMIT
-from config import TIME_OF_LAST_HERE_PING
-from config import set_time_since_last_here_ping
-from helpers.getters import get_unix_time_now
+import time
+import datetime
+import logging
+import configparser
 
 async def send_here_ping_message(ctx, message):
-    unix_now = await get_unix_time_now()
+    # Read from config.ini file
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    TIME_OF_LAST_HERE_PING = config['MOGI'].getint('TIME_OF_LAST_HERE_PING')
+    # Compare times
+    unix_now = int(time.mktime(datetime.datetime.now().timetuple()))
     new_time = TIME_OF_LAST_HERE_PING + HERE_PING_SECONDS_DELTA_LIMIT
-    logging.info(f'send_here_ping_message | unix_now = {unix_now} | new_time = {new_time}')
-    logging.info(f'send_here_ping_message | time of last here ping = {TIME_OF_LAST_HERE_PING}')
+
+    # If enough time has passed, allow sending ping
     if unix_now > new_time:
         await ctx.channel.send(message)
-        await set_time_since_last_here_ping(unix_now)
+        try:
+            config['MOGI']['TIME_OF_LAST_HERE_PING'] = str(unix_now)
+            with open('config.ini', 'w') as configfile:
+                config.write(configfile)
+        except Exception as e:
+            logging.warning(f'send_here_ping_message | {e}')
+
