@@ -14,7 +14,7 @@ class DropCog(commands.Cog):
         description='Drop from Lounge Queue',
         guild_ids=LOUNGE
     )
-    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def d(self, ctx):
         await ctx.defer(ephemeral=False)
         sent_from_channel_id = ctx.channel.id

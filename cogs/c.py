@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from discord.ext import commands
 from helpers.checkers import check_if_uid_is_lounge_banned
 from helpers.senders import send_to_debug_channel
+from helpers.senders import send_here_ping_message
 from helpers import convert_datetime_to_unix_timestamp
 from config import LOUNGE, LOUNGE_QUEUE_JOIN_CHANNEL_ID, LOUNGE_QUEUE_START_MINUTE
 import logging
@@ -16,7 +17,7 @@ class CanCog(commands.Cog):
         description='🙋 Can up for Lounge Queue',
         guild_ids=LOUNGE
     )
-    @commands.cooldown(1, 3, commands.BucketType.user)
+    @commands.cooldown(1, 15, commands.BucketType.user)
     async def c(self, ctx):
         await ctx.defer(ephemeral=False)
         sent_from_channel_id = ctx.channel.id
@@ -65,9 +66,9 @@ class CanCog(commands.Cog):
         await ctx.respond(f'You have been added to the queue in <t:{target_unix_time}:R> `[{number_of_players} players]`')
         
         if number_of_players == 6:
-            await ctx.channel.send('@here +6')
+            await send_here_ping_message(ctx, '@here +6')
         if number_of_players == 11:
-            await ctx.channel.send('@here +1')
+            await send_here_ping_message(ctx, '@here +1')
     
 
 def setup(bot):
