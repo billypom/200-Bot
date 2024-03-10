@@ -67,7 +67,7 @@ async def create_teams(client, player_list, winning_format, average_mmr, min_mmr
     host_string = '    '
     try:
         with DBA.DBAccess() as db:
-            host_temp = db.query('SELECT fc, player_id FROM player WHERE fc IS NOT NULL AND is_host_banned = 0 AND player_id IN %s;', (player_list,))
+            host_temp = db.query('SELECT fc, player_id FROM player WHERE fc IS NOT NULL AND is_host_banned = 0 AND player_id IN %s ORDER BY RANDOM() LIMIT 1;', (player_list,))
             host_string += f'`Host:` <@{host_temp[0][1]}> | {host_temp[0][0]}'
     except Exception as e:
         logging.warning(f'create_teams error | Unable to find host in list: {player_list} | error: {e}')
