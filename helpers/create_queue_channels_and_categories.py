@@ -53,20 +53,21 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
         lounge_staff_permissions = PermissionOverwrite(view_channel=True, send_messages=True)
         await channel.set_permissions(lounge_staff, overwrite=lounge_staff_permissions)
         await channel.set_permissions(guild.default_role, view_channel=False)
+
         # Average mmr calculation
         total_mmr = 0
         player_list = []
+        potential_host_list = []
+
         # Start making string for list channel
         player_room_initialization_string = ''
-        for player_id, (mmr, _) in group:
-            try:
-                with DBA.DBAccess() as db:
-                    player_name = db.query('SELECT player_name FROM player WHERE player_id = %s;', (player_id,))[0][0]
-            except Exception as e:
-                player_name = "Unknown"
+        for player_id, (mmr, _, fc, player_name) in group:
             player_room_initialization_string += f'{player_name} ({mmr} MMR)\n'
             player_list.append(player_id)
+            if fc is not None:
+                potential_host_list.append((player_id, fc))
             total_mmr += mmr
+
             # Assign permissions for player in channel
             try:
                 user = guild.get_member(player_id)
@@ -74,55 +75,60 @@ async def create_queue_channels_and_categories(client, number_of_players, groups
                 await channel.set_permissions(user, overwrite=permissions)
             except Exception:
                 continue
+
         average_mmr = int(total_mmr/12)
         mmrs = [player[1][0] for player in group]
         max_mmr = max(mmrs)
         min_mmr = min(mmrs)
-        
         list_channel = client.get_channel(LOUNGE_QUEUE_LIST_CHANNEL_ID)
         _, room_tier_name = await get_tier_from_room_range(min_mmr, max_mmr)
+        
+        # Build the room intro string
         try:
             send_room_string = f'**{channel_name} MMR: {average_mmr} - tier-{room_tier_name}**\n' + player_room_initialization_string
-            #await list_channel.send(send_room_string)
         except Exception as e:
             logging.warning('could not send list channel room?')
         
-        # Channel to DB
+        # Add channel to DB
         try:
             with DBA.DBAccess() as db:
                 db.execute('INSERT INTO lounge_queue_channel (channel_id, category_id, average_mmr, max_mmr, min_mmr) VALUES (%s, %s, %s, %s, %s);', (channel_id, category_id, average_mmr, max_mmr, min_mmr))
         except Exception as e:
             logging.warning(f'Exception inserting channel into lounge_queue_category | {e}')
         
-        # Remove players from lounge queue
+        # Build a ping list & remove players from the lounge queue
+        pingable_player_list = []
         for player in player_list:
+            pingable_player_list.append(f'<@{player}>,')
             try:
                 with DBA.DBAccess() as db:
                     db.execute('DELETE FROM lounge_queue_player WHERE player_id = %s;', (player,))
             except Exception as e:
                 logging.warning(f'create_queue_channels_and_categories error | could not remove player from lounge_queue_player | {e}')
-                        
-        # ping each player
-        pingable_player_list = []
-        for player in player_list:
-            pingable_player_list.append(f'<@{player}>,')
         clean_pingable_player_list = ' '.join(pingable_player_list)
         
+        # Choose a room host
+        if potential_host_list:
+            host_user_id, host_fc = random.choice(potential_host_list)
+        else:
+            host_user_id = None
+            host_fc = None
+
         # Create format vote view
         format_vote_view = FormatVote(client, player_list, clean_pingable_player_list, channel_id, average_mmr, min_mmr, max_mmr, channel_name)
         format_vote_task = client.loop.create_task(format_vote_view.run())
-        vote_tasks_info.append((format_vote_task, format_vote_view, channel_id))
+        vote_tasks_info.append((format_vote_task, format_vote_view, channel_id, host_user_id, host_fc))
         
     # Wait for all votes to complete
     await asyncio.gather(*[task_info[0] for task_info in vote_tasks_info])
 
     # Process each vote's result
-    for _, format_vote_view, channel_id in vote_tasks_info:
+    for _, format_vote_view, channel_id, host_user_id, host_fc in vote_tasks_info:
         vote_result = await format_vote_view.get_result()
         channel = client.get_channel(channel_id)
 
         # Process the vote result for each channel
-        room_response_string, list_response_string = await create_teams(client, format_vote_view.uid_list, vote_result, average_mmr, format_vote_view.min_mmr, format_vote_view.max_mmr, format_vote_view.channel_name)
+        room_response_string, list_response_string = await create_teams(client, format_vote_view.uid_list, vote_result, average_mmr, format_vote_view.min_mmr, format_vote_view.max_mmr, format_vote_view.channel_name, host_user_id, host_fc)
         await channel.send(room_response_string)
 
         # Send final room start time message

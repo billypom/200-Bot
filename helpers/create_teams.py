@@ -7,7 +7,7 @@ from helpers.getters import get_tier_from_room_range
 
 # poll_results is [index of the voted on format, a dictionary of format:voters]
 # creates teams, finds host, returns a big string formatted...
-async def create_teams(client, player_list, winning_format, average_mmr, min_mmr, max_mmr, channel_name):
+async def create_teams(client, player_list, winning_format, average_mmr, min_mmr, max_mmr, channel_name, host_user_id, host_fc):
     """Shuffles players into teams. Returns the response to send to the room, and the response to send to the list"""
     players_per_team = winning_format
     winning_format_string = f'### Winner: {winning_format}\n\n'
@@ -63,15 +63,12 @@ async def create_teams(client, player_list, winning_format, average_mmr, min_mmr
     list_response_string = response_string
     response_string+=f'\n{player_score_string}`' # close ` code block
     
-    # choose a host
-    host_string = '    '
-    try:
-        with DBA.DBAccess() as db:
-            host_temp = db.query('SELECT fc, player_id FROM player WHERE fc IS NOT NULL AND is_host_banned = 0 AND player_id IN %s ORDER BY RANDOM() LIMIT 1;', (player_list,))
-            host_string += f'`Host:` <@{host_temp[0][1]}> | {host_temp[0][0]}'
-    except Exception as e:
-        logging.warning(f'create_teams error | Unable to find host in list: {player_list} | error: {e}')
+    # Build host string
+    if host_user_id:
+        host_string = f'`Host:` <@{host_user_id}> | {host_fc}'
+    else:
         host_string = '`No FC found` - Choose amongst yourselves'
+
     # create a return string
     response_string+=f'\n\n{host_string}'
     return winning_format_string+response_string, list_response_string

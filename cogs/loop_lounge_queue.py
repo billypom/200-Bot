@@ -30,19 +30,23 @@ class lounge_queue(commands.Cog):
         #   player_id: {mmr, create_date}
         player_dict = {}
         with DBA.DBAccess() as db:
-            temp = db.query('SELECT l.player_id, p.mmr, l.create_date, p.player_name FROM lounge_queue_player l JOIN player p on l.player_id = p.player_id ORDER BY l.create_date ASC;', ())
+            temp = db.query('SELECT l.player_id, p.mmr, l.create_date, p.player_name, p.fc FROM lounge_queue_player l JOIN player p on l.player_id = p.player_id ORDER BY l.create_date ASC;', ())
        
         player_list_message_string = '### Current Mogi Lineup:\n'
         for idx, player in enumerate(temp):
-            player_list_message_string += f'`{idx+1}.` {player[3]}\n'
             player_id = player[0]
+            create_date = await convert_datetime_to_unix_timestamp(player[2])
+            player_name = player[3]
+            fc = player[4]
             if player[1] is None:
                 mmr = 1000
             else:
                 mmr = player[1]
-            create_date = await convert_datetime_to_unix_timestamp(player[2])
-            # print(f'Adding player to dict: {player_id} | {mmr} | {create_date}')
-            player_dict[player_id] = (mmr, create_date)
+
+            player_list_message_string += f'`{idx+1}.` {player_name}\n'
+
+            # print(f'Adding player to dict: {player_id} | (mmr, create_date, fc, name)')
+            player_dict[player_id] = (mmr, create_date, fc, player_name)
 
         player_list_message_string += f'**{len(player_dict) % 12}/12** players for {math.ceil(len(player_dict)/12)} rooms\n'
         # Split lineup list into groups of 12 max (order matters)
