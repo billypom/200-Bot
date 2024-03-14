@@ -8,12 +8,13 @@ from helpers import create_teams
 from config import UPDATER_ROLE_ID, LOUNGE_QUEUE_CATEGORY_POSITION, LOUNGE_QUEUE_LIST_CHANNEL_ID
 from discord import PermissionOverwrite
 import asyncio
+import random
 
 async def create_queue_channels_and_categories(client, number_of_players, groups_of_12):
     """Creates channels for lounge queue based on # of players. Sorts players into rooms. Starts format votes. Sorts players in rooms into teams. Sends room messages to rooms and list channel"""
     guild = get_lounge_guild(client)
     if guild is None:
-        print('create_queue_channels_and_categories error: Guild not found')
+        logging.warning('create_queue_channels_and_categories error: Guild not found')
         return False
     
     #print(f'length of groups: {len(groups_of_12)}')

@@ -3,7 +3,7 @@ from datetime import datetime
 import math
 import DBA
 import logging
-from config import LOUNGE_QUEUE_START_MINUTE, LOUNGE_QUEUE_LIST_CHANNEL_ID
+from config import LOUNGE_QUEUE_START_MINUTE, LOUNGE_QUEUE_LIST_CHANNEL_ID, PING_DEVELOPER
 from helpers import convert_datetime_to_unix_timestamp, create_queue_channels_and_categories
 from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_next_match_time
@@ -76,8 +76,12 @@ class lounge_queue(commands.Cog):
         number_of_players = len(sorted_players)
         # thank you chatgpt
         groups_of_12 = [sorted_players[i:i + 12] for i in range(0, len(sorted_players), 12)]
-        
-        await create_queue_channels_and_categories(self.client, number_of_players, groups_of_12)
+        try:
+            await create_queue_channels_and_categories(self.client, number_of_players, groups_of_12)
+        except Exception as e:
+            logging.warning(f'loop_lounge_queue error | await create_queue_channels_and_categories failed because: {e}')
+            await lounge_queue_list_channel.send('Something has gone wrong. I could not create the categories or rooms. {PING_DEVELOPER} !')
+
         
             
     @check.before_loop
