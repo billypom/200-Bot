@@ -23,7 +23,7 @@ sys.path.append(project_root)
 # Bot config
 # Intents:  manage roles, manage channels, manage nicknames, read messages/viewchannels, manage events
 #           send messages, manage messages, embed links, attach files, add reactions, use slash commands
-intents = discord.Intents(guilds=True, messages=True, members=True, reactions=True)
+intents = discord.Intents(guilds=True, messages=True, members=True, reactions=True, message_content=True)
 client = discord.Bot(intents=intents, activity=discord.Game(str('200cc Lounge')))
 
 # Load cogs  
