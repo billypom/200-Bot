@@ -67,11 +67,14 @@ class TableCog(commands.Cog):
         else:
             # Retrieve SQ Tier ID from categories helper
             # A debug message is posted by the bot in #sq-helper
-            # The category is validated here to allow submitting tables from all SQ room channels
+            # The category is validated here to allow submitting tables
+            # from all SQ room channels
             sq_helper_channel = self.client.get_channel(SQ_HELPER_CHANNEL_ID)
-            sq_helper_message = await sq_helper_channel.fetch_message(CATEGORIES_MESSAGE_ID)
+            sq_helper_message = \
+                await sq_helper_channel.fetch_message(CATEGORIES_MESSAGE_ID)
             if str(ctx.channel.category.id) in sq_helper_message.content:
                 nya_tier_id = SQUAD_QUEUE_CHANNEL_ID
+                room_tier_name = "sq"
             else:
                 await ctx.respond('``Error 72a: `/table` must be used from a mogi channel``')
                 return
@@ -292,13 +295,7 @@ class TableCog(commands.Cog):
                         room_max_mmr = room_data[1]
                 except Exception as e:
                     logging.warning(f'table error | could not retrieve min or max mmr from lounge queue channel | {e}')
-                
-                
                 nya_tier_id, room_tier_name = await get_tier_from_room_range(room_min_mmr, room_max_mmr)
-                
-                
-            
-            
             db_mogi_id = 0
             # Create mogi
             with DBA.DBAccess() as db:
