@@ -73,6 +73,7 @@ class TableCog(commands.Cog):
             sq_helper_message = \
                 await sq_helper_channel.fetch_message(CATEGORIES_MESSAGE_ID)
             logging.info(f'table | sq_helper_message = {sq_helper_message}')
+            logging.info(f'table | sq helper message content: {sq_helper_message.content}')
             if str(ctx.channel.category.id) in sq_helper_message.content:
                 nya_tier_id = SQUAD_QUEUE_CHANNEL_ID
                 room_tier_name = "sq"
