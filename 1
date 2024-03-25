@@ -68,7 +68,7 @@ class TableCog(commands.Cog):
             nya_tier_id = ctx.channel.id
             if nya_tier_id in lounge_queue_channel_id_list: # Lounge Queue
                 is_lounge_queue = True
-            else: # Turns results channel into tier channel
+            else:
                 results_tier_dict = await get_results_tier_dict()
                 for key, value in results_tier_dict.items():
                     if value == nya_tier_id:
