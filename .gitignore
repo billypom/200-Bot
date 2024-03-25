@@ -3,7 +3,6 @@ config.py
 live_config.py
 vlog_msg.py
 season_migration.py
-add_random_players_to_queue.py
 
 # other files
 log

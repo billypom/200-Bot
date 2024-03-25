@@ -4,6 +4,7 @@ from config import LOUNGE_QUEUE_START_MINUTE
 # Input:
 # Output: int unix_timestamp
 async def get_next_match_time() -> int:
+    """Returns a unix timestamp of the next match time based on the :00 minute from config"""
     # Get the current time
     current_time = datetime.now()
     # Calculate minutes til next match

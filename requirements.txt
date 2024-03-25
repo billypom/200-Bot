@@ -8,3 +8,5 @@ korean-romanizer
 pytz
 requests
 asyncio
+pytest
+pytest-asyncio

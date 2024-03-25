@@ -22,7 +22,8 @@ from helpers.checkers import check_if_banned_characters
 from helpers.handlers import handle_score_input
 from helpers.handlers import handle_placement_init
 from helpers.wrappers import positive_mmr, negative_mmr, peak_mmr, new_rank
-from config import REPORTER_ROLE_ID, LOUNGE, SQ_HELPER_CHANNEL_ID, CATEGORIES_MESSAGE_ID, SQUAD_QUEUE_CHANNEL_ID, MOGI_MEDIA_CHANNEL_ID, PING_DEVELOPER
+from config import REPORTER_ROLE_ID, LOUNGE, SQ_HELPER_CHANNEL_ID, \
+    CATEGORIES_MESSAGE_ID, SQUAD_QUEUE_CHANNEL_ID, MOGI_MEDIA_CHANNEL_ID, PING_DEVELOPER
 
 
 
@@ -43,28 +44,29 @@ class TableCog(commands.Cog):
         scores: discord.Option(str, 'player scores (i.e. popuko 12 JPGiviner 42 Technical 180...)', required=True)
         ):
         await ctx.defer()
-
-        # ------- Perform access checks
+        # User access check
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:
             await ctx.respond(f'Unbanned after <t:{lounge_ban}:D>', delete_after=30)
             return
-        # Check scores for bad input
+        # Malicious input check
         bad = await check_if_banned_characters(scores)
         if bad:
             await send_to_verification_log(self.client, ctx, scores, vlog_msg.error1)
             await ctx.respond('``Error 32:`` Invalid input. There must be 12 players and 12 scores.')
             return
-        # Check if table was submitted from a tier channel or sq
+        # Check for valid submission channel
         is_lounge_queue = False
         tier_id_list = await get_tier_id_list()
         lounge_queue_channel_id_list = await get_lounge_queue_channel_id_list()
         valid_channel_ids = tier_id_list + lounge_queue_channel_id_list
         if ctx.channel.id in valid_channel_ids:
             nya_tier_id = ctx.channel.id
-            if nya_tier_id in lounge_queue_channel_id_list:
+            if nya_tier_id in lounge_queue_channel_id_list: # Lounge Queue
                 is_lounge_queue = True
-        else:
+            else: # Results channel re-submission
+                
+        else: # Squad queue
             # Retrieve SQ Tier ID from categories helper
             # A debug message is posted by the bot in #sq-helper
             # The category is validated here to allow submitting tables
@@ -80,13 +82,11 @@ class TableCog(commands.Cog):
             else:
                 await ctx.respond('``Error 72a: `/table` must be used from a mogi channel``')
                 return
-
-
+        # Validate score input formatting
         chunked_list = await handle_score_input(self.client, ctx, scores, mogi_format)
         if not chunked_list:
             await ctx.respond('``Error 73:`` Invalid input. There must be 12 players and 12 scores.')
             return
-
         # Check the mogi_format
         if mogi_format == 1:
             SPECIAL_TEAMS_INTEGER = 63
@@ -116,40 +116,21 @@ class TableCog(commands.Cog):
         else:
             await ctx.respond(f'``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, or 4.')
             return
-
-
         # Get the highest MMR ever
         #   There was a very high integer in the formula for calculating mmr on the original google sheet (9998)
         #   A comment about how people "never thought anyone could reach 10k mmr" made me think this very high integer was a
         #       replacement for getting the highest existing mmr (or at least my formula could emulate that high integer 
         #       with some variance :shrug: its probably fine... no1 going 2 read this)
 
-        # this was a bad solution. there needs to be a cap or the high ranks will just gain linearly
-        # try:
-            # with DBA.DBAccess() as db:
-                # h = db.query('SELECT max(mmr) from player where player_id > %s;',(0,))
-                # highest_mmr = h[0][0]
-        # except Exception as e:
-            # await ctx.respond(f'``Error 76:`` `/table` error. Make a <#{config.SUPPORT_CHANNEL_ID}> if you need assistance.')
-
         # 10999 works very well
         highest_mmr = 10999
-
-
         # Get MMR data for each team, calculate team score, and determine team placement
         mogi_score = 0
-        logging.info(f'/table | length of chunked list: {len(chunked_list)}')
-        logging.info(f'/table | chunked list: {chunked_list}')
-        # preserve the original score formatting for
+        # Preserve the original score formatting for
         original_scores = {}
-        
         for team in chunked_list:
-            logging.info(f'/table | calculating team: {team}')
-            temp_mmr = 0
-            team_score = 0
-            count = 0
+            temp_mmr, team_score, count = 0, 0, 0
             for player in team:
-                logging.info(f'/table | calculating player: {player}')
                 original_scores[player[0]] = player[1]
                 try:
                     with DBA.DBAccess() as db:
@@ -162,7 +143,6 @@ class TableCog(commands.Cog):
                         count+=1
                     temp_mmr += mmr
                     try: 
-                        # gave me nice integer
                         team_score += int(player[1])
                     except Exception:
                         # Split the string into sub strings with scores and operations
@@ -470,7 +450,6 @@ class TableCog(commands.Cog):
                         # print(e)
                         await send_to_debug_channel(self.client, ctx, f'FATAL TABLE ERROR: {e}')
                         pass
-                    
 
 
                     # Remove mogi media messages

@@ -4,6 +4,7 @@ import DBA
 from helpers.getters import get_lounge_guild
 from discord import PermissionOverwrite
 from config import LOUNGE_QUEUE_SUB_CHANNEL_ID
+import logging
 
 # Discord UI button - Confirmation button
 class SubJoin(View):
@@ -15,6 +16,7 @@ class SubJoin(View):
 
     @discord.ui.button(label="Join", style=discord.ButtonStyle.green)
     async def join(self, button: discord.ui.Button, interaction: discord.Interaction):
+        logging.info(f'class SubJoin | button pressed by: {interaction.user.id}')
         player_id = interaction.user.id
         with DBA.DBAccess() as db:
             player_mmr = db.query('SELECT mmr FROM player WHERE player_id = %s;', (player_id,))[0][0]

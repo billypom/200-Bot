@@ -13,9 +13,12 @@ class inactivity_check(commands.Cog):
 
     def cog_unload(self):
         self.check.cancel()
-    
+
     @tasks.loop(seconds=10)
     async def check(self):
+        # right doug?
+        minutes_after_to_ping = 60*15 # minutes
+        minutes_after_to_drop = 60*30
         unix_now = await get_unix_time_now()
         try:
             with DBA.DBAccess() as db:
@@ -28,26 +31,21 @@ class inactivity_check(commands.Cog):
             try:
                 unix_difference = unix_now - temp[i][1]
             except Exception:
-                # await send_raw_to_debug_channel(self.client, f'inactivity_check error dev1 {PING_DEVELOPER}', e)
-                # print('im devving?')
                 return
-            # print(f'{unix_now} - {temp[i][1]} = {unix_difference}')
-            if unix_difference < 2700: # if it has been less than 45 minutes
-                if unix_difference > 1800: # if it has been more than 30 minutes
-                    channel = self.client.get_channel(LOUNGE_QUEUE_JOIN_CHANNEL_ID)
-                    if temp[i][2] == 0: # false we are not waiting for activity
-                        message = f'<@{temp[i][0]}> Type anything in the chat in the next 30 minutes to keep your spot in the mogi.'
-                        await channel.send(message, delete_after=300)
-                        # set wait_for_activity = 1 means the ping was already sent.
-                        try:
-                            with DBA.DBAccess() as db:
-                                db.execute('UPDATE lounge_queue_player SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0])) # we are waiting for activity
-                        except Exception as e:
-                            await send_raw_to_debug_channel(self.client, f'inactivity_check error 2 {PING_DEVELOPER}', e)
-                            return
-                else: # has not been at least 10 minutes yet
-                    continue # does this make it faster? idk
-            elif unix_difference > 3600: # if its been more than 60 minutes
+            if unix_difference >= minutes_after_to_ping and unix_difference < minutes_after_to_drop:
+                # if it has been less than the drop time, but more than the ping time
+                channel = self.client.get_channel(LOUNGE_QUEUE_JOIN_CHANNEL_ID)
+                if temp[i][2] == 0: # false we are not waiting for activity
+                    message = f'<@{temp[i][0]}> Type anything in the chat in the next 15 minutes to keep your spot in the mogi.'
+                    await channel.send(message, delete_after=60*15)
+                    # set wait_for_activity = 1 means it is True that the ping was already sent.
+                    try:
+                        with DBA.DBAccess() as db:
+                            db.execute('UPDATE lounge_queue_player SET wait_for_activity = %s WHERE player_id = %s;', (1, temp[i][0])) # we are waiting for activity
+                    except Exception as e:
+                        await send_raw_to_debug_channel(self.client, f'inactivity_check error 2 {PING_DEVELOPER}', e)
+                        return
+            elif unix_difference > minutes_after_to_drop: # if its been more than 60 minutes
                 # Drop player
                 try:
                     with DBA.DBAccess() as db:
@@ -61,7 +59,7 @@ class inactivity_check(commands.Cog):
                 await channel.send(message, delete_after=300)
             else:
                 continue
-    
+
     @check.before_loop
     async def before_check(self):
         print('inactivity check process started')
