@@ -1,10 +1,16 @@
 import DBA
-# Input: int discord user id
-# Output: int number of strikes
-async def get_number_of_strikes_for_uid(uid) -> int:
+
+
+async def get_number_of_strikes_for_uid(uid: int) -> int:
+    """Returns a number of strikes a certain player (uid) has"""
     with DBA.DBAccess() as db:
-        temp = db.query('SELECT COUNT(*) FROM strike WHERE player_id = %s AND is_active = %s;', (uid, 1))
-        if temp[0][0] is None:
+        num_strikes = int(
+            db.query(  # type: ignore
+                "SELECT COUNT(*) FROM strike WHERE player_id = %s AND is_active = %s;",
+                (uid, 1),
+            )[0][0]
+        )
+        if num_strikes is None:
             return 0
         else:
-            return temp[0][0]
+            return num_strikes

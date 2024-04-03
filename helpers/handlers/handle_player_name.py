@@ -5,9 +5,11 @@ from config import ALLOWED_CHARACTERS
 import DBA
 
 
-# Input: str
-# Output: Cleaned name (or random name)
-async def handle_player_name(name) -> str:
+async def handle_player_name(name: str) -> str | None:
+    """Takes in a name, outputs a cleaned name (for database utf-8 and whatever)
+
+    Returns the new name if OK
+    Returns None if bad"""
     logging.info(f"handle_player_name | Step 1 - Handling name: [{name}]")
     insert_name = ""
     logging.info(f"insert_name = {insert_name}")
@@ -15,11 +17,10 @@ async def handle_player_name(name) -> str:
     try:
         insert_name = await jp_kr_romanize(name)
     except Exception as e:
-        print('FDSJFKSDJFKDJLFJSDLKFJSDLJFSDJFLKSDJLF')
+        print("FDSJFKSDJFKDJLFJSDLKFJSDLJFSDJFLKSDJLF")
         print(e)
-        return
+        return None
     logging.info(f"handle_player_name | Step 2 - romanized name: [{insert_name}]")
-
     # Handle name too long
     if len(insert_name) > 16:
         temp_name = ""
@@ -31,7 +32,6 @@ async def handle_player_name(name) -> str:
             count += 1
         insert_name = temp_name
     logging.info(f"handle_player_name | Step 3 - checked length: [{insert_name}]")
-
     # Handle ä-type characters (delete them)
     allowed_name = ""
     for char in insert_name:
@@ -41,17 +41,14 @@ async def handle_player_name(name) -> str:
             allowed_name += ""
     logging.info(f"handle_player_name | Step 4 - handled chars: [{allowed_name}]")
     insert_name = allowed_name
-
     # Handle empty name
     if not insert_name:
         insert_name = await get_random_name()
     logging.info(f"handle_player_name | Step 5 - handled empty: [{insert_name}]")
-
     # Handle whitespace name  - generate a random name lol
     if insert_name.isspace():
         insert_name = await get_random_name()
     logging.info(f"handle_player_name | Step 6 - handled whitespace: [{insert_name}]")
-
     # Handle duplicate names - append underscores
     name_still_exists = True
     count = 0
@@ -68,5 +65,4 @@ async def handle_player_name(name) -> str:
         if count == 16:
             insert_name = await get_random_name()
     logging.info(f"handle_player_name | Step 7 - handled duplicates: [{insert_name}]")
-
     return str(insert_name).replace(" ", "-")

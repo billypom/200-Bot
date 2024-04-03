@@ -3,9 +3,8 @@ from korean_romanizer.romanizer import Romanizer
 import logging
 
 
-# Input: string
-# Output: romanized jp/kr string
 async def jp_kr_romanize(input):
+    """Takes in east asian text - Returns romanized version"""
     logging.info(f"jp_kr_romanize | input: {input}")
     r = Romanizer(input)
     logging.info(f"jp_kr_romanize | Romanizer(input) = {r}")
@@ -20,6 +19,7 @@ async def jp_kr_romanize(input):
         my_string += item["hepburn"]
     logging.info(f"jp_kr_romanize | return value: {my_string}")
     return my_string
+
 
 # Notes
 ## 'module' object is not callable
