@@ -11,13 +11,12 @@ async def create_teams(client, player_list, winning_format, average_mmr, min_mmr
     """Shuffles players into teams. Returns the response to send to the room, and the response to send to the list"""
     players_per_team = winning_format
     winning_format_string = f'### Winner: {winning_format}\n\n'
-    
     players_list = list()
     for player in player_list:
         try:
             with DBA.DBAccess() as db:
                 player_db = db.query('SELECT player_name, player_id, mmr FROM player WHERE player_id = %s;', (player,))
-                players_list.append([player_db[0][0], player_db[0][1], player_db[0][2]])
+                players_list.append([player_db[0][0], player_db[0][1], player_db[0][2]]) # type: ignore
         except Exception as e:
             logging.warning(f'create_teams error: {e}')
             return

@@ -1,6 +1,7 @@
 import discord
 from discord.ui import View
 
+
 # Discord UI button - Confirmation button
 class Confirm(View):
     def __init__(self, uid):
@@ -8,11 +9,10 @@ class Confirm(View):
         self.value = None
         self.uid = uid
 
-    # When the confirm button is pressed, set the inner value to `True` and
-    # stop the View from listening to more input.
-    # We also send the user an ephemeral message that we're confirming their choice.
     @discord.ui.button(label="Yes", style=discord.ButtonStyle.green)
-    async def confirm(self, button: discord.ui.Button, interaction: discord.Interaction):
+    async def confirm(
+        self, button: discord.ui.Button, interaction: discord.Interaction
+    ):
         # Only accept input from user who initiated the interaction
         if self.uid != interaction.user.id:
             return
@@ -20,7 +20,6 @@ class Confirm(View):
         self.value = True
         self.stop()
 
-    # This one is similar to the confirmation button except sets the inner value to `False`
     @discord.ui.button(label="No", style=discord.ButtonStyle.red)
     async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
         # Only accept input from user who initiated the interaction
@@ -29,7 +28,8 @@ class Confirm(View):
         await interaction.response.send_message("Denying...", ephemeral=True)
         self.value = False
         self.stop()
-        
+
+
 ### Example usage
 
 ## Create the confirmation

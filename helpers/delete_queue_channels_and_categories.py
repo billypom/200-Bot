@@ -8,7 +8,6 @@ async def delete_queue_channels_and_categories(client):
     if guild is None:
         print('Guild is none')
         return False
-    
     # Delete channels where is_table_submitted is 1
     select_channels_sql = "SELECT channel_id FROM lounge_queue_channel WHERE is_table_submitted = %s"
     delete_channel_sql = "DELETE FROM lounge_queue_channel WHERE channel_id = %s"
@@ -25,7 +24,6 @@ async def delete_queue_channels_and_categories(client):
             except Exception as e:
                 print(f"Error deleting channel {channel_id}: {e}")
                 return False
-    
     # Delete categories that are now empty
     select_empty_categories_sql = """
     SELECT c.category_id

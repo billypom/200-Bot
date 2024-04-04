@@ -19,9 +19,3 @@ async def jp_kr_romanize(input):
         my_string += item["hepburn"]
     logging.info(f"jp_kr_romanize | return value: {my_string}")
     return my_string
-
-
-# Notes
-## 'module' object is not callable
-# - Resolve this by changing the order of functions in __init__.py
-# - Apparently order matters, so yay...

@@ -1,5 +1,9 @@
 import time
-# Input: datetime object
-# Output: UNIX timestamp
-async def convert_datetime_to_unix_timestamp(datetime_object):
-    return int(time.mktime(datetime_object.timetuple()))
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from datetime import datetime
+
+
+async def convert_datetime_to_unix_timestamp(dto: datetime) -> int:
+    return int(time.mktime(dto.timetuple()))

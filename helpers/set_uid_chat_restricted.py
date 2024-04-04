@@ -1,14 +1,20 @@
 from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild
 from config import CHAT_RESTRICTED_ROLE_ID
-# Input: discord user id
-# Output: Boolean
-async def set_uid_chat_restricted(client, uid):
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from discord import Bot
+
+
+async def set_uid_chat_restricted(client: Bot, uid: int):
     try:
         member = await get_lounge_guild(client).fetch_member(uid)
         role = get_lounge_guild(client).get_role(CHAT_RESTRICTED_ROLE_ID)
-        await member.add_roles(role)
+        await member.add_roles(role)  # type: ignore
         return True
-    except Exception:
-        await send_raw_to_debug_channel(client, 'Could not set uid to chat restricted', uid)
+    except Exception as e:
+        await send_raw_to_debug_channel(
+            client, "Could not set uid [{uid}] to chat restricted", e
+        )
         return False
