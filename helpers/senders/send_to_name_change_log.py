@@ -3,12 +3,12 @@ from config import NAME_CHANGE_CHANNEL_ID
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from discord.ext.commands import Context
+    from discord import ApplicationContext
     from discord import Bot, Message
 
 
 async def send_to_name_change_log(
-    client: Bot, ctx: Context, id: int, message: str
+    client: Bot, ctx: ApplicationContext, id: int, message: str
 ) -> Message:
     channel = client.get_channel(NAME_CHANGE_CHANNEL_ID)
     embed = discord.Embed(
@@ -19,7 +19,7 @@ async def send_to_name_change_log(
     name = ctx.author.display_name
     embed.add_field(name="Current Name: ", value=name, inline=False)
     embed.add_field(name="New Name: ", value=str(message), inline=False)
-    embed.add_field(name="Discord ID: ", value=ctx.author.id, inline=False)
+    embed.add_field(name="Discord ID: ", value=str(ctx.author.id), inline=False)
     try:
         embed.set_thumbnail(url=ctx.author.avatar.url)
     except Exception:

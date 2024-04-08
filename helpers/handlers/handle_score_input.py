@@ -1,14 +1,12 @@
-from decimal import Context
 import DBA
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from discord import Bot
-    from discord.ext.commands import Context
 
 
 async def handle_score_input(
-    client: Bot, ctx: Context, score_string: str, mogi_format: int
+    client: Bot, channel_id: int, score_string: str, mogi_format: int
 ) -> list | bool:
     """Handles format and scores input from /table command
 
@@ -20,7 +18,7 @@ async def handle_score_input(
     # Split into list
     score_list = score_string.split()
     if len(score_list) != 24:
-        channel = client.get_channel(ctx.channel.id)
+        channel = client.get_channel(channel_id)
         if channel:
             await channel.send(f"`WRONG AMOUNT OF INPUTS:` {len(score_list)}")
         return False
@@ -36,7 +34,7 @@ async def handle_score_input(
                 # Replace player_name with player_id
                 score_list[i] = temp[0][0]  # type: ignore
     except Exception:
-        channel = client.get_channel(ctx.channel.id)
+        channel = client.get_channel(channel_id)
         # {i} will never be unbound because the list MUST be 24 in length
         await channel.send(f"`PLAYER DOES NOT EXIST:` {score_list[i]}")  # type: ignore
         return False

@@ -6,6 +6,10 @@ from helpers.senders import send_here_ping_message
 from helpers import convert_datetime_to_unix_timestamp
 from config import LOUNGE, LOUNGE_QUEUE_JOIN_CHANNEL_ID, LOUNGE_QUEUE_START_MINUTE
 import logging
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from discord import ApplicationContext
 
 
 class CanCog(commands.Cog):
@@ -16,7 +20,7 @@ class CanCog(commands.Cog):
         name="c", description="🙋 Can up for Lounge Queue", guild_ids=LOUNGE
     )
     @commands.cooldown(1, 15, commands.BucketType.user)
-    async def c(self, ctx):
+    async def c(self, ctx: ApplicationContext):
         await ctx.defer(ephemeral=False)
         sent_from_channel_id = ctx.channel.id
         player_id = ctx.author.id
@@ -82,9 +86,9 @@ class CanCog(commands.Cog):
         )
 
         if number_of_players == 6:
-            await send_here_ping_message(ctx, "@here +6")
+            await send_here_ping_message(ctx.channel, "@here +6")
         if number_of_players == 11:
-            await send_here_ping_message(ctx, "@here +1")
+            await send_here_ping_message(ctx.channel, "@here +1")
 
 
 def setup(bot):

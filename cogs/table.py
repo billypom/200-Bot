@@ -107,7 +107,9 @@ class TableCog(commands.Cog):
                 )
                 return
         # Validate score input formatting
-        chunked_list = await handle_score_input(self.client, ctx, scores, mogi_format)
+        chunked_list = await handle_score_input(
+            self.client, ctx.channel.id, scores, mogi_format
+        )
         if not chunked_list:
             await ctx.respond(
                 "``Error 73:`` Invalid input. There must be 12 players and 12 scores."

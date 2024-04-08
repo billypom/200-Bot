@@ -2,18 +2,12 @@
 
 import DBA
 import random
-from datetime import datetime
 from helpers.getters import get_unix_time_now
 from config import MAX_PLAYERS_IN_MOGI
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from discord.ext.commands import Context
-
 
 # When the voting starts - constantly check for player input
-async def check_for_poll_results(ctx: Context, last_joiner_unix_timestamp: int):
+async def check_for_poll_results(channel_id: int, last_joiner_unix_timestamp: int):
     unix_now = get_unix_time_now()
     format_list = [0, 0, 0, 0, 0]
     while (unix_now - last_joiner_unix_timestamp) < 120:
@@ -22,31 +16,31 @@ async def check_for_poll_results(ctx: Context, last_joiner_unix_timestamp: int):
         with DBA.DBAccess() as db:
             ffa_temp = db.query(
                 "SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;",
-                (ctx.channel.id, 1),
+                (channel_id, 1),
             )
             format_list[0] = ffa_temp[0][0]
         with DBA.DBAccess() as db:
             v2_temp = db.query(
                 "SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;",
-                (ctx.channel.id, 2),
+                (channel_id, 2),
             )
             format_list[1] = v2_temp[0][0]
         with DBA.DBAccess() as db:
             v3_temp = db.query(
                 "SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;",
-                (ctx.channel.id, 3),
+                (channel_id, 3),
             )
             format_list[2] = v3_temp[0][0]
         with DBA.DBAccess() as db:
             v4_temp = db.query(
                 "SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;",
-                (ctx.channel.id, 4),
+                (channel_id, 4),
             )
             format_list[3] = v4_temp[0][0]
         with DBA.DBAccess() as db:
             v6_temp = db.query(
                 "SELECT COUNT(vote) FROM lineups WHERE tier_id = %s AND vote = %s;",
-                (ctx.channel.id, 6),
+                (channel_id, 6),
             )
             format_list[4] = v6_temp[0][0]
         if 6 in format_list:
@@ -60,9 +54,7 @@ async def check_for_poll_results(ctx: Context, last_joiner_unix_timestamp: int):
     # Close the voting
     # print('closing the voting')
     with DBA.DBAccess() as db:
-        db.execute(
-            "UPDATE tier SET voting = %s WHERE tier_id = %s;", (0, ctx.channel.id)
-        )
+        db.execute("UPDATE tier SET voting = %s WHERE tier_id = %s;", (0, channel_id))
     if format_list[0] == 6:
         ind = 0
     elif format_list[1] == 6:
@@ -89,7 +81,7 @@ async def check_for_poll_results(ctx: Context, last_joiner_unix_timestamp: int):
     with DBA.DBAccess() as db:
         votes_temp = db.query(
             "SELECT l.vote, p.player_name FROM player p JOIN lineups l ON p.player_id = l.player_id WHERE l.tier_id = %s ORDER BY l.create_date ASC LIMIT %s;",
-            (ctx.channel.id, MAX_PLAYERS_IN_MOGI),
+            (channel_id, MAX_PLAYERS_IN_MOGI),
         )
     for i in range(len(votes_temp)):
         # print(f'votes temp: {votes_temp}')
@@ -111,9 +103,7 @@ async def check_for_poll_results(ctx: Context, last_joiner_unix_timestamp: int):
     # Clear votes after we dont need them anymore...
     # print('clearing votes...')
     with DBA.DBAccess() as db:
-        db.execute(
-            "UPDATE lineups SET vote = NULL WHERE tier_id = %s;", (ctx.channel.id,)
-        )
+        db.execute("UPDATE lineups SET vote = NULL WHERE tier_id = %s;", (channel_id,))
     # I use random.choice to account for ties
     try:
         return [random.choice(ind), poll_dictionary]
