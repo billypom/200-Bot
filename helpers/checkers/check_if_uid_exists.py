@@ -9,10 +9,10 @@ async def check_if_uid_exists(uid: int) -> bool:
     False is does not exist"""
     try:
         with DBA.DBAccess() as db:
-            temp = db.query(
+            player_id = db.query(
                 "SELECT player_id FROM player WHERE player_id = %s;", (uid,)
-            )
-            if str(temp[0][0]) == str(uid):  # type: ignore
+            )[0][0]  # type: ignore
+            if str(player_id) == str(uid):
                 return True
             else:
                 return False

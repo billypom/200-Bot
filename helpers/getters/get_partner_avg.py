@@ -11,12 +11,15 @@ async def get_partner_avg(
     number_of_mogis: int,
     mogi_format_string: str,
     tier_id: str = "%",
-    db_name: str = "s6200lounge",
+    db_name: str = "s7200lounge",
 ) -> float:
     """Returns the partner average for a certain player
+    ---
     Args:
     uid - Discord ID
-    number_of_mogis: the number of mogis"""
+    number_of_mogis: the number of mogis
+    tier_id - channel id of a tier
+    db_name - database name to use i.e. s5200lounge, s6200lounge, etc"""
     # logging.info(f'get_partner_avg  | uid={uid} | #mogis={number_of_mogis} | format={mogi_format_string} | tier={tier_id}')
     try:
         with DBA.DBAccess(db_name) as db:

@@ -9,8 +9,12 @@ if TYPE_CHECKING:
     from discord import Bot
 
 
-async def set_uid_roles(client: Bot, uid: int) -> tuple[int, str] | None:
-    """Sets roles for a specific guild member (uid)"""
+async def set_uid_roles(client: Bot, uid: int) -> tuple[int, str] | tuple[None, None]:
+    """Sets roles for a specific guild member (uid)
+    ---
+    Args:
+        client - discord bot
+        uid - Discord User ID"""
     try:
         with DBA.DBAccess() as db:
             temp = db.query(
@@ -46,7 +50,7 @@ async def set_uid_roles(client: Bot, uid: int) -> tuple[int, str] | None:
             await member.remove_roles(remove_rank)  # type: ignore
 
         for i in range(len(ranks)):  # Find their rank, based on MMR
-            if mmr >= int(ranks[i][1]) and mmr < int(ranks[i][2]):
+            if mmr >= int(ranks[i][1]) and mmr < int(ranks[i][2]):  # type: ignore
                 # Found your rank
                 role = guild.get_role(ranks[i][0])  # type: ignore
                 await member.add_roles(role)  # type: ignore
@@ -63,11 +67,11 @@ async def set_uid_roles(client: Bot, uid: int) -> tuple[int, str] | None:
                 "Hello. I am lower in the role hierarchy, therefore I cannot edit your nickname for you. I updated the database with your new name, but you will need to right-click and edit your nickname yourself. c:"
             )
             pass
-        return (role.id, role)
+        return (role.id, role)  # type: ignore
     except IndexError:
-        return False
+        return None, None
     except Exception as e:
         await send_raw_to_debug_channel(
             client, f"set_uid_roles exception triggered by <@{uid}>:", e
         )
-        return False
+        return None, None

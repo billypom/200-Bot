@@ -35,8 +35,9 @@ class NameChangeCog(commands.Cog):
         - Asks for user confirmation of the cleaned name
         - Checks for duplicates
         - Sends the name request to staff channel for review
+        - Sends ephemeral user feedback
         """
-        await ctx.defer(ephemeral=False)
+        await ctx.defer(ephemeral=True)
         original_name = ctx.author.display_name
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:

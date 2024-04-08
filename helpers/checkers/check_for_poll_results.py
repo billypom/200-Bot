@@ -8,7 +8,7 @@ from config import MAX_PLAYERS_IN_MOGI
 
 # When the voting starts - constantly check for player input
 async def check_for_poll_results(channel_id: int, last_joiner_unix_timestamp: int):
-    unix_now = get_unix_time_now()
+    unix_now = await get_unix_time_now()
     format_list = [0, 0, 0, 0, 0]
     while (unix_now - last_joiner_unix_timestamp) < 120:
         # Votes are updated in the on_message event, if mogi is running and player is in tier

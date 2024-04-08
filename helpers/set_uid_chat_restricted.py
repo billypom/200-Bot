@@ -8,6 +8,11 @@ if TYPE_CHECKING:
 
 
 async def set_uid_chat_restricted(client: Bot, uid: int):
+    """Adds the chat restricted role to a user, given a discord ID
+    ---
+    Args:
+        client - discord bot
+        uid - Discord User ID"""
     try:
         member = await get_lounge_guild(client).fetch_member(uid)
         role = get_lounge_guild(client).get_role(CHAT_RESTRICTED_ROLE_ID)
