@@ -45,14 +45,10 @@ async def check_for_poll_results(channel_id: int, last_joiner_unix_timestamp: in
             format_list[4] = v6_temp[0][0]
         if 6 in format_list:
             break
-        # print(f'{unix_now} - {last_joiner_unix_timestamp}')
         unix_now = get_unix_time_now()
-    # print('checking for all zero votes')
-    # print(f'format list: {format_list}')
     if all([v == 0 for v in format_list]):
         return [0, {"0": 0}]  # If all zeros, return 0. cancel mogi
     # Close the voting
-    # print('closing the voting')
     with DBA.DBAccess() as db:
         db.execute("UPDATE tier SET voting = %s WHERE tier_id = %s;", (0, channel_id))
     if format_list[0] == 6:
@@ -98,10 +94,7 @@ async def check_for_poll_results(channel_id: int, last_joiner_unix_timestamp: in
         else:
             continue
         poll_dictionary[player_format_choice].append(votes_temp[i][1])
-    # print('created poll dictionary')
-    # print(f'{poll_dictionary}')
     # Clear votes after we dont need them anymore...
-    # print('clearing votes...')
     with DBA.DBAccess() as db:
         db.execute("UPDATE lineups SET vote = NULL WHERE tier_id = %s;", (channel_id,))
     # I use random.choice to account for ties
