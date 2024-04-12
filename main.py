@@ -5,12 +5,21 @@ from discord.ext import commands
 import logging
 import DBA
 import datetime
+import configparser
 from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild
 from helpers.getters import get_discord_role
 from helpers import set_uid_roles
 import config
+from typing import TYPE_CHECKING, cast
 
+if TYPE_CHECKING:
+    from discord import TextChannel
+
+# Config file
+config_file = configparser.ConfigParser()
+config_file.read("config.ini")
+# Logging
 log_format = "%(asctime)s - %(levelname)s - %(message)s"
 logging.basicConfig(
     filename="200lounge.log",
@@ -20,8 +29,7 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 
-# os, sys | add root dir to python path to allow dynamic imports (aka i dont have to type from ..........helpers.senders.getters.etc import blah)
-# i can just type from helpers.checkers import blah
+# Easier imports (dynamic import)
 project_root = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(project_root)
 
@@ -34,20 +42,23 @@ intents = discord.Intents(
 )
 client = discord.Bot(intents=intents, activity=discord.Game(str("200cc Lounge")))
 
+LOOP_EXTENSIONS = config_file["COMMANDS"].get("LOOP_EXTENSIONS")
+COMMAND_EXTENSIONS = config_file["COMMANDS"].get("COMMAND_EXTENSIONS")
+ADMIN_COMMAND_EXTENSIONS = config_file["COMMANDS"].get("ADMIN_COMMAND_EXTENSIONS")
 # Load cogs
-for extension in config.LOOP_EXTENSIONS:
+for extension in LOOP_EXTENSIONS.split(","):
     client.load_extension(f"cogs.{extension}")
 
-for extension in config.COMMAND_EXTENSIONS:
+for extension in COMMAND_EXTENSIONS.split(","):
     client.load_extension(f"cogs.{extension}")
 
-for extension in config.ADMIN_COMMAND_EXTENSIONS:
+for extension in ADMIN_COMMAND_EXTENSIONS.split(","):
     client.load_extension(f"cogs.{extension}")
 
 
 @client.event
 async def on_ready():
-    channel = client.get_channel(config.DEBUG_CHANNEL_ID)
+    channel = cast("TextChannel", client.get_channel(config.DEBUG_CHANNEL_ID))
     embed = discord.Embed(
         title="Startup", description=":3", color=discord.Color.og_blurple()
     )
@@ -56,7 +67,7 @@ async def on_ready():
 
 
 @client.event
-async def on_application_command_error(ctx, error):
+async def on_application_command_error(ctx, error) -> None:
     if ctx.guild is None:
         await ctx.respond(
             "Sorry! My commands do not work in DMs. Please use 200cc Lounge :)"
@@ -76,7 +87,7 @@ async def on_application_command_error(ctx, error):
         )
         return
     else:
-        channel = client.get_channel(config.DEBUG_CHANNEL_ID)
+        channel = cast("TextChannel", client.get_channel(config.DEBUG_CHANNEL_ID))
         embed = discord.Embed(
             title="Error", description=":eyes:", color=discord.Color.blurple()
         )
@@ -160,7 +171,7 @@ async def on_raw_reaction_add(payload):
 
     # Stuff relating to the current embed
     guild = client.get_guild(payload.guild_id)
-    channel = client.get_channel(payload.channel_id)
+    channel: "TextChannel" = cast("TextChannel", client.get_channel(payload.channel_id))
     message = await channel.fetch_message(payload.message_id)
     try:
         with DBA.DBAccess() as db:

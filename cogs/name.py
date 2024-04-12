@@ -1,3 +1,4 @@
+import configparser
 import discord
 from discord.ext import commands
 import DBA
@@ -6,18 +7,22 @@ from helpers.senders import send_to_name_change_log
 from helpers.senders import send_to_debug_channel
 from helpers.checkers import check_if_uid_exists
 from helpers.checkers import check_if_uid_is_lounge_banned
-from helpers.checkers import check_if_uid_can_drop
 from helpers.checkers import check_if_banned_characters
 from helpers import jp_kr_romanize
 from helpers.getters import get_unix_time_now
 from helpers import Confirm
 import vlog_msg
-from config import NAME_CHANGE_DELTA_LIMIT, SUPPORT_CHANNEL_ID, LOUNGE
+from config import SUPPORT_CHANNEL_ID, LOUNGE
 
 
 class NameChangeCog(commands.Cog):
     def __init__(self, client):
         self.client = client
+        config_file = configparser.ConfigParser()
+        config_file.read("config.ini")
+        self.name_change_delta_limit = config_file["PLAYER"].getint(
+            "NAME_CHANGE_DELTA_LIMIT"
+        )
 
     @commands.slash_command(
         name="name",
@@ -28,7 +33,7 @@ class NameChangeCog(commands.Cog):
         self,
         ctx,
         name: discord.Option(str, "Enter a new nickname here", required=True),  # type: ignore
-    ):
+    ) -> None:
         """/name slash command for requesting a nickname for the leaderboard.
         - Performs access checks
         - Romanizes the requested name
@@ -39,34 +44,20 @@ class NameChangeCog(commands.Cog):
         """
         await ctx.defer(ephemeral=True)
         original_name = ctx.author.display_name
+        # Checks
+        if not await check_if_uid_exists(ctx.author.id):
+            await ctx.respond("Use `/verify <mkc link>` to register with Lounge")
+            return
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:
             await ctx.respond(f"Unbanned after <t:{lounge_ban}:D>")
             return
-        else:
-            pass
-        y = await check_if_uid_exists(ctx.author.id)
-        if y:
-            pass
-        else:
-            await ctx.respond("Use `/verify <mkc link>` to register with Lounge")
-            return
-        z = await check_if_uid_can_drop(ctx.author.id)
-        if z:
-            pass
-        else:
-            await ctx.respond("You cannot change your name while playing a Mogi.")
-            return
-        x = await check_if_banned_characters(name)
-        if x:
+        if await check_if_banned_characters(name):
             await send_to_verification_log(self.client, ctx, name, vlog_msg.error1)
             await ctx.respond("You cannot use this name")
             return
-        else:
-            pass
         name = await jp_kr_romanize(name)
         name = name.replace(" ", "-")
-
         # Confirm the player name request
         confirmation = Confirm(ctx.author.id)
         channel = self.client.get_channel(ctx.channel.id)
@@ -75,6 +66,7 @@ class NameChangeCog(commands.Cog):
             view=confirmation,
             delete_after=30,
         )
+        # Wait for a response
         await confirmation.wait()
         if confirmation.value is None:
             await channel.send("No response. Timed out.", delete_after=30)
@@ -100,8 +92,6 @@ class NameChangeCog(commands.Cog):
                 )[0][0]  # type: ignore
                 if test_name is None:
                     is_name_taken = False
-                else:
-                    is_name_taken = True
         except Exception:
             is_name_taken = False
         if is_name_taken:
@@ -121,11 +111,11 @@ class NameChangeCog(commands.Cog):
                     unix_now = await get_unix_time_now()
                     difference = unix_now - last_change
                     # 2 months for every name change
-                    if difference > NAME_CHANGE_DELTA_LIMIT:
+                    if difference > self.name_change_delta_limit:
                         pass
                     else:
                         await ctx.respond(
-                            f"Request denied. You can change your name again on <t:{str(int(last_change) + int(NAME_CHANGE_DELTA_LIMIT))}:F>",
+                            f"Request denied. You can change your name again on <t:{str(int(last_change) + int(self.name_change_delta_limit))}:F>",
                             delete_after=30,
                         )
                         return
@@ -159,7 +149,7 @@ class NameChangeCog(commands.Cog):
                 await request_message.add_reaction("❌")
             except Exception as e:
                 await send_to_debug_channel(
-                    self.client, ctx, f"Tried name: {name} |\n{e}"
+                    self.client, ctx, f"Tried name change to: {name} |\n{e}"
                 )
                 await ctx.respond(
                     f"``Error 44:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.",
@@ -167,7 +157,8 @@ class NameChangeCog(commands.Cog):
                 )
                 return
             # Store the message ID of the embed that staff is reviewing
-            try:  # Once a decision, via reaction, is made - use this ID to automatically delete the request message from the channel
+            try:
+                # Once a decision, via reaction, is made - use this ID to automatically delete the request message from the channel
                 with DBA.DBAccess() as db:
                     db.execute(
                         "UPDATE player_name_request SET embed_message_id = %s WHERE id = %s;",
@@ -180,7 +171,7 @@ class NameChangeCog(commands.Cog):
                 return
             except Exception as e:
                 await send_to_debug_channel(
-                    self.client, ctx, f"Tried name: {name} |\n{e}"
+                    self.client, ctx, f"Tried name change to: {name} |\n{e}"
                 )
                 await ctx.respond(
                     f"``Error 35:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance.",
