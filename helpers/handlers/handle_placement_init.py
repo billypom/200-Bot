@@ -11,10 +11,10 @@ if TYPE_CHECKING:
 
 
 async def handle_placement_init(
-    client: Bot,
+    client: "Bot",
     player: list[int],
     tier_name: str,
-    results_channel: TextChannel,
+    results_channel: "TextChannel",
 ):
     """Handles necessary actions to set up a placement player after they have participated in a match
     - Determines the rank to place the player

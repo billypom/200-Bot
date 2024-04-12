@@ -112,7 +112,9 @@ async def on_message(ctx):
             await ctx.delete()
             return
     except Exception as e:
-        logging.warning(f"on_message error - could not compare chat restricted role")
+        logging.warning(
+            f"on_message event error 1 - could not compare chat restricted role | {e}"
+        )
     # Only care if message is in lounge queue join channel
     if ctx.channel.id == config.LOUNGE_QUEUE_JOIN_CHANNEL_ID:
         # If player in lineup, set player chat activity timer
@@ -124,7 +126,7 @@ async def on_message(ctx):
                 )
         except Exception as e:
             logging.warning(
-                f"on_message error - could not select player from lounge_queue_player | {e}"
+                f"on_message event error 4 - could not select player from lounge_queue_player | {e}"
             )
             return
         try:
@@ -135,12 +137,12 @@ async def on_message(ctx):
                 )
         except Exception as e:
             logging.warning(
-                f"on_message error - could not update player in lounge_queue_player activity | {e}"
+                f"on_message event error 3 - could not update player in lounge_queue_player activity | {e}"
             )
             await send_raw_to_debug_channel(
                 client,
-                ctx,
-                f"on_message error 2 | could not update lounge_queue_player record for chat activity | {e}",
+                "on_message event error 2 | could not update lounge_queue_player record for chat activity",
+                e,
             )
             return
 
@@ -172,7 +174,7 @@ async def on_raw_reaction_add(payload):
 
     # Look @ all embed message ids
     for i in range(0, len(message_ids)):
-        if int(payload.message_id) == int(message_ids[i][0]):
+        if int(payload.message_id) == int(message_ids[i][0]):  # type: ignore
             try:
                 # Accept
                 if str(payload.emoji) == "✅":
@@ -187,26 +189,26 @@ async def on_raw_reaction_add(payload):
                             # Change the db username
                             db.execute(
                                 "UPDATE player SET player_name = %s WHERE player_id = %s;",
-                                (message_ids[i][2], message_ids[i][1]),
+                                (message_ids[i][2], message_ids[i][1]),  # type: ignore
                             )
                     except Exception as e:
                         await send_raw_to_debug_channel(
                             client, "Name change exception 2", e
                         )
                         pass
-                    member = guild.get_member(message_ids[i][1])
+                    member = guild.get_member(message_ids[i][1])  # type: ignore
                     # Player not in guild
                     if member is None:
                         await send_raw_to_debug_channel(
                             client,
-                            "Name change exception 5",
-                            "User is not in the guild.",
+                            "Name change exception 5 - User is not in guild",
+                            None,
                         )
                         return
                     # DM player
                     try:
                         await member.send(
-                            f"Your name change [{message_ids[i][2]}] has been approved."
+                            f"Your name change [{message_ids[i][2]}] has been approved."  # type: ignore
                         )
                     except Exception as e:
                         await send_raw_to_debug_channel(
@@ -215,7 +217,7 @@ async def on_raw_reaction_add(payload):
                         pass
                     # Edit discord nickname
                     try:
-                        await member.edit(nick=str(message_ids[i][2]))
+                        await member.edit(nick=str(message_ids[i][2]))  # type: ignore
                     except Exception as e:
                         await send_raw_to_debug_channel(
                             client, "Name change exception 4", e
@@ -230,9 +232,9 @@ async def on_raw_reaction_add(payload):
                             (int(payload.message_id),),
                         )
                         # Delete the embed message
-                    member = guild.get_member(message_ids[i][1])
-                    await member.send(
-                        f"Your name change [{message_ids[i][2]}] has been denied."
+                    member = guild.get_member(message_ids[i][1])  # type: ignore
+                    await member.send(  # type: ignore
+                        f"Your name change [{message_ids[i][2]}] has been denied."  # type: ignore
                     )
                     await message.delete()
                 # Any other reaction - Force an exception

@@ -7,6 +7,6 @@ async def check_if_banned_characters(message: str) -> bool:
     Returns true if message contains bad input
     false if OK"""
     for value in BANNED_CHARACTERS:
-        if value in message:
+        if value in message.lower():
             return True
     return False

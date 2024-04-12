@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from discord import Bot
 
 
-async def remove_rank_roles_from_uid(client: Bot, uid: int) -> None:
+async def remove_rank_roles_from_uid(client: "Bot", uid: int) -> None:
     member = await get_lounge_guild(client).fetch_member(uid)
     # Remove any ranks from member
     rank_id_list = await get_rank_id_list()

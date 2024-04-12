@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from discord import Bot
 
 
-async def set_uid_chat_restricted(client: Bot, uid: int):
+async def set_uid_chat_restricted(client: "Bot", uid: int):
     """Adds the chat restricted role to a user, given a discord ID
     ---
     Args:

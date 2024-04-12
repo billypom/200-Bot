@@ -3,13 +3,11 @@ import re
 from helpers.senders import send_raw_to_debug_channel
 from typing import TYPE_CHECKING
 
-from helpers.senders.send_raw_to_debug_channel import send_raw_to_debug_channel
-
 if TYPE_CHECKING:
     from discord import Bot
 
 
-async def update_friend_code(client: Bot, player_id: int, provided_fc: str) -> str:
+async def update_friend_code(client: "Bot", player_id: int, provided_fc: str) -> str:
     """Updates the issuers friend code in the database
     Returns:
         User feedback"""

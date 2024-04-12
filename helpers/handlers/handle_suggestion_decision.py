@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 async def handle_suggestion_decision(
-    client: Bot,
+    client: "Bot",
     suggestion_id: int,
     suggestion: str,
     author_id: int,

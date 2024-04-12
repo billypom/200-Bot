@@ -9,7 +9,8 @@ if TYPE_CHECKING:
     from discord import TextChannel
 
 
-async def send_here_ping_message(channel: TextChannel, message: str) -> None:
+async def send_here_ping_message(channel: "TextChannel", message: str) -> None:
+    """Sends a @here ping based on a cooldown (used for mogi +6 and +11)"""
     # Read from config.ini file
     config = configparser.ConfigParser()
     config.read("config.ini")

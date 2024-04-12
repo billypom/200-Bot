@@ -9,7 +9,7 @@ if TYPE_CHECKING:
     from discord import Bot
 
 
-async def set_uid_roles(client: Bot, uid: int) -> tuple[int, str] | tuple[None, None]:
+async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None, None]:
     """Sets roles for a specific guild member (uid)
     ---
     Args:

@@ -1,16 +1,16 @@
 import discord
 from config import NAME_CHANGE_CHANNEL_ID
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from discord import ApplicationContext
-    from discord import Bot, Message
+    from discord import Bot, Message, TextChannel
 
 
 async def send_to_name_change_log(
-    client: Bot, ctx: ApplicationContext, id: int, message: str
-) -> Message:
-    channel = client.get_channel(NAME_CHANGE_CHANNEL_ID)
+    client: "Bot", ctx: "ApplicationContext", id: int, message: str
+) -> "Message":
+    channel = cast("TextChannel", client.get_channel(NAME_CHANGE_CHANNEL_ID))
     embed = discord.Embed(
         title="Name Change Request",
         description=f"id: {id}",

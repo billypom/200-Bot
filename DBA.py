@@ -1,13 +1,11 @@
 from config import DTB, HOST, USER, PASS
 import mysql.connector
 
+
 class DBAccess:
-    def __init__(self, db_name = DTB):
+    def __init__(self, db_name=DTB):
         self._conn = mysql.connector.connect(
-            host = HOST,
-            user = USER,
-            passwd = PASS,
-            database = db_name
+            host=HOST, user=USER, passwd=PASS, database=db_name
         )
         self._cursor = self._conn.cursor()
 
@@ -35,7 +33,7 @@ class DBAccess:
 
     def execute(self, sql, params):
         self.cursor.execute(sql, params or ())
-        
+
     def executemany(self, sql, seq_of_params):
         self.cursor.executemany(sql, seq_of_params)
 
@@ -48,3 +46,4 @@ class DBAccess:
     def query(self, sql, params):
         self.cursor.execute(sql, params or ())
         return self.fetchall()
+
