@@ -1,4 +1,3 @@
-from config import HERE_PING_SECONDS_DELTA_LIMIT
 import time
 import datetime
 import logging
@@ -14,7 +13,10 @@ async def send_here_ping_message(channel: "TextChannel", message: str) -> None:
     # Read from config.ini file
     config = configparser.ConfigParser()
     config.read("config.ini")
-    TIME_OF_LAST_HERE_PING = config["MOGI"].getint("TIME_OF_LAST_HERE_PING")
+    TIME_OF_LAST_HERE_PING = config["LOUNGE"].getint("TIME_OF_LAST_HERE_PING")
+    HERE_PING_SECONDS_DELTA_LIMIT = config["LOUNGE"].getint(
+        "HERE_PING_SECONDS_DELTA_LIMIT"
+    )
     # Compare times
     unix_now = int(time.mktime(datetime.datetime.now().timetuple()))
     new_time = TIME_OF_LAST_HERE_PING + HERE_PING_SECONDS_DELTA_LIMIT

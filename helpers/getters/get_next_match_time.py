@@ -1,5 +1,5 @@
+import configparser
 from datetime import datetime, timedelta
-from config import LOUNGE_QUEUE_START_MINUTE
 
 
 async def get_next_match_time() -> int:
@@ -7,6 +7,9 @@ async def get_next_match_time() -> int:
     # Get the current time
     current_time = datetime.now()
     # Calculate minutes til next match
+    config = configparser.ConfigParser()
+    config.read("config.ini")
+    LOUNGE_QUEUE_START_MINUTE = config["LOUNGE"].getint("LOUNGE_QUEUE_START_MINUTE")
     minutes_to_next_match = LOUNGE_QUEUE_START_MINUTE - (
         current_time.minute % LOUNGE_QUEUE_START_MINUTE
     )
