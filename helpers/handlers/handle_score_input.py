@@ -13,6 +13,10 @@ async def handle_score_input(
     Returns a list of lists of lists where the inner list is [player_id, score]
     the middle list is each team, with each player [[player_id, score], [player_id2, score2]]
     and the outer list is a list of all teams (where each team has some list of players)
+    i.e. [[[player_id, score], [player_id, score]], [[player_id, score], [player_id, score]]]
+    list[0] would be a list all of team 1's players and scores
+    list[0][0] would be team 1's 1st player
+    list[0][0][0] woudld be team 1's 1st player's ID
 
     On invalid input, returns False"""
     # Split into list

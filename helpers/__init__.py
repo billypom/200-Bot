@@ -23,3 +23,4 @@ from .remove_rank_roles_from_uid import remove_rank_roles_from_uid
 from .set_uid_chat_restricted import set_uid_chat_restricted
 from .set_uid_roles import set_uid_roles
 from .update_friend_code import update_friend_code
+from .create_lorenzi_query import create_lorenzi_query

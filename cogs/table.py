@@ -10,26 +10,22 @@ import uuid  # create unique filename for pics
 import html
 from subprocess import run as subprocessrun
 from discord.ext import commands
-from helpers import Confirm
+from helpers import Confirm, create_lorenzi_query
 from helpers.senders import send_to_verification_log
 from helpers.senders import send_to_debug_channel
 from helpers.getters import get_lounge_guild
-from helpers.getters import get_tier_id_list
-from helpers.getters import get_lounge_queue_channel_id_list
 from helpers.getters import get_tier_from_room_range
-from helpers.getters import get_results_tier_dict
-from helpers.getters import get_results_id_list
+from helpers.getters import get_mogi_calculation_data_by_format
+from helpers.handlers import handle_team_placements_for_lorenzi_table
 from helpers.checkers import check_if_uid_is_lounge_banned
 from helpers.checkers import check_if_banned_characters
+from helpers.checkers import check_if_valid_table_submission_channel
 from helpers.handlers import handle_score_input
 from helpers.handlers import handle_placement_init
 from helpers.wrappers import positive_mmr, negative_mmr, peak_mmr, new_rank
 from config import (
     REPORTER_ROLE_ID,
     LOUNGE,
-    SQ_HELPER_CHANNEL_ID,
-    CATEGORIES_MESSAGE_ID,
-    SQUAD_QUEUE_CHANNEL_ID,
     MOGI_MEDIA_CHANNEL_ID,
     PING_DEVELOPER,
 )
@@ -72,45 +68,27 @@ class TableCog(commands.Cog):
             )
             return
         # Check for valid submission channel
-        is_lounge_queue = False
-        tier_id_list = await get_tier_id_list()
-        results_id_list = await get_results_id_list()
-        lounge_queue_channel_id_list = await get_lounge_queue_channel_id_list()
-        valid_channel_ids = (
-            tier_id_list + lounge_queue_channel_id_list + results_id_list
+        (
+            valid,
+            is_lounge_queue,
+            nya_tier_id,
+            room_tier_name,
+        ) = await check_if_valid_table_submission_channel(
+            self.client,
+            ctx.channel,  # type: ignore
+            ctx.channel.category,  # type: ignore
         )
-
-        if ctx.channel.id in valid_channel_ids:
-            nya_tier_id = ctx.channel.id
-            if nya_tier_id in lounge_queue_channel_id_list:  # Lounge Queue
-                is_lounge_queue = True
-            else:  # Turns results channel into tier channel
-                results_tier_dict = await get_results_tier_dict()
-                for key, value in results_tier_dict.items():
-                    if value == nya_tier_id:
-                        nya_tier_id = key
-        else:  # Squad queue
-            # Retrieve SQ Tier ID from categories helper
-            # A debug message is posted by the bot in #sq-helper
-            # The category is validated here to allow submitting tables
-            # from all SQ room channels
-            sq_helper_channel = self.client.get_channel(SQ_HELPER_CHANNEL_ID)
-            sq_helper_message = await sq_helper_channel.fetch_message(
-                CATEGORIES_MESSAGE_ID
+        if not valid:
+            await ctx.respond(
+                "``Error 72a: `/table` must be used from a mogi channel``"
             )
-            # logging.info(f'table | sq_helper_message = {sq_helper_message}')
-            # logging.info(f'table | sq helper message content: {sq_helper_message.content}')
-            if str(ctx.channel.category.id) in sq_helper_message.content:
-                nya_tier_id = SQUAD_QUEUE_CHANNEL_ID
-                room_tier_name = "sq"
-            else:
-                await ctx.respond(
-                    "``Error 72a: `/table` must be used from a mogi channel``"
-                )
-                return
+            return
         # Validate score input formatting
         chunked_list = await handle_score_input(
-            self.client, ctx.channel.id, scores, mogi_format
+            self.client,
+            ctx.channel.id,  # type: ignore
+            scores,
+            mogi_format,
         )
         if not chunked_list:
             await ctx.respond(
@@ -118,32 +96,13 @@ class TableCog(commands.Cog):
             )
             return
         # Check the mogi_format
-        if mogi_format == 1:
-            SPECIAL_TEAMS_INTEGER = 63
-            OTHER_SPECIAL_INT = 19
-            MULTIPLIER_SPECIAL = 2.1
-            table_color = ["#76D7C4", "#A3E4D7"]
-        elif mogi_format == 2:
-            SPECIAL_TEAMS_INTEGER = 142
-            OTHER_SPECIAL_INT = 39
-            MULTIPLIER_SPECIAL = 3.0000001
-            table_color = ["#76D7C4", "#A3E4D7"]
-        elif mogi_format == 3:
-            SPECIAL_TEAMS_INTEGER = 288
-            OTHER_SPECIAL_INT = 59
-            MULTIPLIER_SPECIAL = 3.1
-            table_color = ["#85C1E9", "#AED6F1"]
-        elif mogi_format == 4:
-            SPECIAL_TEAMS_INTEGER = 402
-            OTHER_SPECIAL_INT = 79
-            MULTIPLIER_SPECIAL = 3.35
-            table_color = ["#C39BD3", "#D2B4DE"]
-        elif mogi_format == 6:
-            SPECIAL_TEAMS_INTEGER = 525
-            OTHER_SPECIAL_INT = 99
-            MULTIPLIER_SPECIAL = 3.5
-            table_color = ["#F1948A", "#F5B7B1"]
-        else:
+        (
+            SPECIAL_TEAMS_INTEGER,
+            OTHER_SPECIAL_INT,
+            MULTIPLIER_SPECIAL,
+            table_color,
+        ) = await get_mogi_calculation_data_by_format(mogi_format)
+        if SPECIAL_TEAMS_INTEGER == 0:
             await ctx.respond(
                 f"``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, or 4."
             )
@@ -155,89 +114,18 @@ class TableCog(commands.Cog):
         #       with some variance :shrug: its probably fine... no1 going 2 read this)
         # 10999 works very well
         highest_mmr = 10999
-        # Get MMR data for each team, calculate team score, and determine team placement
-        mogi_score = 0
-        # Preserve the original score formatting for
-        original_scores = {}
-        for team in chunked_list:  # type: ignore
-            # chunked_list should ALWAYS be a list if we get to this point
-            temp_mmr, team_score, count = 0, 0, 0
-            for player in team:
-                player_id = player[0]
-                player_score = player[1]
-                original_scores[player_id] = player_score
-                try:
-                    with DBA.DBAccess() as db:
-                        retrieved_mmr = int(
-                            db.query(
-                                "SELECT mmr FROM player WHERE player_id = %s;",
-                                (player_id,),
-                            )[0][0]  # type: ignore
-                        )
-                    if retrieved_mmr is None:
-                        mmr = 0
-                        count += 1  # added this line 10/10/22 because placement players ppl are mad grrr i need my mmr
-                    else:
-                        mmr = retrieved_mmr
-                        count += 1
-                    temp_mmr += mmr
-                    try:
-                        team_score += int(player_score)
-                    except Exception:
-                        # Split the string into sub strings with scores and operations
-                        # Do calculation + -
-                        current_group = ""
-                        sign = ""
-                        points = 0
-                        for idx, char in enumerate(str(player_score)):
-                            logging.info(f"/table | parsing char: {char}")
-                            if char.isdigit():
-                                current_group += char
-                                logging.info(
-                                    f"/table | parsing char: {char} | IS DIGIT, current_group = {current_group}"
-                                )
-                            elif char == "-" or char == "+":
-                                logging.info(
-                                    f"/table | parsing char: {char} | IS - or +, current_group = {current_group}"
-                                )
-                                points += int(f"{sign}{current_group}")
-                                sign = char
-                                logging.info(
-                                    f"/table | player: {player} | points: {points}"
-                                )
-                                current_group = ""
-                            else:
-                                await ctx.respond(
-                                    f"``Error 26:``There was an error with the following player: <@{player_id}>"
-                                )
-                                return
-                        # Last item in list needs to be added
-                        points += int(f"{sign}{current_group}")
-                        if sign == "-":
-                            mogi_score += int(current_group)
-                        player_score = points
-                        team_score = team_score + points
-                        logging.info(f"/table | team_score: {team_score}")
-                except Exception as e:
-                    # check for all 12 players exist
-                    await send_to_debug_channel(
-                        self.client, ctx, f"/table Error 24:{e}"
-                    )
-                    await ctx.respond(
-                        f"``Error 24:`` There was an error with the following player: <@{player_id}>"
-                    )
-                    return
-            # print(team_score)
-            if count == 0:
-                count = 1
-            team_mmr = temp_mmr / count  # COUNT AS DIVISOR TO DETERMINE AVG/TEAM MMR
-            team.append(team_score)
-            team.append(team_mmr)
-            mogi_score += team_score
+
+        (
+            data_is_valid,
+            error_message,
+            mogi_score,
+            original_scores,
+        ) = await handle_team_placements_for_lorenzi_table(self.client, chunked_list)
+        if not data_is_valid:
+            await ctx.respond(error_message)
+            return
         # Check for 984 score
-        if mogi_score == 984:
-            pass
-        else:
+        if mogi_score != 984:
             await ctx.respond(
                 f"``Error 28:`` `Scores = {mogi_score} `Scores must add up to 984."
             )
@@ -252,49 +140,9 @@ class TableCog(commands.Cog):
         sorted_list.reverse()
 
         # Create hlorenzi string
-        if mogi_format == 1:
-            lorenzi_query = "-\n"
-        else:
-            lorenzi_query = ""
-
-        # Initialize score and placement values
-        prev_team_score = 0
-        prev_team_placement = 1
-        team_placement = 0
-        count_teams = 1
-        for team in sorted_list:
-            # If team score = prev team score, use prev team placement, else increase placement and use placement
-            if team[len(team) - 2] == prev_team_score:
-                team_placement = prev_team_placement
-            else:
-                team_placement = count_teams
-            count_teams += 1
-            team.append(team_placement)
-            if mogi_format != 1:
-                if count_teams % 2 == 0:
-                    lorenzi_query += f"{team_placement} {table_color[0]} \n"
-                else:
-                    lorenzi_query += f"{team_placement} {table_color[1]} \n"
-            for idx, player in enumerate(team):
-                if idx > (mogi_format - 1):
-                    continue
-                with DBA.DBAccess() as db:
-                    temp = db.query(
-                        "SELECT player_name, country_code FROM player WHERE player_id = %s;",
-                        (player[0],),
-                    )
-                    player_name = temp[0][0]  # type: ignore
-                    country_code = temp[0][1]  # type: ignore
-                    # score = player[1]
-                # lorenzi_query += f'{player_name} [{country_code}] {score}\n'
-                lorenzi_query += (
-                    f"{player_name} [{country_code}] {original_scores[player[0]]}\n"
-                )
-
-            # Assign previous values before looping
-            prev_team_placement = team_placement
-            prev_team_score = team[len(team) - 3]
-
+        lorenzi_query = await create_lorenzi_query(
+            sorted_list, original_scores, mogi_format, table_color
+        )
         # Request a lorenzi table
         lorenzi_table_unique_filename = uuid.uuid4().hex
         lorenzi_table_filename = f"./images/tables/{lorenzi_table_unique_filename}.jpg"

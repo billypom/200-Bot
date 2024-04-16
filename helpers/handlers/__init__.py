@@ -3,3 +3,6 @@ from .handle_score_input import handle_score_input
 from .handle_placement_init import handle_placement_init
 from .handle_player_name import handle_player_name
 from .handle_suggestion_decision import handle_suggestion_decision
+from .handle_team_placements_for_lorenzi_table import (
+    handle_team_placements_for_lorenzi_table,
+)

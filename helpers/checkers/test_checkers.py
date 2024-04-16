@@ -37,3 +37,59 @@ async def test_check_if_banned_characters():
     input = "DROP TABLE players"
     result = await check_if_banned_characters(input)
     assert bool(result is True)
+
+
+@pytest.mark.asyncio
+async def test_check_if_mkc_user_id_used():
+    # need test data
+    pass
+
+
+@pytest.mark.asyncio
+async def test_check_if_mogi_id_exists():
+    # need test data
+    pass
+
+
+@pytest.mark.asyncio
+async def test_check_if_name_is_unique():
+    # need test data
+    pass
+
+
+@pytest.mark.asyncio
+async def test_check_if_uid_exists():
+    # need test data
+    pass
+
+
+@pytest.mark.asyncio
+async def test_check_if_uid_has_role():
+    # discord mock data
+    # hard to test...
+    pass
+
+
+@pytest.mark.asyncio
+async def test_check_if_uid_is_chat_restricted():
+    # need test data
+    pass
+
+
+@pytest.mark.asyncio
+async def test_check_if_uid_is_lounge_banned():
+    # need test data
+    pass
+
+
+@pytest.mark.asyncio
+async def test_check_if_uid_is_placement():
+    # need test data
+    pass
+
+
+@pytest.mark.asyncio
+async def test_check_if_valid_table_submission_channel():
+    # discord mock data
+    # hard to test...
+    pass
