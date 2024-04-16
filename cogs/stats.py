@@ -1,5 +1,5 @@
 import configparser
-import discord
+from discord import File, Embed, Color, Option
 from discord.ext import commands
 import DBA
 from helpers.checkers import check_if_uid_is_lounge_banned
@@ -10,11 +10,15 @@ from helpers.senders import send_to_verification_log
 from helpers.getters import get_partner_avg
 from helpers.getters import get_tier_id_list
 from helpers import iso_country_to_emoji
-import subprocess
+from subprocess import run as subprocessrun
 import operator
 import plotting
 from config import LOUNGE, DTB
 import vlog_msg
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from discord import ApplicationContext
 
 
 class StatsCog(commands.Cog):
@@ -26,16 +30,14 @@ class StatsCog(commands.Cog):
     )
     async def stats(
         self,
-        ctx,
-        tier: discord.Option(
-            str, description="Which tier? (a, b, c, all, sq)", required=False
-        ),  # type: ignore
-        mogi_format: discord.Option(
+        ctx: ApplicationContext,
+        tier: Option(str, description="Which tier? (a, b, c, all, sq)", required=False),  # type: ignore
+        mogi_format: Option(
             int, description="Your choices: (1, 2, 3, 4, 6)", required=False
         ),  # type: ignore
-        last: discord.Option(int, description="How many mogis?", required=False),  # type: ignore
-        player: discord.Option(str, description="Which player?", required=False),  # type: ignore
-        season: discord.Option(int, description="Season number (5, 6)", required=False),  # type: ignore
+        last: Option(int, description="How many mogis?", required=False),  # type: ignore
+        player: Option(str, description="Which player?", required=False),  # type: ignore
+        season: Option(int, description="Season number (5, 6)", required=False),  # type: ignore
     ):
         await ctx.defer()
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
@@ -55,12 +57,7 @@ class StatsCog(commands.Cog):
                 pass
             else:
                 try:
-                    if season in [5, 6]:
-                        pass
-                    else:
-                        await send_raw_to_debug_channel(
-                            self.client, f"/stats invalid season {season}: ", "lol"
-                        )
+                    if season not in [5, 6]:
                         await ctx.respond("Invalid season")
                         return
                     stats_db = f"s{int(season)}200lounge"
@@ -300,7 +297,7 @@ class StatsCog(commands.Cog):
         win_rate = (count_of_wins / len(mmr_history)) * 100
 
         file = plotting.create_plot(graph_base, mmr_history)
-        f = discord.File(file, filename="stats.png")
+        f = File(file, filename="stats.png")
 
         title = "Stats"
         if tier is None:
@@ -340,7 +337,7 @@ class StatsCog(commands.Cog):
 
         rgb_flag = f"rgb({red},{green},{blue})"
         # correct = subprocess.run(['convert', rank_filename, '-fill', rgb_flag, '-tint', '100', stats_rank_filename])
-        subprocess.run(
+        subprocessrun(
             [
                 "convert",
                 rank_filename,
@@ -352,12 +349,12 @@ class StatsCog(commands.Cog):
             ]
         )
         # f=discord.File(rank_filename, filename='rank.jpg')
-        sf = discord.File(stats_rank_filename, filename="stats_rank.jpg")
+        sf = File(stats_rank_filename, filename="stats_rank.jpg")
 
-        embed = discord.Embed(
+        embed = Embed(
             title=f"{title}",
             description=f"{emoji_flag} [{player_name}](https://200-lounge.com/player/{player_name})",
-            color=discord.Color.from_rgb(red, green, blue),
+            color=Color.from_rgb(red, green, blue),
         )  # website link
         embed.add_field(name="Rank", value=f"{rank}", inline=True)
         embed.add_field(name="MMR", value=f"{mmr}", inline=True)

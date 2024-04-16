@@ -1,4 +1,4 @@
-import discord
+from discord import Color, Option
 import re
 import time
 import datetime
@@ -18,6 +18,10 @@ from helpers.jazzy_mkc import mkc_request_mkc_player_id
 from config import LOUNGE, SUPPORT_CHANNEL_ID
 import logging
 import configparser
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from discord import ApplicationContext
 
 
 class VerifyCog(commands.Cog):
@@ -34,8 +38,8 @@ class VerifyCog(commands.Cog):
     )
     async def verify(
         self,
-        ctx,
-        message: discord.Option(
+        ctx: ApplicationContext,
+        message: Option(
             str,
             "MKC Link | https://www.mariokartcentral.com/mkc/registry/players/930",
             required=True,
@@ -171,7 +175,7 @@ class VerifyCog(commands.Cog):
                 pass
         else:
             verify_description = vlog_msg.error7
-            verify_color = discord.Color.red()
+            verify_color = Color.red()
             await ctx.respond(
                 "``Error 6:`` Oops! Something went wrong. Check your link or try again later"
             )
@@ -180,26 +184,26 @@ class VerifyCog(commands.Cog):
             )
             return
         if user_matches_list:
-            verify_color = discord.Color.teal()
+            verify_color = Color.teal()
             await send_to_ip_match_log(
                 self.client, ctx, message, verify_color, user_matches_list
             )
         # All clear. Roll out.
         verify_description = vlog_msg.success
-        verify_color = discord.Color.green()
+        verify_color = Color.green()
         # Check if someone has verified as this user before...
-        x = await check_if_mkc_user_id_used(mkc_user_id)
+        x = await check_if_mkc_user_id_used(self.client, mkc_user_id)
         if x:
             await ctx.respond(
                 f"``Error 10:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."
             )
             verify_description = vlog_msg.error4
-            verify_color = discord.Color.red()
+            verify_color = Color.red()
             await send_to_verification_log(
                 self.client,
                 ctx,
                 f"Error 10: {message}",
-                f"{verify_description} | <@{x[1]}> already using MKC **FORUM** ID {x[0]}",
+                f"{verify_description} | <@{x[1]}> already using MKC **FORUM** ID {x[0]}",  # type: ignore
             )
             return
         else:
@@ -225,4 +229,3 @@ class VerifyCog(commands.Cog):
 
 def setup(client):
     client.add_cog(VerifyCog(client))
-

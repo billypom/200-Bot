@@ -1,4 +1,4 @@
-import discord
+from discord import Option
 from discord.ext import commands
 import math
 import DBA
@@ -7,6 +7,10 @@ from helpers.checkers import check_if_mogi_id_exists
 from helpers.senders import send_to_debug_channel
 from helpers import set_uid_roles
 from config import REPORTER_ROLE_ID, LOUNGE
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from discord import ApplicationContext
 
 # missing 4 races = 2/3
 # missing 6 races = 1/2
@@ -30,10 +34,10 @@ class ReduceLossCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def reduce_loss(
         self,
-        ctx,
-        player: discord.Option(str, description="Player name", required=True),  # type: ignore
-        mogi_id: discord.Option(int, description="Which mogi?", required=True),  # type: ignore
-        reduction: discord.Option(
+        ctx: ApplicationContext,
+        player: Option(str, description="Player name", required=True),  # type: ignore
+        mogi_id: Option(int, description="Which mogi?", required=True),  # type: ignore
+        reduction: Option(
             str,
             description="Enter a fraction (this acts as a multiplier)",
             required=True,

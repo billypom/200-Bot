@@ -1,11 +1,14 @@
 import configparser
-import discord
+from discord import Option
 from discord.ext import commands
 import DBA
 import logging
-from datetime import datetime
 from config import REPORTER_ROLE_ID, LOUNGE
 from helpers.getters import get_unix_time_now
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from discord import ApplicationContext
 
 
 class UnstrikeCog(commands.Cog):
@@ -23,10 +26,8 @@ class UnstrikeCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def unstrike(
         self,
-        ctx,
-        strike_id: discord.Option(
-            int, description="Enter the strike ID", required=True
-        ),
+        ctx: ApplicationContext,
+        strike_id: Option(int, description="Enter the strike ID", required=True),  # type: ignore
     ):
         await ctx.defer()
         # Check if strike exists
@@ -37,12 +38,12 @@ class UnstrikeCog(commands.Cog):
                     "SELECT strike_id, player_id, reason, mmr_penalty, penalty_applied, UNIX_TIMESTAMP(create_date) FROM strike WHERE strike_id = %s;",
                     (strike_id,),
                 )
-                # db_strike_id = temp[0][0]
-                player_id = temp[0][1]
-                # reason = temp[0][2]
-                mmr_penalty = temp[0][3]
-                penalty_applied = temp[0][4]
-                unix_strike = temp[0][5]
+                _ = int(temp[0][0])  # type: ignore
+                player_id = int(temp[0][1])  # type: ignore
+                _ = str(temp[0][2])  # type: ignore
+                mmr_penalty = int(temp[0][3])  # type: ignore
+                penalty_applied = bool(temp[0][4])  # type: ignore
+                unix_strike = int(temp[0][5])  # type: ignore
             except Exception:
                 await ctx.respond("Strike ID not found")
                 return
@@ -57,14 +58,17 @@ class UnstrikeCog(commands.Cog):
             with DBA.DBAccess() as db:
                 # Get player mmr
                 try:
-                    player_mmr = db.query(
-                        "SELECT mmr FROM player WHERE player_id = %s;", (player_id,)
-                    )[0][0]
+                    player_mmr = int(
+                        db.query(
+                            "SELECT mmr FROM player WHERE player_id = %s;", (player_id,)
+                        )[0][0]  # type: ignore
+                    )
                 except Exception:
                     logging.info(f"UNSTRIKE Failed - {player_id} not found")
                     await ctx.respond(
                         "Something went wrong. Player on strike not found."
                     )
+                    return
 
                 # Do math to remove penalty
                 player_new_mmr = max(player_mmr + mmr_penalty, 1)
@@ -82,12 +86,17 @@ class UnstrikeCog(commands.Cog):
                     await ctx.respond(
                         "Something went wrong. Player MMR could not be updated."
                     )
-        else:
-            pass
 
         # Delete the strike
-        with DBA.DBAccess() as db:
-            db.execute("DELETE FROM strike WHERE strike_id = %s;", (strike_id,))
+        try:
+            with DBA.DBAccess() as db:
+                db.execute("DELETE FROM strike WHERE strike_id = %s;", (strike_id,))
+        except Exception:
+            logging.warning(
+                f"/unstrike_player | unable to delete strike id: {strike_id}"
+            )
+            await ctx.respond("Something went wrong. Strike could not be deleted.")
+            return
         await ctx.respond(f"Strike ID {strike_id} has been removed.")
 
 

@@ -1,4 +1,4 @@
-import discord
+from discord import Option
 from discord.ext import commands
 import DBA
 from helpers.senders import send_to_verification_log
@@ -6,6 +6,11 @@ from helpers.senders import send_to_debug_channel
 from helpers.checkers import check_if_banned_characters
 from config import LOUNGE, REPORTER_ROLE_ID
 import vlog_msg
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from discord import ApplicationContext
+
 
 class ScoreSwapCog(commands.Cog):
     def __init__(self, client):
@@ -19,10 +24,10 @@ class ScoreSwapCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def swapscore(
         self,
-        ctx,
-        player1: discord.Option(str, "Player name", required=True),
-        player2: discord.Option(str, "Player name", required=True),
-        mogi_id: discord.Option(int, "Mogi ID", required=True)
+        ctx: ApplicationContext,
+        player1: Option(str, "Player name", required=True),  # type: ignore
+        player2: Option(str, "Player name", required=True),  # type: ignore
+        mogi_id: Option(int, "Mogi ID", required=True),  # type: ignore
     ):
         await ctx.defer()
         x = await check_if_banned_characters(player1)
@@ -44,27 +49,46 @@ class ScoreSwapCog(commands.Cog):
         idmogi = 0
         try:
             with DBA.DBAccess() as db:
-                temp1 = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player1,))
-                temp2 = db.query('SELECT player_id FROM player WHERE player_name = %s;', (player2,))
-                temp3 = db.query('SELECT mogi_id FROM mogi WHERE mogi_id = %s;', (mogi_id,))
-                id1 = temp1[0][0]
-                id2 = temp2[0][0]
-                idmogi = temp3[0][0]
+                id1 = db.query(
+                    "SELECT player_id FROM player WHERE player_name = %s;", (player1,)
+                )[0][0]  # type: ignore
+                id2 = db.query(
+                    "SELECT player_id FROM player WHERE player_name = %s;", (player2,)
+                )[0][0]  # type: ignore
+                idmogi = db.query(
+                    "SELECT mogi_id FROM mogi WHERE mogi_id = %s;", (mogi_id,)
+                )[0][0]  # type: ignore
         except Exception as e:
-            await send_to_debug_channel(self.client, ctx, f'error 35 {e}')
-            await ctx.respond('``Error 35:`` One of your inputs is invalid. Please try again')
+            await send_to_debug_channel(self.client, ctx, f"error 35 {e}")
+            await ctx.respond(
+                "``Error 35:`` One of your inputs is invalid. Please try again"
+            )
+            return
         try:
             with DBA.DBAccess() as db:
-                temp1 = db.query('SELECT score FROM player_mogi WHERE player_id = %s AND mogi_id = %s;', (id1, idmogi))
-                id1_score = temp1[0][0]
-                temp2 = db.query('SELECT score FROM player_mogi WHERE player_id = %s AND mogi_id = %s;', (id2, idmogi))
-                id2_score = temp2[0][0]
-                db.execute('UPDATE player_mogi SET score = %s WHERE player_id = %s AND mogi_id = %s', (id1_score, id2, idmogi))
-                db.execute('UPDATE player_mogi SET score = %s WHERE player_id = %s AND mogi_id = %s', (id2_score, id1, idmogi))
+                id1_score = db.query(
+                    "SELECT score FROM player_mogi WHERE player_id = %s AND mogi_id = %s;",
+                    (id1, idmogi),
+                )[0][0]  # type: ignore
+                id2_score = db.query(
+                    "SELECT score FROM player_mogi WHERE player_id = %s AND mogi_id = %s;",
+                    (id2, idmogi),
+                )[0][0]  # type: ignore
+                db.execute(
+                    "UPDATE player_mogi SET score = %s WHERE player_id = %s AND mogi_id = %s",
+                    (id1_score, id2, idmogi),
+                )
+                db.execute(
+                    "UPDATE player_mogi SET score = %s WHERE player_id = %s AND mogi_id = %s",
+                    (id2_score, id1, idmogi),
+                )
         except Exception as e:
-            await send_to_debug_channel(self.client, ctx, f'error 36 {e}')
-            await ctx.respond('``Error 36:`` Oops! Something went wrong.')
-        await ctx.respond(f'Scores swapped successfully.\n{player1} {id1_score} -> {id2_score}\n{player2} {id2_score} -> {id1_score}')
+            await send_to_debug_channel(self.client, ctx, f"error 36 {e}")
+            await ctx.respond("``Error 36:`` Oops! Something went wrong.")
+            return
+        await ctx.respond(
+            f"Scores swapped successfully.\n{player1} {id1_score} -> {id2_score}\n{player2} {id2_score} -> {id1_score}"
+        )
         return
 
 

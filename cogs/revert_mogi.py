@@ -4,6 +4,10 @@ import DBA
 from helpers.senders import send_to_debug_channel
 from helpers.getters import get_lounge_guild
 from config import LOUNGE, REPORTER_ROLE_ID, PING_DEVELOPER
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from discord import ApplicationContext
 
 
 class RevertCog(commands.Cog):
@@ -16,7 +20,7 @@ class RevertCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def revert(
         self,
-        ctx,
+        ctx: ApplicationContext,
         mogi_id: discord.Option(int, "Mogi ID / Table ID", required=True),  # type: ignore
     ):
         await ctx.defer()

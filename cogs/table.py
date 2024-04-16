@@ -1,6 +1,6 @@
 import vlog_msg
 import DBA
-import discord
+from discord import Option, File, Embed, Color
 import logging
 import requests
 import shutil
@@ -8,7 +8,7 @@ import urllib
 import math
 import uuid  # create unique filename for pics
 import html
-import subprocess
+from subprocess import run as subprocessrun
 from discord.ext import commands
 from helpers import Confirm
 from helpers.senders import send_to_verification_log
@@ -33,6 +33,10 @@ from config import (
     MOGI_MEDIA_CHANNEL_ID,
     PING_DEVELOPER,
 )
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from discord import ApplicationContext
 
 
 class TableCog(commands.Cog):
@@ -45,15 +49,13 @@ class TableCog(commands.Cog):
     @commands.has_role(REPORTER_ROLE_ID)  # Make sure to define REPORTER_ROLE_ID
     async def table(
         self,
-        ctx,
-        mogi_format: discord.Option(
-            int, "1=FFA, 2=2v2, 3=3v3, 4=4v4, 6=6v6", required=True
-        ),
-        scores: discord.Option(
+        ctx: ApplicationContext,
+        mogi_format: Option(int, "1=FFA, 2=2v2, 3=3v3, 4=4v4, 6=6v6", required=True),  # type: ignore
+        scores: Option(
             str,
             "player scores (i.e. popuko 12 JPGiviner 42 Technical 180...)",
             required=True,
-        ),
+        ),  # type: ignore
     ):
         await ctx.defer()
         # User access check
@@ -151,38 +153,43 @@ class TableCog(commands.Cog):
         #   A comment about how people "never thought anyone could reach 10k mmr" made me think this very high integer was a
         #       replacement for getting the highest existing mmr (or at least my formula could emulate that high integer
         #       with some variance :shrug: its probably fine... no1 going 2 read this)
-
         # 10999 works very well
         highest_mmr = 10999
         # Get MMR data for each team, calculate team score, and determine team placement
         mogi_score = 0
         # Preserve the original score formatting for
         original_scores = {}
-        for team in chunked_list:
+        for team in chunked_list:  # type: ignore
+            # chunked_list should ALWAYS be a list if we get to this point
             temp_mmr, team_score, count = 0, 0, 0
             for player in team:
-                original_scores[player[0]] = player[1]
+                player_id = player[0]
+                player_score = player[1]
+                original_scores[player_id] = player_score
                 try:
                     with DBA.DBAccess() as db:
-                        temp = db.query(
-                            "SELECT mmr FROM player WHERE player_id = %s;", (player[0],)
+                        retrieved_mmr = int(
+                            db.query(
+                                "SELECT mmr FROM player WHERE player_id = %s;",
+                                (player_id,),
+                            )[0][0]  # type: ignore
                         )
-                    if temp[0][0] is None:
+                    if retrieved_mmr is None:
                         mmr = 0
                         count += 1  # added this line 10/10/22 because placement players ppl are mad grrr i need my mmr
                     else:
-                        mmr = temp[0][0]
+                        mmr = retrieved_mmr
                         count += 1
                     temp_mmr += mmr
                     try:
-                        team_score += int(player[1])
+                        team_score += int(player_score)
                     except Exception:
                         # Split the string into sub strings with scores and operations
                         # Do calculation + -
                         current_group = ""
                         sign = ""
                         points = 0
-                        for idx, char in enumerate(str(player[1])):
+                        for idx, char in enumerate(str(player_score)):
                             logging.info(f"/table | parsing char: {char}")
                             if char.isdigit():
                                 current_group += char
@@ -201,14 +208,14 @@ class TableCog(commands.Cog):
                                 current_group = ""
                             else:
                                 await ctx.respond(
-                                    f"``Error 26:``There was an error with the following player: <@{player[0]}>"
+                                    f"``Error 26:``There was an error with the following player: <@{player_id}>"
                                 )
                                 return
                         # Last item in list needs to be added
                         points += int(f"{sign}{current_group}")
                         if sign == "-":
                             mogi_score += int(current_group)
-                        player[1] = points
+                        player_score = points
                         team_score = team_score + points
                         logging.info(f"/table | team_score: {team_score}")
                 except Exception as e:
@@ -217,7 +224,7 @@ class TableCog(commands.Cog):
                         self.client, ctx, f"/table Error 24:{e}"
                     )
                     await ctx.respond(
-                        f"``Error 24:`` There was an error with the following player: <@{player[0]}>"
+                        f"``Error 24:`` There was an error with the following player: <@{player_id}>"
                     )
                     return
             # print(team_score)
@@ -239,7 +246,8 @@ class TableCog(commands.Cog):
         # Sort the teams in order of score
         # [[players players players], team_score, team_mmr]
         sorted_list = sorted(
-            chunked_list, key=lambda x: int(x[len(chunked_list[0]) - 2])
+            chunked_list,  # type: ignore
+            key=lambda x: int(x[len(chunked_list[0]) - 2]),  # type: ignore
         )
         sorted_list.reverse()
 
@@ -275,8 +283,8 @@ class TableCog(commands.Cog):
                         "SELECT player_name, country_code FROM player WHERE player_id = %s;",
                         (player[0],),
                     )
-                    player_name = temp[0][0]
-                    country_code = temp[0][1]
+                    player_name = temp[0][0]  # type: ignore
+                    country_code = temp[0][1]  # type: ignore
                     # score = player[1]
                 # lorenzi_query += f'{player_name} [{country_code}] {score}\n'
                 lorenzi_query += (
@@ -290,7 +298,7 @@ class TableCog(commands.Cog):
         # Request a lorenzi table
         lorenzi_table_unique_filename = uuid.uuid4().hex
         lorenzi_table_filename = f"./images/tables/{lorenzi_table_unique_filename}.jpg"
-        query_string = urllib.parse.quote(lorenzi_query)
+        query_string = urllib.parse.quote(lorenzi_query)  # ?
         url = f"https://gb.hlorenzi.com/table.png?data={query_string}"
         response = requests.get(url, stream=True)
         with open(lorenzi_table_filename, "wb") as out_file:
@@ -301,7 +309,7 @@ class TableCog(commands.Cog):
         table_view = Confirm(ctx.author.id)
         channel = self.client.get_channel(ctx.channel.id)
         await channel.send(
-            file=discord.File(f"./images/tables/{lorenzi_table_unique_filename}.jpg"),
+            file=File(f"./images/tables/{lorenzi_table_unique_filename}.jpg"),
             delete_after=300,
         )
         await channel.send(
@@ -324,7 +332,7 @@ class TableCog(commands.Cog):
                     logging.warning(
                         f"table error | could not update lounge_queue_channel.is_table_submitted | {e}"
                     )
-                    pass
+                    return
 
                 # Get the min & max mmr for this room
                 try:
@@ -333,12 +341,24 @@ class TableCog(commands.Cog):
                             "SELECT min_mmr, max_mmr FROM lounge_queue_channel WHERE channel_id = %s;",
                             (ctx.channel.id,),
                         )[0]
-                        room_min_mmr = room_data[0]
-                        room_max_mmr = room_data[1]
+                        room_min_mmr = int(room_data[0])  # type: ignore
+                        room_max_mmr = int(room_data[1])  # type: ignore
                 except Exception as e:
                     logging.warning(
                         f"table error | could not retrieve min or max mmr from lounge queue channel | {e}"
                     )
+                    try:
+                        with DBA.DBAccess() as db:
+                            db.execute(
+                                "UPDATE lounge_queue_channel SET is_table_submitted = 0 WHERE channel_id = %s;",
+                                (ctx.channel.id,),
+                            )
+                    except Exception as e:
+                        logging.warning(
+                            f"table error | could not update lounge_queue_channel.is_table_submitted | {e}"
+                        )
+                        return
+                    return
                 nya_tier_id, room_tier_name = await get_tier_from_room_range(
                     room_min_mmr, room_max_mmr
                 )
@@ -356,8 +376,8 @@ class TableCog(commands.Cog):
                     "SELECT results_id, tier_name FROM tier WHERE tier_id = %s;",
                     (nya_tier_id,),
                 )
-                db_results_channel = temp[0][0]
-                tier_name = temp[0][1]
+                db_results_channel = int(temp[0][0])  # type: ignore
+                tier_name = str(temp[0][1])  # type: ignore
             results_channel = await self.client.fetch_channel(db_results_channel)
 
             # Pre MMR table calculate
@@ -412,23 +432,13 @@ class TableCog(commands.Cog):
             # Actually calculate the MMR
             logging.info("POP_LOG | Calculating MMR")
             for idx, team in enumerate(sorted_list):
-                # logging.info(f'POP_LOG | {idx} | {team}')
                 temp_value = 0.0
                 for pre_mmr_list in value_table:
-                    # logging.info(f'POP_LOG | {pre_mmr_list}')
-                    # print(f'{idx}pre mmr list')
-                    # print(pre_mmr_list)
                     for idx2, value in enumerate(pre_mmr_list):
-                        # logging.info(f'POP_LOG | (idx,idx2)')
-                        # logging.info(f'POP_LOG | {idx},{idx2}')
-                        # logging.info(f'POP_LOG | {temp_value} += {value}')
-                        # logging.info(f'POP_LOG | {temp_value.real} += {value.real}')
                         if idx == idx2:
                             temp_value += value
                         else:
                             pass
-                # print(f'appending {temp_value}+={value} | {idx} | {idx2}')
-                # logging.info(f'POP_LOG | value = {temp_value}, value.real = {temp_value.real}')
                 team.append(math.floor(temp_value.real))
 
             # Create mmr table string
@@ -446,7 +456,6 @@ class TableCog(commands.Cog):
 
             for team in sorted_list:
                 logging.info(f"POP_LOG | team in sorted_list: {team}")
-                ###########await send_raw_to_debug_channel(self.client, 'Updating team', team)
                 my_player_place = team[len(team) - 2]
                 string_my_player_place = str(my_player_place)
                 for idx, player in enumerate(team):
@@ -458,11 +467,11 @@ class TableCog(commands.Cog):
                             "SELECT player_name, mmr, peak_mmr, rank_id, mogi_media_message_id FROM player WHERE player_id = %s;",
                             (player[0],),
                         )
-                        my_player_name = temp[0][0]
-                        my_player_mmr = temp[0][1]
-                        my_player_peak = temp[0][2]
-                        my_player_rank_id = temp[0][3]
-                        mogi_media_message_id = temp[0][4]
+                        my_player_name = str(temp[0][0])  # type: ignore
+                        my_player_mmr = int(temp[0][1])  # type: ignore
+                        my_player_peak = int(temp[0][2])  # type: ignore
+                        my_player_rank_id = int(temp[0][3])  # type: ignore
+                        mogi_media_message_id = int(temp[0][4])  # type: ignore
                         if my_player_peak is None:
                             # print('its none...')
                             my_player_peak = 0
@@ -474,7 +483,7 @@ class TableCog(commands.Cog):
                         _, my_player_mmr = await handle_placement_init(
                             self.client,
                             player,
-                            ctx.channel.name,
+                            ctx.channel.name,  # type: ignore
                             results_channel,
                         )
 
@@ -529,11 +538,10 @@ class TableCog(commands.Cog):
                     try:
                         with DBA.DBAccess() as db:
                             # Get ID of the last inserted table
-                            temp = db.query(
+                            db_mogi_id = db.query(
                                 "SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;",
                                 (nya_tier_id,),
-                            )
-                            db_mogi_id = temp[0][0]
+                            )[0][0]  # type: ignore
                             # Insert reference record
                             db.execute(
                                 "INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);",
@@ -580,9 +588,9 @@ class TableCog(commands.Cog):
                             (1,),
                         )
                     for i in range(len(db_ranks_table)):
-                        rank_id = db_ranks_table[i][0]
-                        min_mmr = db_ranks_table[i][1]
-                        max_mmr = db_ranks_table[i][2]
+                        rank_id = int(db_ranks_table[i][0])  # type: ignore
+                        min_mmr = int(db_ranks_table[i][1])  # type: ignore
+                        max_mmr = int(db_ranks_table[i][2])  # type: ignore
                         # Rank up - assign roles - update DB
                         try:
                             if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr:
@@ -621,13 +629,8 @@ class TableCog(commands.Cog):
                                     )
                                 my_player_new_rank += f"- {new_role}"
                         except Exception:
-                            # print(e)
+                            # no rankup or rankup broken? idc. pass
                             pass
-                            # my_player_rank_id = role_id
-                            # guild.get_role(role_id)
-                            # guild.get_member(discord_id)
-                            # member.add_roles(discord.Role)
-                            # member.remove_roles(discord.Role)
                     string_my_player_new_rank = f"{str(my_player_new_rank).center(12)}"
                     formatted_my_player_new_rank = await new_rank(
                         string_my_player_new_rank, my_player_new_mmr
@@ -640,7 +643,6 @@ class TableCog(commands.Cog):
             # '+swap', '-compose', 'Over', '-composite', '-quality', '100',
             # '-fill', '#00000040', '-draw', 'rectangle 0,0 570,368',
 
-            ###########await send_raw_to_debug_channel(self.client, 'TEAMS UPDATED', 'Success')
             # Create imagemagick image
             # https://imagemagick.org/script/color.php
             mmr_unique_filename = uuid.uuid4().hex
@@ -648,7 +650,7 @@ class TableCog(commands.Cog):
             pango_string = f"pango:<tt>{mmr_table_string}</tt>"
             mmr_table_succeeded = False
             try:
-                subprocess.run(
+                subprocessrun(
                     [
                         "convert",
                         "-background",
@@ -674,12 +676,12 @@ class TableCog(commands.Cog):
                     f"Table ID {db_mogi_id} MMR Image could not be created. {PING_DEVELOPER}"
                 )
 
-            f = discord.File(mmr_filename, filename="mmr.jpg")
-            sf = discord.File(lorenzi_table_filename, filename="table.jpg")
+            f = File(mmr_filename, filename="mmr.jpg")
+            sf = File(lorenzi_table_filename, filename="table.jpg")
 
             # Create embed
-            embed2 = discord.Embed(
-                title=f"Tier {tier_name.upper()} Results", color=discord.Color.blurple()
+            embed2 = Embed(
+                title=f"Tier {tier_name.upper()} Results", color=Color.blurple()
             )
             embed2.add_field(name="Table ID", value=f"{str(db_mogi_id)}", inline=True)
             embed2.add_field(name="Tier", value=f"{tier_name.upper()}", inline=True)
@@ -714,8 +716,8 @@ class TableCog(commands.Cog):
                 pass
 
             if mmr_table_succeeded:
-                embed = discord.Embed(
-                    title=f"Tier {tier_name.upper()} MMR", color=discord.Color.blurple()
+                embed = Embed(
+                    title=f"Tier {tier_name.upper()} MMR", color=Color.blurple()
                 )
                 embed.add_field(
                     name="Table ID", value=f"{str(db_mogi_id)}", inline=True

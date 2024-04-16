@@ -38,14 +38,16 @@ class RestrictCog(commands.Cog):
     ):
         await ctx.defer()
         # get player
-        with DBA.DBAccess() as db:
-            player_id = int(
-                db.query(
-                    "SELECT player_id FROM player WHERE player_name = %s;", (player,)
-                )[0][0]  # type: ignore
-            )
-        # check if player exists
-        if not player_id:
+        try:
+            with DBA.DBAccess() as db:
+                player_id = int(
+                    db.query(
+                        "SELECT player_id FROM player WHERE player_name = %s;",
+                        (player,),
+                    )[0][0]  # type: ignore
+                )
+        except Exception:
+            # player does not exist
             await ctx.respond("Player not found")
             return
         user = False
@@ -57,28 +59,36 @@ class RestrictCog(commands.Cog):
                 self.client, CHAT_RESTRICTED_ROLE_ID
             )
             user = await get_lounge_guild(self.client).fetch_member(player_id)
-            # Currently chat restricted
-            if is_chat_restricted:
-                if chat_restricted_role in user.roles:
-                    # Unrestrict (remove roles)
-                    await user.remove_roles(chat_restricted_role)
-            # Not restricted
-            else:
-                if chat_restricted_role not in user.roles:
-                    # Restrict (add roles)
-                    await user.add_roles(chat_restricted_role)
-                    await user.send(
-                        f"You have been restricted in MK8DX 200cc Lounge for {ban_length} days\nReason: `{reason}`"
-                    )
         except Exception as e:
             await send_raw_to_debug_channel(
                 self.client,
                 f"/zrestrict error - member [{player}] not found, roles not assigned.",
                 e,
             )
-            logging.info(
-                f"/zrestrict error - member [{player}] not found, roles not assigned."
-            )
+            return
+        # Currently chat restricted
+        if is_chat_restricted:
+            if chat_restricted_role in user.roles:
+                # Unrestrict (remove roles)
+                try:
+                    await user.remove_roles(chat_restricted_role)
+                except Exception:
+                    pass
+        # Not restricted
+        else:
+            if chat_restricted_role not in user.roles:
+                # Restrict (add roles)
+                try:
+                    await user.add_roles(chat_restricted_role)
+                except Exception:
+                    pass
+                # Notify
+                try:
+                    await user.send(
+                        f"You have been restricted in MK8DX 200cc Lounge for {ban_length} days\nReason: `{reason}`"
+                    )
+                except Exception:
+                    pass
 
         # update database for restricted/unrestricted
         if is_chat_restricted:
@@ -100,10 +110,11 @@ class RestrictCog(commands.Cog):
                         "UPDATE player SET is_chat_restricted = %s where player_id = %s;",
                         (1, player_id),
                     )
-            except Exception:
+            except Exception as e:
                 await send_raw_to_debug_channel(
                     self.client,
-                    f"/zrestrict error - Failed to set is_chat_restricted. Player [{player}] does not exist maybe?",
+                    f"/zrestrict error - Failed to set is_chat_restricted from DB. Player [{player}] does not exist maybe?",
+                    e,
                 )
                 return
             try:
@@ -121,6 +132,7 @@ class RestrictCog(commands.Cog):
                 logging.info(
                     f"ERROR: /zrestrict failed to insert punishment record for player [{player}, {player_id}] with length of [{ban_length} days] with message [{reason}]"
                 )
+                return
             await ctx.respond(f"<@{player_id}> has been restricted")
             return
 

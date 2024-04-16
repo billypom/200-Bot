@@ -15,7 +15,7 @@ async def handle_placement_init(
     player: list[int],
     tier_name: str,
     results_channel: "TextChannel",
-):
+) -> tuple[str, int]:
     """Handles necessary actions to set up a placement player after they have participated in a match
     - Determines the rank to place the player
     - Accounts for any queued penalties
