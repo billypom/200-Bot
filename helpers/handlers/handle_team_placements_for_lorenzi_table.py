@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 async def handle_team_placements_for_lorenzi_table(
-    client: Bot,
+    client:'Bot',
     chunked_list: list,
 ) -> tuple[bool, str, int, dict]:
     """Parses the chunked list, determines scores and placements for each team, handles some user input errors...

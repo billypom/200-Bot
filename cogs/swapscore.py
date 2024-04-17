@@ -24,7 +24,7 @@ class ScoreSwapCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def swapscore(
         self,
-        ctx: ApplicationContext,
+        ctx: 'ApplicationContext',
         player1: Option(str, "Player name", required=True),  # type: ignore
         player2: Option(str, "Player name", required=True),  # type: ignore
         mogi_id: Option(int, "Mogi ID", required=True),  # type: ignore

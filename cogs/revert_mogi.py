@@ -20,7 +20,7 @@ class RevertCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def revert(
         self,
-        ctx: ApplicationContext,
+        ctx: 'ApplicationContext',
         mogi_id: discord.Option(int, "Mogi ID / Table ID", required=True),  # type: ignore
     ):
         await ctx.defer()

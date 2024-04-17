@@ -14,7 +14,7 @@ class MMR(commands.Cog):
         self.client = client
 
     @commands.slash_command(name="mmr", description="Your mmr", guild_ids=LOUNGE)
-    async def mmr(self, ctx: ApplicationContext):
+    async def mmr(self, ctx: 'ApplicationContext'):
         """/mmr slash command displays the issuer's mmr"""
         await ctx.defer(ephemeral=True)
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)

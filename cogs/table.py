@@ -45,7 +45,7 @@ class TableCog(commands.Cog):
     @commands.has_role(REPORTER_ROLE_ID)  # Make sure to define REPORTER_ROLE_ID
     async def table(
         self,
-        ctx: ApplicationContext,
+        ctx: 'ApplicationContext',
         mogi_format: Option(int, "1=FFA, 2=2v2, 3=3v3, 4=4v4, 6=6v6", required=True),  # type: ignore
         scores: Option(
             str,

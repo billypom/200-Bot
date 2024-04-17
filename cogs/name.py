@@ -24,7 +24,7 @@ class NameChangeCog(commands.Cog):
         self.client = client
         config_file = configparser.ConfigParser()
         config_file.read("config.ini")
-        self.name_change_delta_limit = config_file["PLAYER"].getint(
+        self.name_change_delta_limit = config_file["LOUNGE"].getint(
             "NAME_CHANGE_DELTA_LIMIT"
         )
 
@@ -35,7 +35,7 @@ class NameChangeCog(commands.Cog):
     )
     async def name(
         self,
-        ctx: ApplicationContext,
+        ctx: 'ApplicationContext',
         name: discord.Option(str, "Enter a new nickname here", required=True),  # type: ignore
     ) -> None:
         """/name slash command for requesting a nickname for the leaderboard.

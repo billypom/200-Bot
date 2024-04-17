@@ -143,7 +143,10 @@ class Unban_check(commands.Cog):
                 continue
             try:
                 # Get the user
-                user = await guild.fetch_member(player_id)
+                try:
+                    user = await guild.fetch_member(player_id)
+                except Exception:
+                    return
                 try:
                     await user.remove_roles(punishment_role)
                 except Exception:

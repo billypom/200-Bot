@@ -29,7 +29,7 @@ class VerifyCog(commands.Cog):
         self.client = client
         config_file = configparser.ConfigParser()
         config_file.read("config.ini")
-        self.seconds_since_last_login_delta_limit = config_file["MOGI"].getint(
+        self.seconds_since_last_login_delta_limit = config_file["LOUNGE"].getint(
             "SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT"
         )
 
@@ -38,7 +38,7 @@ class VerifyCog(commands.Cog):
     )
     async def verify(
         self,
-        ctx: ApplicationContext,
+        ctx: 'ApplicationContext',
         message: Option(
             str,
             "MKC Link | https://www.mariokartcentral.com/mkc/registry/players/930",

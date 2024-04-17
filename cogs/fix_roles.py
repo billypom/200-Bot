@@ -18,7 +18,7 @@ class FixRolesCog(commands.Cog):
         guild_ids=LOUNGE,
         default_member_permissions=(Permissions(administrator=True)),
     )
-    async def fix_roles(self, ctx: ApplicationContext):
+    async def fix_roles(self, ctx: 'ApplicationContext'):
         await ctx.defer()
         response = await set_uid_roles(self.client, ctx.author.id)
         if response:

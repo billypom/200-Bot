@@ -23,7 +23,7 @@ class MMRPenaltyCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def mmr_penalty(
         self,
-        ctx: ApplicationContext,
+        ctx: 'ApplicationContext',
         player: discord.Option(str, description="Which player?", required=True),  # type: ignore
         mmr_penalty: discord.Option(
             int,

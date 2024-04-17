@@ -36,7 +36,7 @@ class StrikeCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def strike(
         self,
-        ctx: ApplicationContext,
+        ctx: 'ApplicationContext',
         player: Option(str, description="Player name", required=True),  # type: ignore
         mmr_penalty: Option(
             int,

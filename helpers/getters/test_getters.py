@@ -11,15 +11,15 @@ from helpers.getters import get_next_match_time
 
 
 @pytest.mark.asyncio
-async def test_get_results_tier_dict():
-    result = await get_results_tier_dict()
-    assert isinstance(result, dict)
-
-
-@pytest.mark.asyncio
 async def test_get_tier_id_list():
     result = await get_tier_id_list()
     assert isinstance(result, list)
+
+
+@pytest.mark.asyncio
+async def test_get_results_tier_dict():
+    result = await get_results_tier_dict()
+    assert isinstance(result, dict)
 
 
 # @pytest.mark.asyncio

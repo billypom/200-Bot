@@ -15,7 +15,7 @@ class StrikesCog(commands.Cog):
     @commands.slash_command(
         name="strikes", description="See your strikes", guild_ids=LOUNGE
     )
-    async def strikes(self, ctx: ApplicationContext):
+    async def strikes(self, ctx: 'ApplicationContext'):
         await ctx.defer()
         x = await check_if_uid_exists(ctx.author.id)
         if x:

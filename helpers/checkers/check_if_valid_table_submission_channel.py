@@ -8,12 +8,12 @@ from helpers.getters import (
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from discord import Bot, CategoryChannel
+    from discord import CategoryChannel, Bot
     from discord.interactions import InteractionChannel
 
 
 async def check_if_valid_table_submission_channel(
-    client: Bot, channel: InteractionChannel, category: CategoryChannel
+    client: 'Bot', channel: 'InteractionChannel', category: 'CategoryChannel'
 ) -> tuple[bool, bool, int, str]:
     """Checks if the current channel is a valid mogi tier.
 

@@ -34,7 +34,7 @@ class ReduceLossCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def reduce_loss(
         self,
-        ctx: ApplicationContext,
+        ctx: 'ApplicationContext',
         player: Option(str, description="Player name", required=True),  # type: ignore
         mogi_id: Option(int, description="Which mogi?", required=True),  # type: ignore
         reduction: Option(

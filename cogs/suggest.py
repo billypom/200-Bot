@@ -24,7 +24,7 @@ class SuggestCog(commands.Cog):
     )
     async def suggest(
         self,
-        ctx: ApplicationContext,
+        ctx: 'ApplicationContext',
         message: Option(str, "Type your suggestion", required=True),  # type: ignore
     ):
         await ctx.defer(ephemeral=True)

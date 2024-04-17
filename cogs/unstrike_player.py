@@ -26,7 +26,7 @@ class UnstrikeCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def unstrike(
         self,
-        ctx: ApplicationContext,
+        ctx: 'ApplicationContext',
         strike_id: Option(int, description="Enter the strike ID", required=True),  # type: ignore
     ):
         await ctx.defer()
