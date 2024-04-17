@@ -1,4 +1,6 @@
 import pytest
+import DBA
+from config import DTB, HOST, USER, PASS
 from unittest.mock import MagicMock, patch
 from datetime import datetime
 from helpers.checkers import check_for_dupes_in_list
@@ -13,6 +15,32 @@ def example_data():
 def use_example_date():
     data = example_data()
     assert isinstance(data, list)
+
+
+@pytest.fixture(scope="session")
+def create_database():
+    with DBA.DBAccess() as db:
+        db.execute(
+            "CREATE DATABASE 200lounge_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;",
+            (),
+        )
+        db.execute(
+            "CREATE USER test_runner@'localhost' IDENTIFIED BY 'testpassword123';", ()
+        )
+        db.execute(
+            "GRANT ALL PRIVILEGES ON 200lounge_dev.* to test_runner@localhost IDENTIFIED BY 'testpassword123';",
+            (),
+        )
+        # create all tables
+        # insert test data
+
+
+@pytest.fixture
+def delete_database():
+    with DBA.DBAccess() as db:
+        db.execute("DROP USER 'test_runner'@'localhost';", ())
+        # drop all tables
+        db.execute("DROP DATABASE 200lounge_dev;", ())
 
 
 @pytest.mark.asyncio
