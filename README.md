@@ -8,27 +8,29 @@ This bot is the primary driver for all things related to the MK8DX 200cc Lounge 
 
 # Developers
 
-### Development environment
-A few things are needed/recommended to work on this project. 
+## Development environment
+A few things are needed/recommended to work on this project.
 
-Linux/WSL operating system + packages
+I will try to keep things updated as development continues
+
+**Linux/WSL operating system + packages**
 - There are some features of the bot that use linux shell comamnds to perform certain tasks that may not translate to Windows. MacOS might work with brew. Namely, imagemagick and subprocess
 
-Text editor with LSP & linter
+**Text editor with LSP & linter**
 
 - The code in this repo is auto-formatted by Ruff, and the type choices I make are based on feedback from Pyright
 
-Local database instance
+**Local database instance**
 
-- To properly test the bot, you will need a local instance of the 200 Lounge database. I use MySQL. MariaDB or Postgres might also work, but I can't guarantee the code I write is 1:1 translatable.
+- To properly test the bot, you will need a local instance of the 200 Lounge database. I use MySQL. MariaDB or Postgres might also work. If you decide to use a database solution other than MySQL feel free to document your process to using it in an issue and I will considering adding those instructions to this repo.
 
-Discord bot for your own testing
+**Discord bot for your own testing**
 
 - You will need to sign up for a Discord Developer account and create your own bot for testing.
 
 ___
 
-### Setup
+## Setup
 
 Install system packages
 
@@ -39,7 +41,7 @@ sudo apt install imagemagick, virtualenv, python3, python3-venv
 Clone the repo
 
 ```bash
-git clone https://github.com/billypom/200-Bot
+git clone https://github.com/billypom/200-Bot.git
 ```
 
 Create a virtual environment (recommended)
@@ -60,7 +62,7 @@ pip install -r requirements.txt
 
 - [ ] Create reproducable test data
 
-- [ ] Provide resource links
+- [ ] Provide resource links for things like Discord dev account, database solutions, etc
 
 - [ ] Finish these instructions
 
