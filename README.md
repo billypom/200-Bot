@@ -6,67 +6,56 @@ This bot is the primary driver for all things related to the MK8DX 200cc Lounge 
 - Submit match results
 - View player stats on [200-lounge.com](https://200-lounge.com), or use the commands below.
 
-# Developers
+# Development Environment / Installation
 
-## Development environment
-A few things are needed/recommended to work on this project.
+## [Create a Discord Developer account](https://discord.com/developers/docs/)
 
-**RECOMMENDED: Linux/WSL operating system + packages**
-- There are some features of the bot that use linux shell commands to perform certain tasks that may not translate to Windows. MacOS might work with brew. Namely, imagemagick and subprocess
+Create a Discord Developer account on Discord's [web page](https://discord.com/developers/docs/) and create a bot for you to develop with. Take note of the token for later use
 
-**Text editor with LSP & linter**
+## Install MySQL Community Server 8.0.36 or MariaDB
 
-- The code in this repo is auto-formatted by Ruff, and the type choices I make are based on feedback from Pyright
+### Ubuntu/Debian
 
-## Setup
-
-### [Create a Discord Developer account](https://discord.com/developers/docs/)
-
-Create a bot user, save the token for later use
-
-### Install MySQL Community Server 8.0.36 or MariaDB
-
-I recommend looking up online how to remove the insecure defaults for MariaDB.
-
-**Ubuntu/Debian**
-
-(I was only able to get MySQL running on Ubuntu. Debian does not like MySQL...sad)
-
+- Install MySQL
 ```bash
-sudo apt install mysql-server
+apt install mysql-server
 ```
+
 or
-```bash
-sudo apt install mariadb-server
-```
 
-**Windows**
-
-[MySQL Community Server 8.0.36](https://dev.mysql.com/downloads/mysql/)
-
-[MariaDB](https://mariadb.org/download)
-
-### Install system packages
-
-**Ubuntu/Debian**
+- Install MariaDB
 
 ```bash
-sudo apt install git, imagemagick, virtualenv, python3, python3-venv
+apt install mariadb-server
 ```
 
-**Windows**
+### Windows
 
-```
-N/A
+[MySQL Community Server 8.0.36](https://dev.mysql.com/downloads/mysql/) download page
+
+[MariaDB](https://mariadb.org/download) download page
+
+## Install system packages
+
+### Ubuntu/Debian
+
+```bash
+apt install git, imagemagick, virtualenv, python3, python3-venv
 ```
 
-### Clone the repo
+### Windows
+
+[Python](https://www.python.org/downloads/windows/) for Windows
+
+[ImageMagick](https://imagemagick.org/script/download.php) download page
+
+## Clone this repository
 
 ```bash
 git clone https://github.com/billypom/200-Bot.git
 ```
 
-### Create a virtual environment
+## Create a virtual environment
 
 Might not be necessary on Windows
 
@@ -76,13 +65,13 @@ virtualenv venv
 activate
 ```
 
-### Install the project requirements
+## Install the project requirements
 
 ```bash
 pip3 install -r requirements.txt
 ```
 
-### Create DB Test data
+## Create DB Test data
 
 This user runs integration tests and will handle the creation and deletion of the bot's mysql.user record while testing
 
