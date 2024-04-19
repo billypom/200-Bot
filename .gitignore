@@ -9,7 +9,6 @@ log
 discord.log
 200lounge.log
 rules.txt
-denv.sql
 
 # folders
 /dont

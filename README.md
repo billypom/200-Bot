@@ -11,40 +11,64 @@ This bot is the primary driver for all things related to the MK8DX 200cc Lounge 
 ## Development environment
 A few things are needed/recommended to work on this project.
 
-I will try to keep things updated as development continues
-
-**Linux/WSL operating system + packages**
-- There are some features of the bot that use linux shell comamnds to perform certain tasks that may not translate to Windows. MacOS might work with brew. Namely, imagemagick and subprocess
+**RECOMMENDED: Linux/WSL operating system + packages**
+- There are some features of the bot that use linux shell commands to perform certain tasks that may not translate to Windows. MacOS might work with brew. Namely, imagemagick and subprocess
 
 **Text editor with LSP & linter**
 
 - The code in this repo is auto-formatted by Ruff, and the type choices I make are based on feedback from Pyright
 
-**Local database instance**
-
-- To properly test the bot, you will need a local instance of the 200 Lounge database. I use MySQL. MariaDB or Postgres might also work. If you decide to use a database solution other than MySQL feel free to document your process to using it in an issue and I will considering adding those instructions to this repo.
-
-**Discord bot for your own testing**
-
-- You will need to sign up for a Discord Developer account and create your own bot for testing.
-
-___
-
 ## Setup
 
-Install system packages
+### [Create a Discord Developer account](https://discord.com/developers/docs/)
+
+Create a bot user, save the token for later use
+
+### Install MySQL Community Server 8.0.36 or MariaDB
+
+I recommend looking up online how to remove the insecure defaults for MariaDB.
+
+**Ubuntu/Debian**
+
+(I was only able to get MySQL running on Ubuntu. Debian does not like MySQL...sad)
 
 ```bash
-sudo apt install imagemagick, virtualenv, python3, python3-venv
+sudo apt install mysql-server
+```
+or
+```bash
+sudo apt install mariadb-server
 ```
 
-Clone the repo
+**Windows**
+
+[MySQL Community Server 8.0.36](https://dev.mysql.com/downloads/mysql/)
+
+[MariaDB](https://mariadb.org/download)
+
+### Install system packages
+
+**Ubuntu/Debian**
+
+```bash
+sudo apt install git, imagemagick, virtualenv, python3, python3-venv
+```
+
+**Windows**
+
+```
+N/A
+```
+
+### Clone the repo
 
 ```bash
 git clone https://github.com/billypom/200-Bot.git
 ```
 
-Create a virtual environment (recommended)
+### Create a virtual environment
+
+Might not be necessary on Windows
 
 ```bash
 cd 200-Bot
@@ -52,35 +76,52 @@ virtualenv venv
 activate
 ```
 
-Install the project requirements
+### Install the project requirements
 
 ```bash
-pip install -r requirements.txt
+pip3 install -r requirements.txt
 ```
 
-# Todo
+### Create DB Test data
 
-- [ ] Create reproducable test data
+This user runs integration tests and will handle the creation and deletion of the bot's mysql.user record while testing
 
-- [ ] Provide resource links for things like Discord dev account, database solutions, etc
+Replace 'localhost' with your server hostname, if not running locally
 
-- [ ] Finish these instructions
-
-
-Create database
-
-```
-CREATE TABLE player (
-    player_id bigint unsigned NOT NULL,
-    player_name varchar(16) NOT NULL,
-    ...
-);
-etc
+```sql
+CREATE USER 'test_runner'@'localhost' IDENTIFIED BY '<YOUR_PASSWORD_HERE>';
+CREATE DATABASE test_lounge_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+GRANT CREATE, SELECT, INSERT, UPDATE, DELETE, DROP on test_lounge_dev.* to 'test_runner'@'localhost';
 ```
 
+### Create local development database
 
+```sql
+-- coming soon
 ```
-other stuff
+
+### Update `config.py`
+
+```py
+# Bot config
+TOKEN = ""
+BOT_ID = 0
+
+# Guild config - your guild ID goes here
+LOUNGE = []
+
+# DB config for Discord Bot
+# Create your own mysql.user
+HOST = "localhost"
+PASS = ""
+USER = ""
+DTB = "lounge_dev"
+
+# DB config for integration test user (test-runner from the README)
+TEST_HOST = "localhost"
+TEST_PASS = ""
+TEST_USER = "test_runner"
+TEST_DTB = "test_lounge_dev"
 ```
 
 Run the bot

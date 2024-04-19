@@ -3,9 +3,9 @@ import mysql.connector
 
 
 class DBAccess:
-    def __init__(self, db_name=DTB):
+    def __init__(self, db_name=DTB, db_host=HOST, db_user=USER, db_pass=PASS):
         self._conn = mysql.connector.connect(
-            host=HOST, user=USER, passwd=PASS, database=db_name
+            host=db_host, user=db_user, passwd=db_pass, database=db_name
         )
         self._cursor = self._conn.cursor()
 
@@ -46,4 +46,3 @@ class DBAccess:
     def query(self, sql, params):
         self.cursor.execute(sql, params or ())
         return self.fetchall()
-
