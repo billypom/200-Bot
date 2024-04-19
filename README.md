@@ -8,19 +8,21 @@ This bot is the primary driver for all things related to the MK8DX 200cc Lounge 
 
 # Development Environment / Installation
 
-## [Create a Discord Developer account](https://discord.com/developers/docs/)
+## Discord Developer account
 
 - Create a Discord Developer account on Discord's [web page](https://discord.com/developers/docs/) and create a bot for you to develop with.
 - Take note of the **token** for later use
 - Turn on Developer Mode in your Discord client `Settings` -> `Advanced` -> `Developer Mode: ON`
 
-## Install MySQL Community Server 8.0.36 or MariaDB
+## MySQL Community Server 8.0.36 or MariaDB
+
+Install one of these database solutions. Both should work.
 
 ### Windows
 
-[MySQL Community Server 8.0.36](https://dev.mysql.com/downloads/mysql/) download page
+- [MySQL Community Server 8.0.36](https://dev.mysql.com/downloads/mysql/) download page
 
-[MariaDB](https://mariadb.org/download) download page
+- [MariaDB](https://mariadb.org/download) download page
 
 ### Ubuntu/Debian
 
@@ -41,9 +43,9 @@ apt install mariadb-server
 
 ### Windows
 
-[Python](https://www.python.org/downloads/windows/) for Windows
+- [Python](https://www.python.org/downloads/windows/) for Windows
 
-[ImageMagick](https://imagemagick.org/script/download.php) download page
+- [ImageMagick](https://imagemagick.org/script/download.php) download page
 
 ### Ubuntu/Debian
 
@@ -114,13 +116,17 @@ TEST_USER = "test_runner"
 TEST_DTB = "test_lounge_dev"
 ```
 
-Run the bot
+## Run the bot
 
 ```
 python3 main.py
 ```
 
-Yay :-)
+# Pull Requests
+
+```bash
+# coming soon
+```
 
 # Credits
 [Lorenzi Table Maker](https://github.com/hlorenzi/mk8d_ocr)
