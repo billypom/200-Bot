@@ -1,3 +1,5 @@
+-- I use this file to make a copy of the live data for debugging.
+-- Other developers can ignore this file
 USE lounge_dev;
 DROP TABLE IF EXISTS sq_default_schedule;
 DROP TABLE IF EXISTS sq_schedule;
@@ -349,7 +351,7 @@ DELETE FROM ranks WHERE rank_id = 846497627508047872;
 
 -- Dev Tiers
 insert into tier (tier_id, tier_name, results_id, teams_string, min_mmr, max_mmr)
-values(0, 's', 1, "", 7500, 99999),
+values(1231044227065053194, 's', 1231044277522665502, "", 7500, 99999),
 (1041162013730164812, 'a', 1041162013730164817, "", 6000, 99999),
 (1041162013730164813, 'b', 1041162014086668359, "", 3000, 8999),
 (1041162013730164814, 'c', 1041162014086668360, "", 0, 5999),
@@ -357,7 +359,7 @@ values(0, 's', 1, "", 7500, 99999),
 (1041162013356855406, 'sq', 1041162013356855407, "", NULL, NULL);
 
 -- Replace live mogi foreign keys with dev mogi foreign keys
-UPDATE mogi SET tier_id = 0                   WHERE tier_id = 1208849780986351706; -- s
+UPDATE mogi SET tier_id = 1231044227065053194 WHERE tier_id = 1208849780986351706; -- s
 UPDATE mogi SET tier_id = 1041162013730164812 WHERE tier_id = 1010662448715546706; -- a
 UPDATE mogi SET tier_id = 1041162013730164813 WHERE tier_id = 1010662628793786448; -- b
 UPDATE mogi SET tier_id = 1041162013730164814 WHERE tier_id = 1010663000987934771; -- c

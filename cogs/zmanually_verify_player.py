@@ -9,27 +9,43 @@ from helpers.senders import send_to_verification_log
 from config import LOUNGE, ADMIN_ROLE_ID, UPDATER_ROLE_ID, PING_DEVELOPER
 import vlog_msg
 
+
 class ManuallyVerifyPlayerCog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @commands.slash_command(
-        name='zmanually_verify_player',
-        description='Manually verify a player (no mkc api checks)',
+        name="zmanually_verify_player",
+        description="Manually verify a player (no mkc api checks)",
         default_member_permissions=(discord.Permissions(moderate_members=True)),
-        guild_ids=LOUNGE
+        guild_ids=LOUNGE,
     )
     @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
-    async def zmanually_verify_player(self, ctx, 
-                                      player_id: discord.Option(str, 'Discord ID of player to be verified', required=True),
-                                      mkc_id: discord.Option(str, 'Last numbers in MKC forum link. (e.g. popuko mkc_id = 154)', required=True),
-                                      country_code: discord.Option(str, 'ISO 3166 Alpha-2 Code - https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes', required=True)):
+    async def zmanually_verify_player(
+        self,
+        ctx,
+        player_id: discord.Option(
+            str, "Discord ID of player to be verified", required=True
+        ),
+        mkc_id: discord.Option(
+            str,
+            "Last numbers in MKC forum link. (e.g. popuko mkc_id = 154)",
+            required=True,
+        ),
+        country_code: discord.Option(
+            str,
+            "ISO 3166 Alpha-2 Code - https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes",
+            required=True,
+        ),
+    ):
         # mkc_player_id = registry id
         # mkc_user_id = forum id
         await ctx.defer(ephemeral=False)
         x = await check_if_uid_exists(int(player_id))
         if x:
-            await ctx.respond('The player id provided is already registered in the Lounge.')
+            await ctx.respond(
+                "The player id provided is already registered in the Lounge."
+            )
             return
         else:
             pass
@@ -39,29 +55,48 @@ class ManuallyVerifyPlayerCog(commands.Cog):
         x = await check_if_mkc_user_id_used(mkc_id)
         if x:
             with DBAccess() as db:
-                uh_oh_player = db.query('SELECT player_id FROM player WHERE mkc_id = %s;', (mkc_id,))[0][0]
-            await ctx.respond(f'``Error 82:`` This MKC ID is already in use by {uh_oh_player}')
+                uh_oh_player = db.query(
+                    "SELECT player_id FROM player WHERE mkc_id = %s;", (mkc_id,)
+                )[0][0]  # type: ignore
+            await ctx.respond(
+                f"``Error 82:`` This MKC ID is already in use by {uh_oh_player}"
+            )
             verify_description = vlog_msg.error4
-            await send_to_verification_log(self.client, ctx, f'Error 82: {player_id} | {mkc_id} | {country_code}', f'{verify_description} | <@{x[1]}> already using MKC **FORUM** ID {x[0]}')
+            await send_to_verification_log(
+                self.client,
+                ctx,
+                f"Error 82: {player_id} | {mkc_id} | {country_code}",
+                f"{verify_description} | <@{x[1]}> already using MKC **FORUM** ID {x[0]}",
+            )
             return
         else:
             try:
                 member = await get_lounge_guild(self.client).fetch_member(player_id)
             except Exception:
-                await ctx.respond(f'Unknown guild member: <@{player_id}>.')
+                await ctx.respond(f"Unknown guild member: <@{player_id}>.")
                 return
             try:
                 x = await create_player(self.client, member, mkc_id, country_code)
             except Exception:
-                await ctx.respond(f'`Error 83:` Database error on create_player. Please create a support ticket and ping {PING_DEVELOPER}')
+                await ctx.respond(
+                    f"`Error 83:` Database error on create_player. Please create a support ticket and ping {PING_DEVELOPER}"
+                )
                 return
             try:
                 await ctx.respond(x)
-                await send_to_verification_log(self.client, ctx, f'{player_id} | {mkc_id} | {country_code}', verify_description)
+                await send_to_verification_log(
+                    self.client,
+                    ctx,
+                    f"{player_id} | {mkc_id} | {country_code}",
+                    verify_description,
+                )
             except Exception:
-                await ctx.respond('`Error 84:` I was unable to respond and post in log channels for some reason...')
+                await ctx.respond(
+                    "`Error 84:` I was unable to respond and post in log channels for some reason..."
+                )
                 return
             return
+
 
 def setup(client):
     client.add_cog(ManuallyVerifyPlayerCog(client))

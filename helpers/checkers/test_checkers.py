@@ -1,10 +1,10 @@
 import pytest
 import DBA
-from config import TEST_DTB, TEST_HOST, TEST_PASS, TEST_USER
-from unittest.mock import MagicMock, patch
+import discord
 from datetime import datetime
 from helpers.checkers import check_for_dupes_in_list
 from helpers.checkers import check_if_banned_characters
+from helpers.checkers import check_if_mkc_user_id_used
 
 
 @pytest.fixture
@@ -19,21 +19,15 @@ def use_example_date():
 
 @pytest.fixture(scope="session")
 def create_database():
-    with DBA.DBAccess(
-        db_name=TEST_DTB, db_host=TEST_HOST, db_user=TEST_USER, db_pass=TEST_PASS
-    ) as db:
-        # create all tables
-        # insert test data
-
-
-@pytest.fixture
-def delete_database():
-    with DBA.DBAccess(
-        db_name=TEST_DTB, db_host=TEST_HOST, db_user=TEST_USER, db_pass=TEST_PASS
-    ) as db:
-        db.execute("DROP USER 'test_runner'@'localhost';", ())
-        # drop all tables
-        db.execute("DROP DATABASE 200lounge_dev;", ())
+    with DBA.DBAccess() as db:
+        print("creating database")
+        with open("sql/development_init.sql", "r") as file:
+            sql_file = file.read()
+            sql_commands = sql_file.split(";")
+        with DBA.DBAccess() as db:
+            for command in sql_commands:
+                if command.strip():
+                    db.execute(command, ())
 
 
 @pytest.mark.asyncio
@@ -61,9 +55,11 @@ async def test_check_if_banned_characters():
 
 
 @pytest.mark.asyncio
-async def test_check_if_mkc_user_id_used():
-    # need test data
-    pass
+async def test_check_if_mkc_user_id_used(create_database):
+    result = await check_if_mkc_user_id_used(1)
+    assert result  # true
+    result = await check_if_mkc_user_id_used(999)
+    assert not result  # false
 
 
 @pytest.mark.asyncio

@@ -46,4 +46,5 @@ async def create_lorenzi_query(
         # Assign previous values before looping
         prev_team_placement = team_placement
         prev_team_score = team[len(team) - 3]
+    print(f"lorenzi_query:\n{lorenzi_query}")
     return lorenzi_query

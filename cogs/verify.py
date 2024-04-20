@@ -38,7 +38,7 @@ class VerifyCog(commands.Cog):
     )
     async def verify(
         self,
-        ctx: 'ApplicationContext',
+        ctx: "ApplicationContext",
         message: Option(
             str,
             "MKC Link | https://www.mariokartcentral.com/mkc/registry/players/930",
@@ -192,7 +192,7 @@ class VerifyCog(commands.Cog):
         verify_description = vlog_msg.success
         verify_color = Color.green()
         # Check if someone has verified as this user before...
-        x = await check_if_mkc_user_id_used(self.client, mkc_user_id)
+        x = await check_if_mkc_user_id_used(mkc_user_id)
         if x:
             await ctx.respond(
                 f"``Error 10:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."

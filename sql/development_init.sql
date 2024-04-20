@@ -1,4 +1,4 @@
-USE test_lounge_dev;
+USE lounge_dev;
 DROP TABLE IF EXISTS sq_default_schedule;
 DROP TABLE IF EXISTS sq_schedule;
 DROP TABLE IF EXISTS player_punishment;
@@ -98,8 +98,8 @@ CREATE TABLE player_mogi (
     CONSTRAINT playermogifk2 FOREIGN KEY (mogi_id) REFERENCES mogi(mogi_id)
 );
 
--- player_tier
--- temporary table for ongoing mogis
+-- player_tier | temporary table for ongoing mogis
+-- unused
 CREATE TABLE lineups (
     player_id bigint unsigned,
     tier_id bigint unsigned,
@@ -188,11 +188,13 @@ CREATE TABLE sq_default_schedule(
     CONSTRAINT default_sq_schedulepk PRIMARY KEY (id)
 );
 
+-- unused
 CREATE TABLE lounge_queue_category(
     category_id bigint unsigned,
     CONSTRAINT lounge_queue_categorypk PRIMARY KEY (category_id)
 );
 
+-- unused
 CREATE TABLE lounge_queue_channel(
     channel_id bigint unsigned,
     category_id bigint unsigned,
@@ -204,6 +206,7 @@ CREATE TABLE lounge_queue_channel(
     CONSTRAINT lounge_queue_channelfk FOREIGN KEY (category_id) REFERENCES lounge_queue_category(category_id)
 );
 
+-- unused
 CREATE TABLE lounge_queue_player(
     player_id bigint unsigned,
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
@@ -232,3 +235,17 @@ values(1041162013730164812, 'a', 1041162013730164817, "", 6000, 99999),
 (1041162013730164814, 'c', 1041162014086668360, "", 0, 5999),
 (1041162013730164815, 'all', 1041162014086668362, "", 0, 99999),
 (1041162013356855406, 'sq', 1041162013356855407, "", NULL, NULL);
+
+INSERT INTO player (player_id, player_name, mkc_id, country_code, is_chat_restricted, mmr, base_mmr, peak_mmr, rank_id, times_strike_limit_reached, unban_date)
+values (1, 'Player 1', 1, 'US', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (2, 'Player 2', 2, 'FR', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (3, 'Player 2', 3, 'GB', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (4, 'Player 2', 4, 'DE', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (5, 'Player 2', 5, 'NL', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (6, 'Player 2', 6, 'BR', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (7, 'Player 2', 7, 'KR', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (8, 'Player 2', 8, 'JP', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (9, 'Player 2', 9, 'ES', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (10, 'Player 2', 10, 'CA', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (11, 'Player 2', 11, 'MX', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (12, 'Player 2', 12, 'IT', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL);

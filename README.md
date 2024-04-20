@@ -10,11 +10,11 @@ This bot is the primary driver for all things related to the MK8DX 200cc Lounge 
 
 ## Discord Developer account
 
-- Create a Discord Developer account on Discord's [web page](https://discord.com/developers/docs/) and create a bot for you to develop with.
-- Take note of the **token** for later use
+- Create a Discord Developer account on Discord's [web page](https://discord.com/developers/docs/) 
+- Make a bot for you to develop with. Take note of the **token** for later use
 - Turn on Developer Mode in your Discord client `Settings` -> `Advanced` -> `Developer Mode: ON`
 
-## MySQL Community Server 8.0.36 or MariaDB
+## MySQL or MariaDB
 
 Install one of these database solutions. Both should work.
 
@@ -26,14 +26,10 @@ Install one of these database solutions. Both should work.
 
 ### Ubuntu/Debian
 
-- Install MySQL
 ```bash
 apt install mysql-server
 ```
-
 or
-
-- Install MariaDB
 
 ```bash
 apt install mariadb-server
@@ -77,43 +73,37 @@ pip3 install -r requirements.txt
 
 ## Database user, schema, & permissions
 
-This user runs integration tests and will handle the creation and deletion of the bot's mysql.user record while testing. Replace 'localhost' with your server hostname, if not running locally
+- Discord bot user
+Database user account to be used by the bot while running & for integration tests. Use `localhost` or `127.0.0.1` if your database instance is locally hosted
 
 ```sql
-CREATE USER 'test_runner'@'localhost' IDENTIFIED BY '<YOUR_PASSWORD_HERE>';
-CREATE DATABASE test_lounge_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
-GRANT CREATE, SELECT, INSERT, UPDATE, DELETE, DROP on test_lounge_dev.* to 'test_runner'@'localhost';
+CREATE USER '200-bot-dev'@'<HOSTNAME_YOURE_TESTING_FROM>' IDENTIFIED BY '<YOUR_PASSWORD_HERE>';
+CREATE DATABASE lounge_dev CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+GRANT CREATE, SELECT, INSERT, UPDATE, DELETE, DROP on lounge_dev.* to '200-bot-dev'@'<HOSTNAME_YOURE_TESTING_FROM>';
+FLUSH PRIVILEGES;
 ```
 
 ## Create local development database
 
-```sql
--- coming soon
-```
+==UNFINISHED==
+
+Run this file: `.../200-bot/sql/development_init.sql`.
 
 ## Update `config.py`
 
 ```py
-# Put your bot token from the Discord Bot you made earlier here
-TOKEN = ""
-# Copy your bot's User ID, and put it here
-BOT_ID = 0
+TOKEN = "" # bot token from earlier
+BOT_ID = 0 # bot user id
+...
 
-# Guild config - your guild ID goes here
-LOUNGE = []
+LOUNGE = [] # guild id goes here
+...
 
 # DB config for Discord Bot
-# Create your own mysql.user
-HOST = "localhost"
-PASS = ""
-USER = ""
-DTB = "lounge_dev"
-
-# DB config for integration test user (test-runner account we created earlier)
-TEST_HOST = "localhost"
-TEST_PASS = ""
-TEST_USER = "test_runner"
-TEST_DTB = "test_lounge_dev"
+HOST = "localhost" # hostname/ip where your db instance is running
+PASS = "" # db user password
+USER = "200-bot-dev" # db username
+DTB = "lounge_dev" # db name
 ```
 
 ## Run the bot

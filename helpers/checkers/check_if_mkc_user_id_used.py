@@ -1,14 +1,16 @@
 import DBA
 from helpers.senders import send_raw_to_debug_channel
+import logging
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from discord import Bot
 
 
-async def check_if_mkc_user_id_used(client, mkc_user_id: int) -> list[int] | bool:
+async def check_if_mkc_user_id_used(mkc_user_id: int) -> bool:
     """Checks if a MKC Forum ID has already been used by another player in the database
 
-    Returns:
-        list[mkc_id, player_id] if a match is found
-        or
-        False"""
+    Returns: True if used, else False"""
     try:
         with DBA.DBAccess() as db:
             temp = db.query(
@@ -16,13 +18,11 @@ async def check_if_mkc_user_id_used(client, mkc_user_id: int) -> list[int] | boo
                 (mkc_user_id,),
             )
             if int(temp[0][0]) == int(mkc_user_id):  # type: ignore
-                return [temp[0][0], temp[0][1]]  # type: ignore
+                return True
             else:
                 return False
     except Exception as e:
-        await send_raw_to_debug_channel(
-            client=client,
-            anything=f"check_if_mkc_user_id_used | Database error, mkc_user_id={mkc_user_id}",
-            error=e,
+        logging.warning(
+            f"| ERROR IN check_if_mkc_user_id_used: mkc_user_id={mkc_user_id}: {e}"
         )
         return False
