@@ -73,8 +73,8 @@ pip3 install -r requirements.txt
 
 ## Database user, schema, & permissions
 
-- Discord bot user
-Database user account to be used by the bot while running & for integration tests. Use `localhost` or `127.0.0.1` if your database instance is locally hosted
+- Create an account for the bot to access the database
+- Use `localhost` or `127.0.0.1` if your database instance is locally hosted
 
 ```sql
 CREATE USER '200-bot-dev'@'<HOSTNAME_YOURE_TESTING_FROM>' IDENTIFIED BY '<YOUR_PASSWORD_HERE>';
@@ -85,9 +85,9 @@ FLUSH PRIVILEGES;
 
 ## Create local development database
 
-==UNFINISHED==
+*UNFINISHED*
 
-Run this file: `.../200-bot/sql/development_init.sql`.
+Run this file: `/200-bot/sql/development_init.sql` on your db instance
 
 ## Update `config.py`
 
