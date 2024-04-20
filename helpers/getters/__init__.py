@@ -3,7 +3,6 @@ from .get_number_of_strikes_for_uid import get_number_of_strikes_for_uid
 from .get_partner_avg import get_partner_avg
 from .get_random_name import get_random_name
 from .get_unix_time_now import get_unix_time_now
-from .get_lounge_queue_channel_id_list import get_lounge_queue_channel_id_list
 from .get_tier_id_list import get_tier_id_list
 from .get_rank_id_list import get_rank_id_list
 from .get_results_id_list import get_results_id_list
@@ -12,3 +11,4 @@ from .get_discord_role import get_discord_role
 from .get_next_match_time import get_next_match_time
 from .get_tier_from_room_range import get_tier_from_room_range
 from .get_mogi_calculation_data_by_format import get_mogi_calculation_data_by_format
+from .get_tier_from_submission_channel import get_tier_from_submission_channel

@@ -1,12 +1,10 @@
 DROP TABLE IF EXISTS sq_default_schedule;
 DROP TABLE IF EXISTS sq_schedule;
+DROP TABLE IF EXISTS sq_helper;
 DROP TABLE IF EXISTS player_punishment;
 DROP TABLE IF EXISTS punishment;
 DROP TABLE IF EXISTS suggestion;
 DROP TABLE IF EXISTS player_name_request;
-DROP TABLE IF EXISTS lounge_queue_channel;
-DROP TABLE IF EXISTS lounge_queue_category;
-DROP TABLE IF EXISTS lounge_queue_player;
 DROP TABLE IF EXISTS player_mogi;
 DROP TABLE IF EXISTS strike;
 DROP TABLE IF EXISTS mogi;
@@ -160,29 +158,14 @@ CREATE TABLE sq_default_schedule(
     CONSTRAINT default_sq_schedulepk PRIMARY KEY (id)
 );
 
-CREATE TABLE lounge_queue_category(
+CREATE TABLE sq_helper(
+    -- table holds category id's of categories created
+    -- when sq runs. to be used to validate /table submission channels
+    -- and determine that its a sq being played
+    id int unsigned auto_increment,
     category_id bigint unsigned,
-    CONSTRAINT lounge_queue_categorypk PRIMARY KEY (category_id)
-);
-
-CREATE TABLE lounge_queue_channel(
-    channel_id bigint unsigned,
-    category_id bigint unsigned,
-    is_table_submitted boolean default 0,
-    average_mmr int unsigned,
-    max_mmr int unsigned,
-    min_mmr int unsigned,
-    CONSTRAINT lounge_queue_channelpk PRIMARY KEY (channel_id),
-    CONSTRAINT lounge_queue_channelfk FOREIGN KEY (category_id) REFERENCES lounge_queue_category(category_id)
-);
-
-CREATE TABLE lounge_queue_player(
-    player_id bigint unsigned,
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
-    last_active TIMESTAMP,
-    wait_for_activity boolean default 0,
-    CONSTRAINT lounge_queue_playerpk PRIMARY KEY (player_id),
-    CONSTRAINT lounge_queue_playerfk FOREIGN KEY (player_id) REFERENCES player(player_id)
+    CONSTRAINT sq_helperpk PRIMARY KEY (id)
 );
 
 insert into punishment(punishment_type)

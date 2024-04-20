@@ -1,20 +1,20 @@
 import pytest
 import DBA
 import discord
-from unittest.mock import AsyncMock, MagicMock
 from datetime import datetime
 from helpers.checkers import (
     check_for_dupes_in_list,
-    check_if_name_is_unique,
     check_if_banned_characters,
     check_if_mkc_user_id_used,
     check_if_mogi_id_exists,
+    check_if_name_is_unique,
     check_if_uid_exists,
     check_if_uid_has_role,
     check_if_uid_is_chat_restricted,
+    check_if_uid_is_lounge_banned,
     check_if_uid_is_placement,
+    check_if_valid_table_submission_channel,
 )
-from helpers.checkers.check_if_uid_is_lounge_banned import check_if_uid_is_lounge_banned
 
 
 @pytest.fixture
@@ -144,6 +144,14 @@ async def test_check_if_uid_is_placement(create_database):
 
 @pytest.mark.asyncio
 async def test_check_if_valid_table_submission_channel():
-    # discord mock data
-    # hard to test...
-    pass
+    # set up a category in the db
+    with DBA.DBAccess() as db:
+        db.execute("INSERT INTO sq_helper (category_id) values (%s);", (1,))
+    channels = []  # list of valid channel ids and 1 invalid
+    for channel in channels:
+        result = await check_if_valid_table_submission_channel(channel, 1)
+        assert result
+    result = await check_if_valid_table_submission_channel(channels[0], 2)
+    assert not result
+    result = await check_if_valid_table_submission_channel(3, 3)
+    assert not result
