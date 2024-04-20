@@ -114,8 +114,8 @@ class Unban_check(commands.Cog):
             try:
                 with DBA.DBAccess() as db:
                     player_id_retrieved = db.query(
-                        "SELECT player_id FROM player WHERE unban_date > %s AND player_id = %s;",
-                        (current_time, player_id),
+                        "SELECT player_id FROM player WHERE banned_by_strikes_unban_date > %s AND player_id = %s;",
+                        (unix_now, player_id),
                     )[0][0]  # type: ignore
                 if player_id_retrieved == player_id:
                     await self.send_embed(

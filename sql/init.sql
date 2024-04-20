@@ -39,7 +39,7 @@ CREATE TABLE player (
     times_strike_limit_reached int unsigned default 0,
     twitch_link varchar(50) default NULL,
     mogi_media_message_id bigint unsigned default NULL,
-    unban_date TIMESTAMP default NULL,
+    banned_by_strikes_unban_date bigint unsigned default NULL,
     CONSTRAINT playerpk PRIMARY KEY (player_id),
     CONSTRAINT playerfk FOREIGN KEY (rank_id) REFERENCES ranks(rank_id)
 );

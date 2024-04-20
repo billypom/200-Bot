@@ -7,12 +7,12 @@ async def check_if_uid_is_lounge_banned(uid: int) -> int | bool:
     """Checks if a certain player (uid) is lounge banned
 
     Returns
-    Unix timestamp of unban date, if is banned
+    Unix timestamp of loungeless/banned by strikes unban date, if is banned
     False is not banned"""
     try:
         with DBA.DBAccess() as db:
             temp = db.query(
-                "SELECT UNIX_TIMESTAMP(unban_date) FROM player WHERE player_id = %s;",
+                "SELECT banned_by_strikes_unban_date FROM player WHERE player_id = %s;",
                 (uid,),
             )
         if temp[0][0] is None:  # type: ignore

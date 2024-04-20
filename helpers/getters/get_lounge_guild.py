@@ -8,5 +8,5 @@ if TYPE_CHECKING:
 # Returns discord.Guild object
 def get_lounge_guild(client: "Bot") -> "Guild":
     """Returns the discord.Guild object for the config's LOUNGE guild"""
-    guild = client.get_guild(LOUNGE[0])
+    guild = client.get_guild(int(LOUNGE[0]))
     return guild  # type: ignore

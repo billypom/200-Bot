@@ -67,7 +67,7 @@ class ChangeDiscordAccountCog(commands.Cog):
                 )
                 # create new player
                 db.execute(
-                    "INSERT INTO player (player_id, player_name, mkc_id, country_code, fc, is_host_banned, is_chat_restricted, mmr, base_mmr, peak_mmr, rank_id, times_strike_limit_reached, twitch_link, mogi_media_message_id, unban_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
+                    "INSERT INTO player (player_id, player_name, mkc_id, country_code, fc, is_host_banned, is_chat_restricted, mmr, base_mmr, peak_mmr, rank_id, times_strike_limit_reached, twitch_link, mogi_media_message_id, banned_by_strikes_unban_date) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);",
                     (
                         new_discord_id,
                         temp[0][1],  # type:ignore

@@ -4,12 +4,7 @@ DROP TABLE IF EXISTS sq_schedule;
 DROP TABLE IF EXISTS player_punishment;
 DROP TABLE IF EXISTS punishment;
 DROP TABLE IF EXISTS suggestion;
-DROP TABLE IF EXISTS sub_leaver;
 DROP TABLE IF EXISTS player_name_request;
-DROP TABLE IF EXISTS lounge_queue_channel;
-DROP TABLE IF EXISTS lounge_queue_category;
-DROP TABLE IF EXISTS lounge_queue_player;
-DROP TABLE IF EXISTS lineups;
 DROP TABLE IF EXISTS player_mogi;
 DROP TABLE IF EXISTS strike;
 DROP TABLE IF EXISTS mogi;
@@ -41,7 +36,7 @@ CREATE TABLE player (
     times_strike_limit_reached int unsigned default 0,
     twitch_link varchar(50) default NULL,
     mogi_media_message_id bigint unsigned default NULL,
-    unban_date TIMESTAMP default NULL,
+    banned_by_strikes_unban_date bigint unsigned default NULL,
     CONSTRAINT playerpk PRIMARY KEY (player_id),
     CONSTRAINT playerfk FOREIGN KEY (rank_id) REFERENCES ranks(rank_id)
 );
@@ -98,23 +93,6 @@ CREATE TABLE player_mogi (
     CONSTRAINT playermogifk2 FOREIGN KEY (mogi_id) REFERENCES mogi(mogi_id)
 );
 
--- player_tier | temporary table for ongoing mogis
--- unused
-CREATE TABLE lineups (
-    player_id bigint unsigned,
-    tier_id bigint unsigned,
-    vote int unsigned,
-    is_sub boolean default 0,
-    can_drop boolean default 1,
-    create_date TIMESTAMP default CURRENT_TIMESTAMP NOT NULL,
-    last_active TIMESTAMP,
-    wait_for_activity boolean default 0,
-    mogi_start_time TIMESTAMP default NULL,
-    CONSTRAINT lineupspk PRIMARY KEY (player_id, tier_id),
-    CONSTRAINT lineupsfk1 FOREIGN KEY (player_id) REFERENCES player(player_id),
-    CONSTRAINT lineupsfk2 FOREIGN KEY (tier_id) REFERENCES tier(tier_id)
-);
-
 CREATE TABLE player_name_request(
     id int unsigned auto_increment,
     player_id bigint unsigned,
@@ -124,15 +102,6 @@ CREATE TABLE player_name_request(
     create_date TIMESTAMP default CURRENT_TIMESTAMP,
     CONSTRAINT playernamerequestpk PRIMARY KEY (id),
     CONSTRAINT playernamerequestfk FOREIGN KEY (player_id) REFERENCES player(player_id)
-);
-
-CREATE TABLE sub_leaver(
-    id int unsigned auto_increment,
-    player_id bigint unsigned,
-    tier_id bigint unsigned,
-    CONSTRAINT subleaverspk PRIMARY KEY (id),
-    CONSTRAINT subleaversfk1 FOREIGN KEY (player_id) REFERENCES player(player_id),
-    CONSTRAINT subleaversfk2 FOREIGN KEY (tier_id) REFERENCES tier(tier_id)
 );
 
 -- null = suggestion sent but not responded to
@@ -188,34 +157,6 @@ CREATE TABLE sq_default_schedule(
     CONSTRAINT default_sq_schedulepk PRIMARY KEY (id)
 );
 
--- unused
-CREATE TABLE lounge_queue_category(
-    category_id bigint unsigned,
-    CONSTRAINT lounge_queue_categorypk PRIMARY KEY (category_id)
-);
-
--- unused
-CREATE TABLE lounge_queue_channel(
-    channel_id bigint unsigned,
-    category_id bigint unsigned,
-    is_table_submitted boolean default 0,
-    average_mmr int unsigned,
-    max_mmr int unsigned,
-    min_mmr int unsigned,
-    CONSTRAINT lounge_queue_channelpk PRIMARY KEY (channel_id),
-    CONSTRAINT lounge_queue_channelfk FOREIGN KEY (category_id) REFERENCES lounge_queue_category(category_id)
-);
-
--- unused
-CREATE TABLE lounge_queue_player(
-    player_id bigint unsigned,
-    create_date TIMESTAMP default CURRENT_TIMESTAMP,
-    last_active TIMESTAMP,
-    wait_for_activity boolean default 0,
-    CONSTRAINT lounge_queue_playerpk PRIMARY KEY (player_id),
-    CONSTRAINT lounge_queue_playerfk FOREIGN KEY (player_id) REFERENCES player(player_id)
-);
-
 -- Dev Ranks
 insert into ranks (rank_id, rank_name, mmr_min, mmr_max, placement_mmr)
 values (1041162011536527398, 'Grandmaster', 11000, 99999, NULL),
@@ -230,22 +171,32 @@ values (1041162011536527398, 'Grandmaster', 11000, 99999, NULL),
 
 -- Dev Tiers
 insert into tier (tier_id, tier_name, results_id, teams_string, min_mmr, max_mmr)
-values(1041162013730164812, 'a', 1041162013730164817, "", 6000, 99999),
+values (1231044227065053194, 's', 1231044277522665502, "", 7500, 99999),
+(1041162013730164812, 'a', 1041162013730164817, "", 6000, 99999),
 (1041162013730164813, 'b', 1041162014086668359, "", 3000, 8999),
 (1041162013730164814, 'c', 1041162014086668360, "", 0, 5999),
 (1041162013730164815, 'all', 1041162014086668362, "", 0, 99999),
 (1041162013356855406, 'sq', 1041162013356855407, "", NULL, NULL);
 
-INSERT INTO player (player_id, player_name, mkc_id, country_code, is_chat_restricted, mmr, base_mmr, peak_mmr, rank_id, times_strike_limit_reached, unban_date)
-values (1, 'Player 1', 1, 'US', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (2, 'Player 2', 2, 'FR', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (3, 'Player 2', 3, 'GB', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (4, 'Player 2', 4, 'DE', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (5, 'Player 2', 5, 'NL', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (6, 'Player 2', 6, 'BR', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (7, 'Player 2', 7, 'KR', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (8, 'Player 2', 8, 'JP', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (9, 'Player 2', 9, 'ES', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (10, 'Player 2', 10, 'CA', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (11, 'Player 2', 11, 'MX', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (12, 'Player 2', 12, 'IT', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL);
+INSERT INTO player (player_id, player_name, mkc_id, country_code, is_chat_restricted, mmr, base_mmr, peak_mmr, rank_id, times_strike_limit_reached, banned_by_strikes_unban_date)
+values (1, '1', 1, 'US', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (2, '2', 2, 'FR', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (3, '3', 3, 'GB', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (4, '4', 4, 'DE', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (5, '5', 5, 'NL', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (6, '6', 6, 'BR', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (7, '7', 7, 'KR', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (8, '8', 8, 'JP', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (9, '9', 9, 'ES', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (10, '10-Placement', 10, 'CA', 0, NULL, NULL, NULL, 1041162011536527393, 0, NULL),
+    (11, '11-LL', 11, 'MX', 0, 4000, 4000, 4000, 1041162011536527393, 0, 2147483646),
+    (12, '12-CR', 12, 'IT', 1, 4000, 4000, 4000, 1041162011536527393, 0, NULL);
+
+INSERT INTO mogi (mogi_format, tier_id)
+values (2, 1231044227065053194), -- s
+(3, 1041162013730164812), -- a
+(4, 1041162013730164813), -- b
+(6, 1041162013730164814), -- c
+(2, 1041162013730164815), -- all
+(2, 1041162013356855406); -- sq
+

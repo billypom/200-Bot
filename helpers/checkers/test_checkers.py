@@ -1,10 +1,20 @@
 import pytest
 import DBA
 import discord
+from unittest.mock import AsyncMock, MagicMock
 from datetime import datetime
-from helpers.checkers import check_for_dupes_in_list
-from helpers.checkers import check_if_banned_characters
-from helpers.checkers import check_if_mkc_user_id_used
+from helpers.checkers import (
+    check_for_dupes_in_list,
+    check_if_name_is_unique,
+    check_if_banned_characters,
+    check_if_mkc_user_id_used,
+    check_if_mogi_id_exists,
+    check_if_uid_exists,
+    check_if_uid_has_role,
+    check_if_uid_is_chat_restricted,
+    check_if_uid_is_placement,
+)
+from helpers.checkers.check_if_uid_is_lounge_banned import check_if_uid_is_lounge_banned
 
 
 @pytest.fixture
@@ -63,46 +73,73 @@ async def test_check_if_mkc_user_id_used(create_database):
 
 
 @pytest.mark.asyncio
-async def test_check_if_mogi_id_exists():
+async def test_check_if_mogi_id_exists(create_database):
+    result = await check_if_mogi_id_exists(1)
+    assert result
+    result = await check_if_mogi_id_exists(999)
+    assert not result
+
+
+@pytest.mark.asyncio
+async def test_check_if_name_is_unique(create_database):
     # need test data
+    result = await check_if_name_is_unique("1")
+    assert not result
+    result = await check_if_name_is_unique("Player_MK")
+    assert result
     pass
 
 
 @pytest.mark.asyncio
-async def test_check_if_name_is_unique():
+async def test_check_if_uid_exists(create_database):
     # need test data
-    pass
-
-
-@pytest.mark.asyncio
-async def test_check_if_uid_exists():
-    # need test data
-    pass
+    result = await check_if_uid_exists(1)
+    assert result
+    result = await check_if_uid_exists(999)
+    assert not result
 
 
 @pytest.mark.asyncio
 async def test_check_if_uid_has_role():
-    # discord mock data
-    # hard to test...
     pass
+    # impossible to test
+
+    # bot = AsyncMock(spec=discord.Bot)
+    # guild = AsyncMock(spec=discord.Guild)
+    # member = AsyncMock(spec=discord.Member)
+    # role = AsyncMock(spec=discord.Role)
+    #
+    # bot.guilds = [guild]
+    # guild.fetch_member = AsyncMock(return_value=member)
+    # role.id = 12345
+    # member.roles = [role]
+    #
+    # result = await check_if_uid_has_role(bot, 1, 12345)
+    # assert result
 
 
 @pytest.mark.asyncio
-async def test_check_if_uid_is_chat_restricted():
-    # need test data
-    pass
+async def test_check_if_uid_is_chat_restricted(create_database):
+    result = await check_if_uid_is_chat_restricted(1)
+    assert not result
+    result = await check_if_uid_is_chat_restricted(12)
+    assert result
 
 
 @pytest.mark.asyncio
-async def test_check_if_uid_is_lounge_banned():
-    # need test data
-    pass
+async def test_check_if_uid_is_lounge_banned(create_database):
+    result = await check_if_uid_is_lounge_banned(1)
+    assert not result
+    result = await check_if_uid_is_lounge_banned(11)
+    assert result > 0
 
 
 @pytest.mark.asyncio
-async def test_check_if_uid_is_placement():
-    # need test data
-    pass
+async def test_check_if_uid_is_placement(create_database):
+    result = await check_if_uid_is_placement(1)
+    assert not result
+    result = await check_if_uid_is_placement(10)
+    assert result
 
 
 @pytest.mark.asyncio

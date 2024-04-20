@@ -36,7 +36,7 @@ class StrikeCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def strike(
         self,
-        ctx: 'ApplicationContext',
+        ctx: "ApplicationContext",
         player: Option(str, description="Player name", required=True),  # type: ignore
         mmr_penalty: Option(
             int,
@@ -152,12 +152,9 @@ class StrikeCog(commands.Cog):
                     await get_unix_time_now()
                     + 7 * 24 * 60 * 60 * times_strike_limit_reached
                 )  # multiply their ban length by 7x how many times they have reached strike limit before
-                dt = datetime.datetime.utcfromtimestamp(unban_unix_time).strftime(
-                    "%Y-%m-%d %H:%M:%S"
-                )  # create the dt object
                 db.execute(
-                    "UPDATE player SET times_strike_limit_reached = %s, unban_date = %s WHERE player_id = %s;",
-                    (times_strike_limit_reached, dt, player_id),
+                    "UPDATE player SET times_strike_limit_reached = %s, banned_by_strikes_unban_date = %s WHERE player_id = %s;",
+                    (times_strike_limit_reached, unban_unix_time, player_id),
                 )  # insert the dt object
 
             try:
