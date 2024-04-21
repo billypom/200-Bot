@@ -4,8 +4,11 @@ from discord.ext import commands
 import DBA
 import logging
 import datetime
-from helpers.checkers import check_if_uid_is_placement
-from helpers.checkers import check_if_banned_characters
+from helpers.checkers import (
+    check_if_uid_is_placement,
+    check_if_banned_characters,
+    check_if_uid_is_chat_restricted,
+)
 from helpers.getters import get_number_of_strikes_for_uid
 from helpers.getters import get_lounge_guild
 from helpers.getters import get_unix_time_now
@@ -46,6 +49,10 @@ class StrikeCog(commands.Cog):
         reason: Option(str, description="Why?", required=True),  # type: ignore
     ):
         await ctx.defer()
+        is_chat_restricted = await check_if_uid_is_chat_restricted(ctx.author.id)
+        if is_chat_restricted:
+            await ctx.respond("You cannot use this command")
+            return
         if len(reason) > 32:
             await ctx.respond("Reason too long (32 character limit)")
             return

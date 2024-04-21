@@ -5,6 +5,7 @@ import DBA
 import logging
 from constants import REPORTER_ROLE_ID, LOUNGE
 from helpers.getters import get_unix_time_now
+from helpers.checkers import check_if_uid_is_chat_restricted
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -30,6 +31,10 @@ class UnstrikeCog(commands.Cog):
         strike_id: Option(int, description="Enter the strike ID", required=True),  # type: ignore
     ):
         await ctx.defer()
+        is_chat_restricted = await check_if_uid_is_chat_restricted(ctx.author.id)
+        if is_chat_restricted:
+            await ctx.respond("You cannot use this command")
+            return
         # Check if strike exists
         unix_now = await get_unix_time_now()
         with DBA.DBAccess() as db:

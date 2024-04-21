@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import DBA
-from helpers.checkers import check_if_uid_is_placement
+from helpers.checkers import check_if_uid_is_placement, check_if_uid_is_chat_restricted
 from helpers.senders import send_to_debug_channel
 from helpers import set_uid_roles
 from constants import REPORTER_ROLE_ID, LOUNGE
@@ -33,6 +33,10 @@ class MMRPenaltyCog(commands.Cog):
     ):
         """/mmr_penalty slash command - gives a player an mmr penalty"""
         await ctx.defer()
+        is_chat_restricted = await check_if_uid_is_chat_restricted(ctx.author.id)
+        if is_chat_restricted:
+            await ctx.respond("You cannot use this command")
+            return
         mmr_penalty = abs(mmr_penalty)
         with DBA.DBAccess() as db:
             player_id = db.query(
