@@ -3,7 +3,7 @@ import logging
 from helpers.getters.get_tier_id_list import get_tier_id_list
 
 
-async def get_results_tier_dict() -> dict
+async def get_results_tier_dict() -> dict:
     """Returns a dictionary of {tier_id: results_id} from the DB tier table"""
     tier_ids = await get_tier_id_list()
     my_dict = {}

@@ -2,6 +2,8 @@ import pytest
 import DBA
 import discord
 from datetime import datetime
+from constants import SQUAD_QUEUE_CHANNEL_ID
+from helpers.getters import get_results_tier_dict
 from helpers.checkers import (
     check_for_dupes_in_list,
     check_if_banned_characters,
@@ -143,15 +145,23 @@ async def test_check_if_uid_is_placement(create_database):
 
 
 @pytest.mark.asyncio
-async def test_check_if_valid_table_submission_channel():
+async def test_check_if_valid_table_submission_channel(create_database):
     # set up a category in the db
     with DBA.DBAccess() as db:
         db.execute("INSERT INTO sq_helper (category_id) values (%s);", (1,))
     channels = []  # list of valid channel ids and 1 invalid
-    for channel in channels:
-        result = await check_if_valid_table_submission_channel(channel, 1)
+    tier_results = await get_results_tier_dict()
+    for key, value in tier_results.items():
+        channels.append(key)
+        channels.append(value)
+    channels.append(SQUAD_QUEUE_CHANNEL_ID)
+    # All valid channels, any category
+    for idx, channel in enumerate(channels):
+        result = await check_if_valid_table_submission_channel(channel, idx)
         assert result
-    result = await check_if_valid_table_submission_channel(channels[0], 2)
-    assert not result
-    result = await check_if_valid_table_submission_channel(3, 3)
+    # Invalid channel + valid sq category
+    result = await check_if_valid_table_submission_channel(999, 1)
+    assert result
+    # Invalid channel + invalid sq category
+    result = await check_if_valid_table_submission_channel(999, 2)
     assert not result

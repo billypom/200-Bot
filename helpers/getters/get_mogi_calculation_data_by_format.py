@@ -4,7 +4,7 @@ async def get_mogi_calculation_data_by_format(
     """Returns data to be used in MMR calculations & some colors for the Lorenzi tables based on the mogi format"""
     SPECIAL_TEAMS_INTEGER = 0
     OTHER_SPECIAL_INT = 0
-    MULTIPLIER_SPECIAL = 0
+    MULTIPLIER_SPECIAL = 0.0
     table_color = ["", ""]
     if mogi_format == 1:
         SPECIAL_TEAMS_INTEGER = 63

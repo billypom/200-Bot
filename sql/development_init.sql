@@ -1,6 +1,7 @@
 USE lounge_dev;
 DROP TABLE IF EXISTS sq_default_schedule;
 DROP TABLE IF EXISTS sq_schedule;
+DROP TABLE IF EXISTS sq_helper;
 DROP TABLE IF EXISTS player_punishment;
 DROP TABLE IF EXISTS punishment;
 DROP TABLE IF EXISTS suggestion;
@@ -157,6 +158,15 @@ CREATE TABLE sq_default_schedule(
     CONSTRAINT default_sq_schedulepk PRIMARY KEY (id)
 );
 
+CREATE TABLE sq_helper(
+    -- table holds category id's of categories created
+    -- when sq runs. to be used to validate /table submission channels
+    -- and determine that its a sq being played
+    id int unsigned auto_increment,
+    category_id bigint unsigned,
+    create_date TIMESTAMP default CURRENT_TIMESTAMP,
+    CONSTRAINT sq_helperpk PRIMARY KEY (id)
+);
 -- Dev Ranks
 insert into ranks (rank_id, rank_name, mmr_min, mmr_max, placement_mmr)
 values (1041162011536527398, 'Grandmaster', 11000, 99999, NULL),

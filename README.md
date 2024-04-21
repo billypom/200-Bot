@@ -91,7 +91,7 @@ Run this file: `/200-bot/sql/development_init.sql` on your db instance
 
 ## Update `constants.py`
 
-Use the config example
+Use the example
 
 ```
 mv constants_example.py constants.py
