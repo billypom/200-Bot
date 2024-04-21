@@ -4,7 +4,7 @@ This bot is the primary driver for all things related to the MK8DX 200cc Lounge 
 - `/verify` your MKC identity 
 - Gather for matches in the [Discord server](discord.gg/uR3rRzsjhk) using [MogiBot](https://255mp.github.io/)
 - Submit match results
-- View player stats on [200-lounge.com](https://200-lounge.com), or use the commands below.
+- View player stats on [200-lounge.com](https://200-lounge.com)
 
 # Development Environment / Installation
 
@@ -49,10 +49,10 @@ apt install mariadb-server
 apt install git, imagemagick, virtualenv, python3, python3-venv
 ```
 
-## Clone this repository
+## Fork & Clone the repository
 
 ```bash
-git clone https://github.com/billypom/200-Bot.git
+git clone https://github.com/<YOUR_USER_NAME>/200-Bot.git
 ```
 
 ## Create a virtual environment
@@ -85,11 +85,19 @@ FLUSH PRIVILEGES;
 
 ## Create local development database
 
-*UNFINISHED*
+*UNFINISHED* - Still writing unit tests and figuring out what minimum data is needed
 
 Run this file: `/200-bot/sql/development_init.sql` on your db instance
 
 ## Update `config.py`
+
+Use the config example
+
+```
+mv config_example.py config.py
+```
+
+Edit the file
 
 ```py
 TOKEN = "" # bot token from earlier
@@ -114,9 +122,9 @@ python3 main.py
 
 # Pull Requests
 
-```bash
-# coming soon
-```
+- Keep changes small
+- All unit tests must pass
+- Not sure what else - I am a solo developer so this is new to me.
 
 # Credits
 [Lorenzi Table Maker](https://github.com/hlorenzi/mk8d_ocr)
