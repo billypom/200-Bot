@@ -49,11 +49,9 @@ apt install mariadb-server
 apt install git, imagemagick, virtualenv, python3, python3-venv
 ```
 
-## Fork & Clone the repository
+## Fork & clone the repository
 
-```bash
-git clone https://github.com/<YOUR_USER_NAME>/200-Bot.git
-```
+You know how to do this. I believe in you
 
 ## Create a virtual environment
 
@@ -98,16 +96,15 @@ mv constants_example.py constants.py
 echo "constants.py" >> .gitignore
 ```
 
+*UNFINISHED* - Not sure if it is reasonable for people to set up their own server, or if all devs should be in the same test server. Have not decided yet. There are a lot of constants for channels and roles that would be cumbersome for someone to set up for themselves, but would also be a good experience to understand the context of the project.
+
 Edit the file
 
 ```py
 TOKEN = "" # bot token from earlier
 BOT_ID = 0 # bot user id
-...
-
 LOUNGE = [] # guild id goes here
 ...
-
 # DB config for Discord Bot
 HOST = "localhost" # hostname/ip where your db instance is running
 PASS = "" # db user password
@@ -125,12 +122,11 @@ python3 main.py
 
 - Keep changes small
 - All unit tests must pass
-- Not sure what else - I am a solo developer so this is new to me.
 - Will refine what my requirements over time
+
+I am normally a solo developer, so I am not sure what collaboration will look like yet
 
 # Credits
 [Lorenzi Table Maker](https://github.com/hlorenzi/mk8d_ocr)
-
-[150cc Lounge API](https://github.com/VikeMK/Lounge-API)
 
 [mariokartcentral.com](https://www.mariokartcentral.com/)

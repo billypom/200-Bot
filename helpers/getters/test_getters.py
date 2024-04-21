@@ -1,8 +1,6 @@
 import pytest
 import constants
 import DBA
-from unittest.mock import MagicMock, patch
-from datetime import datetime, timedelta
 
 # import config
 from helpers.getters import (

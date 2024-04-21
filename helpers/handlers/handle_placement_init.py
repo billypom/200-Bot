@@ -105,6 +105,6 @@ async def handle_placement_init(
             f"handle_placement_init | Potential accumulated penalties error for player: {player[0]}",
             e,
         )
-        return
+        return str(e), 0
 
     return placement_name, my_player_new_queued_strike_adjusted_mmr

@@ -11,14 +11,13 @@ async def handle_player_name(name: str) -> str | None:
     Returns the new name if OK
     Returns None if bad"""
     logging.info(f"handle_player_name | Step 1 - Handling name: [{name}]")
-    insert_name = ""
-    logging.info(f"insert_name = {insert_name}")
     # Romanize the text
     try:
         insert_name = await jp_kr_romanize(name)
     except Exception as e:
-        print("FDSJFKSDJFKDJLFJSDLKFJSDLJFSDJFLKSDJLF")
-        print(e)
+        logging.warning(
+            f"ERROR IN handle_player_name, exception from jp_kr_romanize | {e}"
+        )
         return None
     logging.info(f"handle_player_name | Step 2 - romanized name: [{insert_name}]")
     # Handle name too long
@@ -42,13 +41,10 @@ async def handle_player_name(name: str) -> str | None:
     logging.info(f"handle_player_name | Step 4 - handled chars: [{allowed_name}]")
     insert_name = allowed_name
     # Handle empty name
-    if not insert_name:
-        insert_name = await get_random_name()
-    logging.info(f"handle_player_name | Step 5 - handled empty: [{insert_name}]")
     # Handle whitespace name  - generate a random name lol
-    if insert_name.isspace():
+    if not insert_name or insert_name.isspace():
         insert_name = await get_random_name()
-    logging.info(f"handle_player_name | Step 6 - handled whitespace: [{insert_name}]")
+    logging.info(f"handle_player_name | Step 5 - handled whitespace: [{insert_name}]")
     # Handle duplicate names - append underscores
     name_still_exists = True
     count = 0

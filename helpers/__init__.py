@@ -1,5 +1,4 @@
 from .generate_random_name import generate_random_name
-from .FormatVote import FormatVote
 from .delete_discord_channel import delete_discord_channel
 from .delete_discord_category import delete_discord_category
 from .jp_kr_romanize import jp_kr_romanize
