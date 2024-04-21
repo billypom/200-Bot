@@ -1,6 +1,6 @@
 from discord.ext import commands
 from discord import Permissions
-from config import (
+from constants import (
     ADMIN_ROLE_ID,
     UPDATER_ROLE_ID,
     LOUNGE,

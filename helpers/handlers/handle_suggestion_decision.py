@@ -1,6 +1,6 @@
 from helpers.getters import get_lounge_guild
 import logging
-from config import SUGGESTION_VOTING_CHANNEL_ID
+from constants import SUGGESTION_VOTING_CHANNEL_ID
 from discord import Color, Embed
 
 from typing import TYPE_CHECKING

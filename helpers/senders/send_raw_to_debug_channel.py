@@ -1,4 +1,4 @@
-from config import DEBUG_CHANNEL_ID
+from constants import DEBUG_CHANNEL_ID
 from discord import Embed, Color
 from typing import TYPE_CHECKING, cast
 

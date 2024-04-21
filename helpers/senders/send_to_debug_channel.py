@@ -1,5 +1,5 @@
 import discord
-from config import DEBUG_CHANNEL_ID
+from constants import DEBUG_CHANNEL_ID
 
 
 async def send_to_debug_channel(client, ctx, error):

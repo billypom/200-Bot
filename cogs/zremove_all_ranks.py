@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from helpers.getters import get_lounge_guild, get_rank_id_list
-from config import LOUNGE, ADMIN_ROLE_ID
+from constants import LOUNGE, ADMIN_ROLE_ID
 
 
 class ZRemoveAllRanks(commands.Cog):

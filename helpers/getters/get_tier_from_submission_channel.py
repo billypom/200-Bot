@@ -1,6 +1,6 @@
 import DBA
 import logging
-from config import SQUAD_QUEUE_CHANNEL_ID
+from constants import SQUAD_QUEUE_CHANNEL_ID
 from helpers.getters import get_results_tier_dict
 
 

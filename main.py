@@ -10,7 +10,13 @@ from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild
 from helpers.getters import get_discord_role
 from helpers import set_uid_roles
-import config
+from constants import (
+    CHAT_RESTRICTED_ROLE_ID,
+    DEBUG_CHANNEL_ID,
+    SUPPORT_CHANNEL_ID,
+    NAME_CHANGE_CHANNEL_ID,
+    TOKEN,
+)
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
@@ -53,12 +59,12 @@ for extension in COMMAND_EXTENSIONS.split(","):
     client.load_extension(f"cogs.{extension.strip()}")
 
 for extension in ADMIN_COMMAND_EXTENSIONS.split(","):
-    client.load_extension(f"cogs.{extension.strip()}")
+    client.load_extension(f"cogs.{extension}")
 
 
 @client.event
 async def on_ready():
-    channel = cast("TextChannel", client.get_channel(config.DEBUG_CHANNEL_ID))
+    channel = cast("TextChannel", client.get_channel(DEBUG_CHANNEL_ID))
     embed = discord.Embed(
         title="Startup", description=":3", color=discord.Color.og_blurple()
     )
@@ -87,7 +93,7 @@ async def on_application_command_error(ctx, error) -> None:
         )
         return
     else:
-        channel = cast("TextChannel", client.get_channel(config.DEBUG_CHANNEL_ID))
+        channel = cast("TextChannel", client.get_channel(DEBUG_CHANNEL_ID))
         embed = discord.Embed(
             title="Error", description=":eyes:", color=discord.Color.blurple()
         )
@@ -97,7 +103,7 @@ async def on_application_command_error(ctx, error) -> None:
         logging.warning(f"{error} | {ctx}")
         await channel.send(content=None, embed=embed)
         await ctx.respond(
-            f"Sorry! An unknown error occurred. Try again later or make a <#{config.SUPPORT_CHANNEL_ID}> ticket for assistance."
+            f"Sorry! An unknown error occurred. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."
         )
         # print(traceback.format_exc())
         raise error
@@ -118,7 +124,7 @@ async def on_message(ctx):
     user = await guild.fetch_member(ctx.author.id)
     try:
         if (
-            get_discord_role(client, config.CHAT_RESTRICTED_ROLE_ID) in user.roles
+            get_discord_role(client, CHAT_RESTRICTED_ROLE_ID) in user.roles
         ):  # restricted players
             await ctx.delete()
             return
@@ -126,36 +132,6 @@ async def on_message(ctx):
         logging.warning(
             f"on_message event error 1 - could not compare chat restricted role | {e}"
         )
-    # Only care if message is in lounge queue join channel
-    if ctx.channel.id == config.LOUNGE_QUEUE_JOIN_CHANNEL_ID:
-        # If player in lineup, set player chat activity timer
-        try:
-            with DBA.DBAccess() as db:
-                temp = db.query(
-                    "SELECT player_id FROM lounge_queue_player WHERE player_id = %s AND wait_for_activity = %s;",
-                    (ctx.author.id, 1),
-                )
-        except Exception as e:
-            logging.warning(
-                f"on_message event error 4 - could not select player from lounge_queue_player | {e}"
-            )
-            return
-        try:
-            with DBA.DBAccess() as db:
-                db.execute(
-                    "UPDATE lounge_queue_player SET last_active = %s, wait_for_activity = %s WHERE player_id = %s;",
-                    (datetime.datetime.now(), 0, ctx.author.id),
-                )
-        except Exception as e:
-            logging.warning(
-                f"on_message event error 3 - could not update player in lounge_queue_player activity | {e}"
-            )
-            await send_raw_to_debug_channel(
-                client,
-                "on_message event error 2 | could not update lounge_queue_player record for chat activity",
-                e,
-            )
-            return
 
 
 @client.event
@@ -163,7 +139,7 @@ async def on_raw_reaction_add(payload):
     if int(payload.user_id) == int(client.user.id):
         # Return if bot reaction
         return
-    if payload.channel_id == config.NAME_CHANGE_CHANNEL_ID:
+    if payload.channel_id == NAME_CHANGE_CHANNEL_ID:
         pass
     else:
         # Return if this isnt a name change approval
@@ -278,4 +254,4 @@ async def on_member_join(member):
 
 
 if __name__ == "__main__":
-    client.run(config.TOKEN)
+    client.run(TOKEN)

@@ -1,4 +1,4 @@
-from config import VERIFICATION_CHANNEL_ID
+from constants import VERIFICATION_CHANNEL_ID
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:

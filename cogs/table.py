@@ -23,7 +23,7 @@ from helpers.checkers import check_if_valid_table_submission_channel
 from helpers.handlers import handle_score_input
 from helpers.handlers import handle_placement_init
 from helpers.wrappers import positive_mmr, negative_mmr, peak_mmr, new_rank
-from config import (
+from constants import (
     REPORTER_ROLE_ID,
     LOUNGE,
     MOGI_MEDIA_CHANNEL_ID,

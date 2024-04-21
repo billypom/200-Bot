@@ -2,7 +2,7 @@ from discord.ext import commands, tasks
 from discord import Embed, Color
 import datetime
 import DBA
-import config
+from constants import DEBUG_CHANNEL_ID, PING_DEVELOPER
 import logging
 
 
@@ -17,7 +17,7 @@ class strike_check(commands.Cog):
 
     async def send_embed(self, anything, error):
         """Sends a confirmation embed to the debug channel"""
-        channel = self.client.get_channel(config.DEBUG_CHANNEL_ID)
+        channel = self.client.get_channel(DEBUG_CHANNEL_ID)
         embed = Embed(title=self.title, description="✅", color=Color.teal())
         embed.add_field(name="Description: ", value=anything, inline=False)
         embed.add_field(name="Strike IDs: ", value=str(error), inline=False)
@@ -25,7 +25,7 @@ class strike_check(commands.Cog):
 
     async def send_error_embed(self, anything, error):
         """Sends an error embed to the debug channel"""
-        channel = self.client.get_channel(config.DEBUG_CHANNEL_ID)
+        channel = self.client.get_channel(DEBUG_CHANNEL_ID)
         embed = Embed(title=self.title, description="✅", color=Color.red())
         embed.add_field(name="Description: ", value=anything, inline=False)
         embed.add_field(name="Details: ", value=str(error), inline=False)
@@ -48,9 +48,7 @@ class strike_check(commands.Cog):
                 )
         except Exception as e:
             logging.info(f"strike_check | ERROR - unable to retrieve strike | {e}")
-            await self.send_error_embed(
-                f"strike_check error 1 {config.PING_DEVELOPER}", e
-            )
+            await self.send_error_embed(f"strike_check error 1 {PING_DEVELOPER}", e)
             return
         # Set strikes inactive
         if temp:
@@ -66,9 +64,7 @@ class strike_check(commands.Cog):
                 logging.info(
                     f"strike_check | ERROR - unable to set strikes to inactive | {e}"
                 )
-                await self.send_error_embed(
-                    f"strike_check error 2 {config.PING_DEVELOPER}", e
-                )
+                await self.send_error_embed(f"strike_check error 2 {PING_DEVELOPER}", e)
                 return
 
     @check.before_loop

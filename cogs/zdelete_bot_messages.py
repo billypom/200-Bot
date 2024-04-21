@@ -1,16 +1,17 @@
 from discord import Permissions
 from discord.ext import commands
-from config import LOUNGE, ADMIN_ROLE_ID, UPDATER_ROLE_ID, BOT_ID
+from constants import LOUNGE, ADMIN_ROLE_ID, UPDATER_ROLE_ID, BOT_ID
+
 
 class DeleteBotMessagesCog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
     @commands.slash_command(
-        name="zdelete_bot_messages", 
+        name="zdelete_bot_messages",
         description="Delete all bot messages in the current channel from the past 14 days",
         default_member_permissions=(Permissions(moderate_members=True)),
-        guild_ids=LOUNGE
+        guild_ids=LOUNGE,
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zdelete_bot_msgs(self, ctx):
@@ -24,6 +25,7 @@ class DeleteBotMessagesCog(commands.Cog):
         await channel.delete_messages(bot_messages)
         # Inform the command invoker that messages have been deleted
         await ctx.respond(content="Deleted bot messages", hidden=True)
+
 
 def setup(client):
     client.add_cog(DeleteBotMessagesCog(client))

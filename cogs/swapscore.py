@@ -4,7 +4,7 @@ import DBA
 from helpers.senders import send_to_verification_log
 from helpers.senders import send_to_debug_channel
 from helpers.checkers import check_if_banned_characters
-from config import LOUNGE, REPORTER_ROLE_ID
+from constants import LOUNGE, REPORTER_ROLE_ID
 import vlog_msg
 from typing import TYPE_CHECKING
 
@@ -24,7 +24,7 @@ class ScoreSwapCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def swapscore(
         self,
-        ctx: 'ApplicationContext',
+        ctx: "ApplicationContext",
         player1: Option(str, "Player name", required=True),  # type: ignore
         player2: Option(str, "Player name", required=True),  # type: ignore
         mogi_id: Option(int, "Mogi ID", required=True),  # type: ignore

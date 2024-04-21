@@ -1,6 +1,6 @@
 from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild
-from config import CHAT_RESTRICTED_ROLE_ID
+from constants import CHAT_RESTRICTED_ROLE_ID
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

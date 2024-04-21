@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands, tasks
 import DBA
-import config
+import constants
 import requests
 from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild
@@ -150,4 +150,3 @@ class mogi_media_check(commands.Cog):
 
 def setup(client):
     client.add_cog(mogi_media_check(client))
-

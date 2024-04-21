@@ -3,7 +3,7 @@ from discord import Option
 from discord.ext import commands
 import DBA
 import logging
-from config import REPORTER_ROLE_ID, LOUNGE
+from constants import REPORTER_ROLE_ID, LOUNGE
 from helpers.getters import get_unix_time_now
 from typing import TYPE_CHECKING
 
@@ -26,7 +26,7 @@ class UnstrikeCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def unstrike(
         self,
-        ctx: 'ApplicationContext',
+        ctx: "ApplicationContext",
         strike_id: Option(int, description="Enter the strike ID", required=True),  # type: ignore
     ):
         await ctx.defer()

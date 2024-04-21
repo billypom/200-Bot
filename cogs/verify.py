@@ -15,7 +15,7 @@ from helpers.checkers import check_if_mkc_user_id_used
 from helpers.jazzy_mkc import mkc_request_forum_info
 from helpers.jazzy_mkc import mkc_request_registry_info
 from helpers.jazzy_mkc import mkc_request_mkc_player_id
-from config import LOUNGE, SUPPORT_CHANNEL_ID
+from constants import LOUNGE, SUPPORT_CHANNEL_ID
 import logging
 import configparser
 from typing import TYPE_CHECKING

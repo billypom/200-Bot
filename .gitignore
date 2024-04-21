@@ -1,6 +1,8 @@
 # python files
 config.py
+constants.py
 live_config.py
+live_constants.py
 vlog_msg.py
 season_migration.py
 

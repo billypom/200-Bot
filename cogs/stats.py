@@ -13,7 +13,7 @@ from helpers import iso_country_to_emoji
 from subprocess import run as subprocessrun
 import operator
 import plotting
-from config import LOUNGE, DTB
+from constants import LOUNGE, DTB
 import vlog_msg
 from typing import TYPE_CHECKING
 
@@ -30,7 +30,7 @@ class StatsCog(commands.Cog):
     )
     async def stats(
         self,
-        ctx: 'ApplicationContext',
+        ctx: "ApplicationContext",
         tier: Option(str, description="Which tier? (a, b, c, all, sq)", required=False),  # type: ignore
         mogi_format: Option(
             int, description="Your choices: (1, 2, 3, 4, 6)", required=False

@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import DBA
 from helpers.getters import get_lounge_guild
-from config import LOUNGE, ADMIN_ROLE_ID, PLACEMENT_ROLE_ID
+from constants import LOUNGE, ADMIN_ROLE_ID, PLACEMENT_ROLE_ID
 
 
 class ZAssignRanks(commands.Cog):

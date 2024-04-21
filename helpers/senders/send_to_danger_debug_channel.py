@@ -1,6 +1,5 @@
 import discord
-from config import DEBUG_CHANNEL_ID
-from config import PING_DEVELOPER
+from constants import DEBUG_CHANNEL_ID, PING_DEVELOPER
 
 
 async def send_to_danger_debug_channel(

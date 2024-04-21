@@ -6,7 +6,7 @@ from helpers.checkers import check_if_banned_characters
 from helpers.checkers import check_if_uid_exists
 from helpers.senders import send_raw_to_debug_channel
 from helpers.senders import send_to_danger_debug_channel
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
+from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 import vlog_msg
 
 

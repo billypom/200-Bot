@@ -3,7 +3,7 @@ from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild
 from helpers.handlers import handle_queued_mmr_penalties
 import logging
-from config import PLACEMENT_ROLE_ID
+from constants import PLACEMENT_ROLE_ID
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

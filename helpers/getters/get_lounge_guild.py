@@ -1,4 +1,4 @@
-from config import LOUNGE
+from constants import LOUNGE
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

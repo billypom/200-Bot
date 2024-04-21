@@ -12,7 +12,7 @@ from helpers import jp_kr_romanize
 from helpers.getters import get_unix_time_now
 from helpers import Confirm
 import vlog_msg
-from config import SUPPORT_CHANNEL_ID, LOUNGE
+from constants import SUPPORT_CHANNEL_ID, LOUNGE
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -35,7 +35,7 @@ class NameChangeCog(commands.Cog):
     )
     async def name(
         self,
-        ctx: 'ApplicationContext',
+        ctx: "ApplicationContext",
         name: discord.Option(str, "Enter a new nickname here", required=True),  # type: ignore
     ) -> None:
         """/name slash command for requesting a nickname for the leaderboard.

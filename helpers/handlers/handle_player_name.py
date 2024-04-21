@@ -1,7 +1,7 @@
 from helpers.getters import get_random_name
 from helpers import jp_kr_romanize
 import logging
-from config import ALLOWED_CHARACTERS
+from constants import ALLOWED_CHARACTERS
 import DBA
 
 

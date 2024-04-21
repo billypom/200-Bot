@@ -3,12 +3,12 @@ from discord import Embed, Color
 import time
 import datetime
 import DBA
-import config
-from config import (
+from constants import (
     DEBUG_CHANNEL_ID,
     PING_DEVELOPER,
     CHAT_RESTRICTED_ROLE_ID,
     LOUNGELESS_ROLE_ID,
+    LOUNGE,
 )
 from helpers import set_uid_roles
 import logging
@@ -57,12 +57,12 @@ class Unban_check(commands.Cog):
             return
 
         try:
-            guild = await self.client.fetch_guild(config.LOUNGE[0])
+            guild = await self.client.fetch_guild(LOUNGE[0])
         except Exception as e:
             await self.send_error_embed(f"unban_check error 2 {PING_DEVELOPER}", e)
             return
         try:
-            loungeless_role = guild.get_role(config.LOUNGELESS_ROLE_ID)
+            loungeless_role = guild.get_role(LOUNGELESS_ROLE_ID)
         except Exception as e:
             await self.send_error_embed(f"unban_check error 3 {PING_DEVELOPER}", e)
             return
@@ -95,7 +95,7 @@ class Unban_check(commands.Cog):
         unix_now = await self.get_unix_time_now()
         current_time = datetime.datetime.now()
         # guild object
-        guild = await self.client.fetch_guild(config.LOUNGE[0])
+        guild = await self.client.fetch_guild(LOUNGE[0])
 
         with DBA.DBAccess() as db:
             temp = db.query(

@@ -10,7 +10,7 @@ from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_unix_time_now
 from helpers.getters import get_lounge_guild
 from helpers.getters import get_discord_role
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGELESS_ROLE_ID, LOUNGE
+from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGELESS_ROLE_ID, LOUNGE
 
 
 class LoungelessCog(commands.Cog):

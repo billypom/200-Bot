@@ -1,4 +1,4 @@
-from config import DTB, HOST, USER, PASS
+from constants import DTB, HOST, USER, PASS
 import mysql.connector
 
 

@@ -4,7 +4,7 @@ from helpers.senders import send_raw_to_verification_log
 from helpers.handlers import handle_player_name
 from helpers.getters import get_lounge_guild
 import logging
-from config import (
+from constants import (
     PLACEMENT_ROLE_ID,
     SUPPORT_CHANNEL_ID,
 )
@@ -31,8 +31,7 @@ async def create_player(client, member, mkc_user_id, country_code):
         with DBA.DBAccess() as db:
             db.execute(
                 "INSERT INTO player (player_id, player_name, mkc_id, country_code, rank_id) VALUES (%s, %s, %s, %s, %s);",
-                (member.id, altered_name, mkc_user_id,
-                 country_code, PLACEMENT_ROLE_ID),
+                (member.id, altered_name, mkc_user_id, country_code, PLACEMENT_ROLE_ID),
             )
     except Exception as e:
         await send_raw_to_debug_channel(
@@ -52,8 +51,7 @@ async def create_player(client, member, mkc_user_id, country_code):
             e,
         )
     role = get_lounge_guild(client).get_role(PLACEMENT_ROLE_ID)
-    logging.info(
-        f"create_player | {altered_name} | Attempted to edit nickname")
+    logging.info(f"create_player | {altered_name} | Attempted to edit nickname")
     # Add role
     try:
         await member.add_roles(role)
@@ -71,4 +69,4 @@ async def create_player(client, member, mkc_user_id, country_code):
         "**Creating player**",
     )
     # User feedback
-    return f":flag_us:\nVerified & registered successfully. :thewman: Assigned <@&{role.id}>\n:flag_jp:認証に成功しました。{role}が割り当てられました。" # type: ignore
+    return f":flag_us:\nVerified & registered successfully. :thewman: Assigned <@&{role.id}>\n:flag_jp:認証に成功しました。{role}が割り当てられました。"  # type: ignore

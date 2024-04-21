@@ -89,12 +89,13 @@ FLUSH PRIVILEGES;
 
 Run this file: `/200-bot/sql/development_init.sql` on your db instance
 
-## Update `config.py`
+## Update `constants.py`
 
 Use the config example
 
 ```
-mv config_example.py config.py
+mv constants_example.py constants.py
+echo "constants.py" >> .gitignore
 ```
 
 Edit the file
@@ -125,6 +126,7 @@ python3 main.py
 - Keep changes small
 - All unit tests must pass
 - Not sure what else - I am a solo developer so this is new to me.
+- Will refine what my requirements over time
 
 # Credits
 [Lorenzi Table Maker](https://github.com/hlorenzi/mk8d_ocr)

@@ -8,7 +8,7 @@ from helpers.getters import get_lounge_guild
 from helpers.getters import get_discord_role
 from helpers.senders import send_raw_to_debug_channel
 from helpers.checkers import check_if_uid_is_chat_restricted
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, CHAT_RESTRICTED_ROLE_ID, LOUNGE
+from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, CHAT_RESTRICTED_ROLE_ID, LOUNGE
 
 
 class RestrictCog(commands.Cog):

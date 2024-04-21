@@ -4,7 +4,7 @@ import DBA
 from helpers.checkers import check_if_uid_is_placement
 from helpers.senders import send_to_debug_channel
 from helpers import set_uid_roles
-from config import REPORTER_ROLE_ID, LOUNGE
+from constants import REPORTER_ROLE_ID, LOUNGE
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -23,7 +23,7 @@ class MMRPenaltyCog(commands.Cog):
     @commands.has_any_role(REPORTER_ROLE_ID)
     async def mmr_penalty(
         self,
-        ctx: 'ApplicationContext',
+        ctx: "ApplicationContext",
         player: discord.Option(str, description="Which player?", required=True),  # type: ignore
         mmr_penalty: discord.Option(
             int,

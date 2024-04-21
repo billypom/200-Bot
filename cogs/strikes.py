@@ -1,7 +1,7 @@
 from discord.ext import commands
 import DBA
 from helpers.checkers import check_if_uid_exists
-from config import LOUNGE
+from constants import LOUNGE
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -15,7 +15,7 @@ class StrikesCog(commands.Cog):
     @commands.slash_command(
         name="strikes", description="See your strikes", guild_ids=LOUNGE
     )
-    async def strikes(self, ctx: 'ApplicationContext'):
+    async def strikes(self, ctx: "ApplicationContext"):
         await ctx.defer()
         x = await check_if_uid_exists(ctx.author.id)
         if x:

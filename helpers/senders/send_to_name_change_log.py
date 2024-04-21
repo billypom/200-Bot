@@ -1,5 +1,5 @@
 import discord
-from config import NAME_CHANGE_CHANNEL_ID
+from constants import NAME_CHANGE_CHANNEL_ID
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:

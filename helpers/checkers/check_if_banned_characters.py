@@ -1,4 +1,4 @@
-from config import BANNED_CHARACTERS
+from constants import BANNED_CHARACTERS
 
 
 async def check_if_banned_characters(message: str) -> bool:

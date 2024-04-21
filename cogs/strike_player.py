@@ -11,7 +11,7 @@ from helpers.getters import get_lounge_guild
 from helpers.getters import get_unix_time_now
 from helpers.getters import get_rank_id_list
 from helpers.getters import get_discord_role
-from config import (
+from constants import (
     REPORTER_ROLE_ID,
     PING_DEVELOPER,
     LOUNGELESS_ROLE_ID,

@@ -1,5 +1,5 @@
 import discord
-from config import SUGGESTION_VOTING_CHANNEL_ID
+from constants import SUGGESTION_VOTING_CHANNEL_ID
 
 
 async def send_to_suggestion_voting_channel(client, ctx, suggestion_id, message):

@@ -6,7 +6,7 @@ from helpers.senders import send_raw_to_debug_channel
 from helpers.checkers import check_if_banned_characters
 from helpers.checkers import check_if_uid_is_lounge_banned
 from helpers.checkers import check_if_uid_has_role
-from config import SUPPORT_CHANNEL_ID, SUGGESTION_RESTRICTED_ROLE_ID, LOUNGE
+from constants import SUPPORT_CHANNEL_ID, SUGGESTION_RESTRICTED_ROLE_ID, LOUNGE
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -24,7 +24,7 @@ class SuggestCog(commands.Cog):
     )
     async def suggest(
         self,
-        ctx: 'ApplicationContext',
+        ctx: "ApplicationContext",
         message: Option(str, "Type your suggestion", required=True),  # type: ignore
     ):
         await ctx.defer(ephemeral=True)

@@ -6,7 +6,7 @@ from helpers.getters import get_lounge_guild
 from helpers.checkers import check_if_uid_exists
 from helpers.checkers import check_if_mkc_user_id_used
 from helpers.senders import send_to_verification_log
-from config import LOUNGE, ADMIN_ROLE_ID, UPDATER_ROLE_ID, PING_DEVELOPER
+from constants import LOUNGE, ADMIN_ROLE_ID, UPDATER_ROLE_ID, PING_DEVELOPER
 import vlog_msg
 
 

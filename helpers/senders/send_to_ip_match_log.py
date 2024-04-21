@@ -1,5 +1,5 @@
 import discord
-from config import IP_MATCH_CHANNEL_ID
+from constants import IP_MATCH_CHANNEL_ID
 
 
 async def send_to_ip_match_log(client, ctx, message, verify_color, user_matches_list):

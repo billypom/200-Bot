@@ -5,7 +5,7 @@ import logging
 from helpers.senders import send_raw_to_debug_channel
 
 # from helpers.getters import get_lounge_guild
-from config import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
+from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 
 class WarnCog(commands.Cog):
