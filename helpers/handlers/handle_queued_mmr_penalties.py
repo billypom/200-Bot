@@ -6,15 +6,20 @@ async def handle_queued_mmr_penalties(
 ) -> tuple[int, int]:
     """Handles updating a players MMR, accounting for their accumulated penalties"""
     # Get all player strike records where penalty has not been applied yet
-    with DBA.DBAccess() as db:
-        total_queued_mmr_penalty = int(
-            db.query(  # type: ignore
-                "SELECT sum(mmr_penalty) FROM strike WHERE penalty_applied = %s AND player_id = %s;",
-                (0, player_id),
-            )[0][0]
-        )
+    try:
+        with DBA.DBAccess() as db:
+            total_queued_mmr_penalty = int(
+                db.query(  # type: ignore
+                    "SELECT sum(mmr_penalty) FROM strike WHERE penalty_applied = %s AND player_id = %s;",
+                    (0, player_id),
+                )[0][0]
+            )
+    # When there are no strikes
+    except TypeError:
+        return 0, my_player_mmr
     if total_queued_mmr_penalty is None:
         return int(0), my_player_mmr
+    # Calculate
     my_player_new_queued_strike_adjusted_mmr = my_player_mmr - total_queued_mmr_penalty
     # Update players mmr
     with DBA.DBAccess() as db:

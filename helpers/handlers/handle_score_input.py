@@ -1,13 +1,7 @@
 import DBA
-from typing import TYPE_CHECKING, cast
-
-if TYPE_CHECKING:
-    from discord import Bot, TextChannel
 
 
-async def handle_score_input(
-    client: "Bot", channel_id: int, score_string: str, mogi_format: int
-) -> list:
+async def handle_score_input(score_string: str, mogi_format: int) -> list:
     """Handles format and scores input from /table command
 
     Returns a list of lists of lists where the inner list is [player_id, score]
@@ -18,19 +12,15 @@ async def handle_score_input(
     list[0][0] would be team 1's 1st player
     list[0][0][0] woudld be team 1's 1st player's ID
 
-    On invalid input, returns False"""
+    On invalid input, returns an error message in a string at list[0]"""
     # Split into list
     score_list = score_string.split()
-    channel = cast("TextChannel", client.get_channel(channel_id))
-    if not channel:
-        return [False]
     if len(score_list) != 24:
-        await channel.send(f"`WRONG AMOUNT OF INPUTS:` {len(score_list)}")
-        return [False]
+        return [f"`WRONG AMOUNT OF INPUTS:` {len(score_list)}"]
     # Make sure every player in the list exists
-    try:
-        # Checks every value from idx = 0, incrementing by 2 (0,2,4,6,etc)
-        for i in range(0, len(score_list), 2):
+    for i in range(0, len(score_list), 2):
+        try:
+            # Checks every value from idx = 0, incrementing by 2 (0,2,4,6,etc)
             with DBA.DBAccess() as db:
                 temp = db.query(
                     "SELECT player_id FROM player WHERE player_name = %s;",
@@ -38,10 +28,9 @@ async def handle_score_input(
                 )
                 # Replace player_name with player_id
                 score_list[i] = temp[0][0]  # type: ignore
-    except Exception:
-        # {i} will never be unbound because the list MUST be 24 in length
-        await channel.send(f"`PLAYER DOES NOT EXIST:` {score_list[i]}")  # type: ignore
-        return [False]
+        except Exception:
+            # {i} will never be unbound because the list MUST be 24 in length
+            return [f"`PLAYER DOES NOT EXIST:` {score_list[i]}"]
     player_score_chunked_list = []
     for i in range(0, len(score_list), 2):
         player_score_chunked_list.append(score_list[i : i + 2])

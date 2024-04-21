@@ -45,4 +45,54 @@ async def test_handle_player_name():
 
 @pytest.mark.asyncio
 async def test_handle_queued_mmr_penalties(create_database):
-    result = await handle_queued_mmr_penalties(1, 4000)
+    # Player with no penalties
+    total_queued_penalties, final_mmr = await handle_queued_mmr_penalties(1, 4000)
+    assert total_queued_penalties == 0
+    assert final_mmr == 4000
+    # Player with queued penalties
+    total_queued_penalties, final_mmr = await handle_queued_mmr_penalties(9, 4000)
+    assert total_queued_penalties == 200
+    assert final_mmr == 3800
+
+
+@pytest.mark.asyncio
+async def test_handle_score_input(create_database):
+    result = await handle_score_input(
+        score_string="1 82 2 82 3 82 4 82 5 82 6 82 7 82 8 82 9 82 10 82 11 82 12 82",
+        mogi_format=2,
+    )
+    assert isinstance(result, list)
+    assert isinstance(result[0], list)
+    assert isinstance(result[0][0], list)
+    assert isinstance(result[0][0][0], int)
+
+
+@pytest.mark.asyncio
+async def test_handle_suggestion_decision():
+    # impossible to test
+    pass
+
+
+@pytest.mark.asyncio
+async def test_handle_team_placements_for_lorenzi_table(create_database):
+    chunked_list = await handle_score_input(
+        score_string="1 82 2 82 3 82 4 82 5 82 6 82 7 82 8 82 9 82 10 82 11 82 12 82",
+        mogi_format=2,
+    )
+    (
+        data_is_valid,
+        error_message,
+        mogi_score,
+        original_scores,
+    ) = await handle_team_placements_for_lorenzi_table(chunked_list)
+    assert data_is_valid
+    assert isinstance(error_message, str)
+    assert mogi_score == 984
+    assert isinstance(original_scores, dict)
+
+    chunked_list = await handle_score_input(
+        score_string="1 999 2 82 3 82 4 82 5 82 6 82 7 82 8 82 9 82 10 82 11 82 12 82",
+        mogi_format=2,
+    )
+    _, _, mogi_score, _ = await handle_team_placements_for_lorenzi_table(chunked_list)
+    assert not mogi_score == 984

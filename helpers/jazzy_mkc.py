@@ -1,4 +1,3 @@
-# Requests & async requests
 import concurrent.futures
 import requests
 import re
@@ -41,7 +40,7 @@ def mt_mkc_request_forum_info(mkc_user_id):
                     '<h3 class="contentRow-header"><a href="/forums/index.php?members/'
                     in line
                 ):
-                    regex_pattern = "members/.*\.\d*"
+                    regex_pattern = r"members/.*\.\d*"
                     if re.search(regex_pattern, line):
                         regex_group = re.search(regex_pattern, line)
                         x = regex_group.group()
@@ -52,6 +51,7 @@ def mt_mkc_request_forum_info(mkc_user_id):
             f"https://www.mariokartcentral.com/forums/index.php?members/{mkc_user_id}"
         )
         with requests.Session() as s:
+            last_seen_unix_timestamp = None
             html = s.get(login_url, headers=headers).content
             soup = Soup(html, "html.parser")
             token = soup.select_one("[name=_xfToken]").attrs["value"]
@@ -70,7 +70,7 @@ def mt_mkc_request_forum_info(mkc_user_id):
                 # print(line)
                 if "Last seen" in line:
                     last_seen_string = response_lines[idx + 2]
-                    regex_pattern = 'data-time="\d*"'
+                    regex_pattern = r'data-time="\d*"'
                     if re.search(regex_pattern, last_seen_string):
                         regex_group = re.search(regex_pattern, last_seen_string)
                         x = regex_group.group()
@@ -78,6 +78,8 @@ def mt_mkc_request_forum_info(mkc_user_id):
                         # print(reg_array)
                         last_seen_unix_timestamp = reg_array[1]
                         break
+            if last_seen_unix_timestamp is None:
+                return [-1, [-1, -1]]
         return [last_seen_unix_timestamp, list_of_user_matches]
     except Exception:
         return [-1, [-1, -1]]
@@ -92,6 +94,7 @@ async def mkc_request_mkc_player_id(mkc_user_id):
 
 def mt_mkc_request_mkc_player_id(mkc_user_id):
     headers = {"User-Agent": "200-Lounge Bot"}
+    mkc_player_id = None
     try:
         login_url = "https://www.mariokartcentral.com/forums/index.php?login/login"
         data_url = "https://www.mariokartcentral.com/mkc/api/registry/players/all"

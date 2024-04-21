@@ -12,13 +12,14 @@ async def calculate_pre_mmr(
     returns a table of values"""
     # Get the highest MMR ever
     # There was a very high integer in the formula for
-    # calculating mmr on the original google sheet (9998)
+    #   calculating mmr on the original google sheet (9998)
     # A comment about how people "never thought anyone could reach 10k mmr"
-    # made me think this very high integer was a replacement for getting
-    # the highest existing mmr (or at least my formula could emulate that high integer
-    # with some variance :shrug: its probably fine... no1 going 2 read this)
-    # getting the highest mmr made it so the highest ranked players
-    # could endlessly climb somewhat linearly, so i removed that.
+    #   made me think this very high integer was a replacement for getting
+    #   the highest existing mmr (or at least my formula could emulate that high integer
+    #   with some variance :shrug: its probably fine... no1 going 2 read this)
+
+    # Getting the highest mmr made it so the highest ranked players
+    #   could endlessly climb somewhat linearly, so i removed that.
     # 10999 works very well
     highest_mmr = 10999
     value_table = list()

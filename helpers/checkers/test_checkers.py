@@ -89,7 +89,6 @@ async def test_check_if_name_is_unique(create_database):
     assert not result
     result = await check_if_name_is_unique("Player_MK")
     assert result
-    pass
 
 
 @pytest.mark.asyncio

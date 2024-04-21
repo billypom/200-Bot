@@ -79,6 +79,7 @@ CREATE TABLE strike (
     CONSTRAINT strikefk FOREIGN KEY (player_id) REFERENCES player(player_id)
 );
 
+
 -- match history
 CREATE TABLE player_mogi (
     player_id bigint unsigned,
@@ -197,10 +198,10 @@ values (1, '1', 1, 'US', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
     (6, '6', 6, 'BR', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
     (7, '7', 7, 'KR', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
     (8, '8', 8, 'JP', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (9, '9-q-pen', 9, 'ES', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
-    (10, '10-placement', 10, 'CA', 0, NULL, NULL, NULL, 1041162011536527393, 0, NULL),
-    (11, '11-ll', 11, 'MX', 0, 4000, 4000, 4000, 1041162011536527393, 0, 2147483646),
-    (12, '12-cr', 12, 'IT', 1, 4000, 4000, 4000, 1041162011536527393, 0, NULL);
+    (9, '9', 9, 'ES', 0, 4000, 4000, 4000, 1041162011536527393, 0, NULL),
+    (10, '10', 10, 'CA', 0, NULL, NULL, NULL, 1041162011536527393, 0, NULL),
+    (11, '11', 11, 'MX', 0, 4000, 4000, 4000, 1041162011536527393, 0, 2147483646),
+    (12, '12', 12, 'IT', 1, 4000, 4000, 4000, 1041162011536527393, 0, NULL);
 
 INSERT INTO mogi (mogi_format, tier_id)
 values (2, 1231044227065053194), -- s
@@ -210,3 +211,6 @@ values (2, 1231044227065053194), -- s
 (2, 1041162013730164815), -- all
 (2, 1041162013356855406); -- sq
 
+INSERT INTO strike (player_id, reason, mmr_penalty, penalty_applied, is_active, expiration_date) values
+(9, 'has queued penalties', 100, 0, 1, '2037-05-21 13:18:16.290911'),
+(9, 'has queued penalties2', 100, 0, 1, '2037-05-21 13:19:16.290911');

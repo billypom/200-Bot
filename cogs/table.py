@@ -79,12 +79,12 @@ class TableCog(commands.Cog):
             return
         # Validate score input formatting
         chunked_list = await handle_score_input(
-            self.client,
-            ctx.channel.id,  # type: ignore
             scores,
             mogi_format,
         )
-        if not chunked_list[0]:
+        if isinstance(chunked_list[0], str):
+            channel = self.client.get_channel(ctx.channel.id)  # type: ignore
+            channel.send(chunked_list[0])
             await ctx.respond(
                 "``Error 73:`` Invalid input. There must be 12 players and 12 scores."
             )
@@ -106,7 +106,7 @@ class TableCog(commands.Cog):
             error_message,
             mogi_score,
             original_scores,
-        ) = await handle_team_placements_for_lorenzi_table(self.client, chunked_list)
+        ) = await handle_team_placements_for_lorenzi_table(chunked_list)
         if not data_is_valid:
             await ctx.respond(error_message)
             return
