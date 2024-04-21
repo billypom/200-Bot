@@ -49,7 +49,7 @@ class Unban_check(commands.Cog):
         try:
             with DBA.DBAccess() as db:
                 temp = db.query(
-                    "SELECT player_id FROM player WHERE unban_date < %s;",
+                    "SELECT player_id FROM player WHERE banned_by_strikes_unban_date < %s;",
                     (current_time,),
                 )
         except Exception as e:
