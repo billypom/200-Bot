@@ -59,7 +59,7 @@ for extension in COMMAND_EXTENSIONS.split(","):
     client.load_extension(f"cogs.{extension.strip()}")
 
 for extension in ADMIN_COMMAND_EXTENSIONS.split(","):
-    client.load_extension(f"cogs.{extension}")
+    client.load_extension(f"cogs.{extension.strip()}")
 
 
 @client.event
