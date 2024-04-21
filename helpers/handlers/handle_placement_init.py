@@ -34,7 +34,7 @@ async def handle_placement_init(
     """
     logging.info(f"handle_placement_init: {player}  | {tier_name}")
     placement_name = ""
-    my_player_score = player[1]
+    my_player_score = int(player[1])
     if tier_name == "tier-c":
         if my_player_score >= 120:
             my_player_mmr = 5250

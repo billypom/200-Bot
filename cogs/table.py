@@ -203,9 +203,10 @@ class TableCog(commands.Cog):
             )
             # Update MMR in the database, handle placement players,
             # and build the MMR table string
+            # [[player_id, score as str], [player_id, score as str], team_score, avg mmr, place, mmr_gain/loss]
             for team in sorted_list:
                 logging.info(f"POP_LOG | team in sorted_list: {team}")
-                my_player_place = team[len(team) - 2]
+                my_player_place = int(team[len(team) - 2])
                 string_my_player_place = str(my_player_place)
                 for idx, player in enumerate(team):
                     mmr_table_string += "\n"
@@ -216,11 +217,11 @@ class TableCog(commands.Cog):
                             "SELECT player_name, mmr, peak_mmr, rank_id, mogi_media_message_id FROM player WHERE player_id = %s;",
                             (player[0],),
                         )
-                        my_player_name = str(temp[0][0])  # type: ignore
-                        my_player_mmr = int(temp[0][1])  # type: ignore
-                        my_player_peak = int(temp[0][2])  # type: ignore
-                        my_player_rank_id = int(temp[0][3])  # type: ignore
-                        mogi_media_message_id = int(temp[0][4])  # type: ignore
+                        my_player_name = temp[0][0]  # type: ignore
+                        my_player_mmr = temp[0][1]  # type: ignore
+                        my_player_peak = temp[0][2]  # type: ignore
+                        my_player_rank_id = temp[0][3]  # type: ignore
+                        mogi_media_message_id = temp[0][4]  # type: ignore
                         if my_player_peak is None:
                             my_player_peak = 0
                     my_player_score = int(player[1])
@@ -239,11 +240,11 @@ class TableCog(commands.Cog):
                     # Keep mogi history clean - chart doesn't go below 0
                     if my_player_new_mmr <= 0:
                         # if someone gets negative mmr, it is always a loss. add L :pensive:
-                        my_player_mmr_change = (my_player_mmr) * -1
+                        my_player_mmr_change = (my_player_mmr) * -1  # type: ignore
                         my_player_new_mmr = 1
                     # Start creating string for MMR table
                     mmr_table_string += f"{string_my_player_place.center(6)}|"
-                    mmr_table_string += html.escape(f"{my_player_name.center(18)}|")
+                    mmr_table_string += html.escape(f"{my_player_name.center(18)}|")  # type: ignore
                     mmr_table_string += f"{str(my_player_mmr).center(7)}|"
                     # Check sign of mmr delta
                     if my_player_mmr_change >= 0:
@@ -263,7 +264,7 @@ class TableCog(commands.Cog):
                     # Check for new peak
                     string_my_player_new_mmr = str(my_player_new_mmr).center(9)
                     # print(f'current peak: {my_player_peak} | new mmr value: {my_player_new_mmr}')
-                    if my_player_peak < my_player_new_mmr:
+                    if my_player_peak < my_player_new_mmr:  # type: ignore
                         formatted_my_player_new_mmr = await peak_mmr(
                             string_my_player_new_mmr
                         )
@@ -283,6 +284,7 @@ class TableCog(commands.Cog):
                                 "SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;",
                                 (final_tier_id,),
                             )[0][0]  # type: ignore
+                            print("10")
                             # Insert reference record
                             db.execute(
                                 "INSERT INTO player_mogi (player_id, mogi_id, place, score, prev_mmr, mmr_change, new_mmr) VALUES (%s, %s, %s, %s, %s, %s, %s);",
@@ -291,7 +293,7 @@ class TableCog(commands.Cog):
                                     db_mogi_id,
                                     int(my_player_place),
                                     int(my_player_score),
-                                    int(my_player_mmr),
+                                    int(my_player_mmr),  # type: ignore
                                     int(my_player_mmr_change),
                                     int(my_player_new_mmr),
                                 ),
@@ -331,13 +333,13 @@ class TableCog(commands.Cog):
                         max_mmr = int(db_ranks_table[i][2])  # type: ignore
                         # Rank up - assign roles - update DB
                         try:
-                            if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr:
+                            if my_player_mmr < min_mmr and my_player_new_mmr >= min_mmr:  # type: ignore
                                 guild = get_lounge_guild(self.client)
-                                current_role = guild.get_role(my_player_rank_id)
+                                current_role = guild.get_role(my_player_rank_id)  # type: ignore
                                 new_role = guild.get_role(rank_id)
                                 member = await guild.fetch_member(player[0])
-                                await member.remove_roles(current_role)
-                                await member.add_roles(new_role)
+                                await member.remove_roles(current_role)  # type: ignore
+                                await member.add_roles(new_role)  # type: ignore
                                 await results_channel.send(
                                     f"<@{player[0]}> has been promoted to {new_role}!"
                                 )
@@ -349,14 +351,14 @@ class TableCog(commands.Cog):
                                 my_player_new_rank += f"+ {new_role}"
                             # Rank down - assign roles - update DB
                             elif (
-                                my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr
+                                my_player_mmr > max_mmr and my_player_new_mmr <= max_mmr  # type: ignore
                             ):
                                 guild = get_lounge_guild(self.client)
-                                current_role = guild.get_role(my_player_rank_id)
+                                current_role = guild.get_role(my_player_rank_id)  # type: ignore
                                 new_role = guild.get_role(rank_id)
                                 member = await guild.fetch_member(player[0])
-                                await member.remove_roles(current_role)
-                                await member.add_roles(new_role)
+                                await member.remove_roles(current_role)  # type: ignore
+                                await member.add_roles(new_role)  # type: ignore
                                 await results_channel.send(
                                     f"<@{player[0]}> has been demoted to {new_role}"
                                 )
