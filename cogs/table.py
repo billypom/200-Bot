@@ -152,18 +152,18 @@ class TableCog(commands.Cog):
             return
         elif table_view.value:  # yes
             db_mogi_id = 0
-            final_tier_id = await get_tier_from_submission_channel(channel.id)
+            tier_id = await get_tier_from_submission_channel(channel.id)
             # Create mogi
             with DBA.DBAccess() as db:
                 db.execute(
                     "INSERT INTO mogi (mogi_format, tier_id) values (%s, %s);",
-                    (mogi_format, final_tier_id),
+                    (mogi_format, tier_id),
                 )
             # Get the results channel and tier name for later use
             with DBA.DBAccess() as db:
                 temp = db.query(
                     "SELECT results_id, tier_name FROM tier WHERE tier_id = %s;",
-                    (final_tier_id,),
+                    (tier_id,),
                 )
                 db_results_channel = int(temp[0][0])  # type: ignore
                 tier_name = str(temp[0][1])  # type: ignore
@@ -282,7 +282,7 @@ class TableCog(commands.Cog):
                             # Get ID of the last inserted table
                             db_mogi_id = db.query(
                                 "SELECT mogi_id FROM mogi WHERE tier_id = %s ORDER BY create_date DESC LIMIT 1;",
-                                (final_tier_id,),
+                                (tier_id,),
                             )[0][0]  # type: ignore
                             print("10")
                             # Insert reference record

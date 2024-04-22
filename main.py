@@ -2,6 +2,7 @@ import sys
 import os
 import discord
 from discord.ext import commands
+from discord import Embed, Color
 import logging
 import DBA
 import datetime
@@ -65,15 +66,14 @@ for extension in ADMIN_COMMAND_EXTENSIONS.split(","):
 @client.event
 async def on_ready():
     channel = cast("TextChannel", client.get_channel(DEBUG_CHANNEL_ID))
-    embed = discord.Embed(
-        title="Startup", description=":3", color=discord.Color.og_blurple()
-    )
+    embed = Embed(title="Startup", description=":3", color=Color.og_blurple())
     embed.add_field(name="200-Lounge Bot Restarted", value=":D", inline=False)
     await channel.send(content=None, embed=embed)
 
 
 @client.event
 async def on_application_command_error(ctx, error) -> None:
+    """Handles responses when errors are raised by slash commands"""
     if ctx.guild is None:
         await ctx.respond(
             "Sorry! My commands do not work in DMs. Please use 200cc Lounge :)"
@@ -94,18 +94,13 @@ async def on_application_command_error(ctx, error) -> None:
         return
     else:
         channel = cast("TextChannel", client.get_channel(DEBUG_CHANNEL_ID))
-        embed = discord.Embed(
-            title="Error", description=":eyes:", color=discord.Color.blurple()
+        await channel.send(
+            f"Unhandled exception in `on_application_command_error`\nName:{ctx.author}\nAuthor ID:{ctx.author.id}\nError:{str(error)}"
         )
-        embed.add_field(name="Name: ", value=ctx.author, inline=False)
-        embed.add_field(name="Error: ", value=str(error), inline=False)
-        embed.add_field(name="Discord ID: ", value=ctx.author.id, inline=False)
-        logging.warning(f"{error} | {ctx}")
-        await channel.send(content=None, embed=embed)
+        logging.warning(f"ERROR IN on_application_command_error by | {error}")
         await ctx.respond(
             f"Sorry! An unknown error occurred. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."
         )
-        # print(traceback.format_exc())
         raise error
 
 
