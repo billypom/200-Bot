@@ -6,7 +6,7 @@ import DBA
 from helpers.getters import (
     get_discord_role,
     get_lounge_guild,
-    get_mogi_calculation_data_by_format,
+    get_mogi_table_color_by_format,
     get_number_of_strikes_for_uid,
     get_partner_avg,
     get_random_name,
@@ -45,22 +45,13 @@ async def test_get_lounge_guild():
 
 
 @pytest.mark.asyncio
-async def test_get_mogi_calculation_data_by_format():
+async def test_get_mogi_table_color_by_format():
     for i in range(1, 6):
-        a, b, c, d = await get_mogi_calculation_data_by_format(i)
-        assert isinstance(a, int)
-        assert isinstance(b, int)
-        assert isinstance(c, float)
-        assert isinstance(d, list)
-    # only 1st return value is used in /table to determine
-    # if output is valid
-    (
-        a,
-        b,
-        c,
-        d,
-    ) = await get_mogi_calculation_data_by_format(-1)
-    assert a == 0
+        result = await get_mogi_table_color_by_format(i)
+        assert isinstance(result, list)
+        assert result[0] is not None
+    result = await get_mogi_table_color_by_format(-1)
+    assert result[0] is None
 
 
 @pytest.mark.asyncio

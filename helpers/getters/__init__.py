@@ -8,5 +8,5 @@ from .get_unix_time_now import get_unix_time_now
 from .get_rank_id_list import get_rank_id_list
 from .get_results_tier_dict import get_results_tier_dict
 from .get_discord_role import get_discord_role
-from .get_mogi_calculation_data_by_format import get_mogi_calculation_data_by_format
+from .get_mogi_table_color_by_format import get_mogi_table_color_by_format
 from .get_tier_from_submission_channel import get_tier_from_submission_channel

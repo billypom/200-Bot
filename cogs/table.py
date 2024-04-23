@@ -10,12 +10,18 @@ import uuid  # create unique filename for pics
 import html
 from subprocess import run as subprocessrun
 from discord.ext import commands
-from helpers import Confirm, create_lorenzi_query, calculate_pre_mmr
+from helpers import (
+    Confirm,
+    create_lorenzi_query,
+    calculate_pre_mmr,
+    calculate_mmr,
+    create_mogi,
+)
 from helpers.senders import send_to_verification_log
 from helpers.senders import send_to_debug_channel
 from helpers.getters import get_lounge_guild
 from helpers.getters import get_tier_from_submission_channel
-from helpers.getters import get_mogi_calculation_data_by_format
+from helpers.getters import get_mogi_table_color_by_format
 from helpers.handlers import handle_team_placements_for_lorenzi_table
 from helpers.checkers import check_if_uid_is_lounge_banned
 from helpers.checkers import check_if_banned_characters
@@ -78,39 +84,31 @@ class TableCog(commands.Cog):
             )
             return
         # Validate score input formatting
-        chunked_list = await handle_score_input(
-            scores,
-            mogi_format,
-        )
+        chunked_list = await handle_score_input(scores, mogi_format)
         if isinstance(chunked_list[0], str):
             channel = self.client.get_channel(ctx.channel.id)  # type: ignore
-            channel.send(chunked_list[0])
+            channel.send(chunked_list[0])  # send error info
             await ctx.respond(
                 "``Error 73:`` Invalid input. There must be 12 players and 12 scores."
             )
             return
         # Check the mogi_format
-        (
-            SPECIAL_TEAMS_INTEGER,
-            OTHER_SPECIAL_INT,
-            MULTIPLIER_SPECIAL,
-            table_color,
-        ) = await get_mogi_calculation_data_by_format(mogi_format)
-        if SPECIAL_TEAMS_INTEGER == 0:
-            await ctx.respond(
-                f"``Error 27:`` Invalid format: {mogi_format}. Please use 1, 2, 3, or 4."
-            )
+        table_color = await get_mogi_table_color_by_format(mogi_format)
+        if table_color[0] is None:
+            await ctx.respond(f"Invalid format: {mogi_format}. Use 1, 2, 3, or 4.")
             return
+        # Handle team score & team mmr
         (
             data_is_valid,
             error_message,
             mogi_score,
             original_scores,
         ) = await handle_team_placements_for_lorenzi_table(chunked_list)
+        # Validation 1
         if not data_is_valid:
             await ctx.respond(error_message)
             return
-        # Check for 984 score
+        # Validation 2
         if mogi_score != 984:
             await ctx.respond(
                 f"``Error 28:`` `Scores = {mogi_score} `Scores must add up to 984."
@@ -153,41 +151,13 @@ class TableCog(commands.Cog):
         elif table_view.value:  # yes
             db_mogi_id = 0
             tier_id = await get_tier_from_submission_channel(channel.id)
-            # Create mogi
-            with DBA.DBAccess() as db:
-                db.execute(
-                    "INSERT INTO mogi (mogi_format, tier_id) values (%s, %s);",
-                    (mogi_format, tier_id),
-                )
-            # Get the results channel and tier name for later use
-            with DBA.DBAccess() as db:
-                temp = db.query(
-                    "SELECT results_id, tier_name FROM tier WHERE tier_id = %s;",
-                    (tier_id,),
-                )
-                db_results_channel = int(temp[0][0])  # type: ignore
-                tier_name = str(temp[0][1])  # type: ignore
+            db_results_channel, tier_name = await create_mogi(mogi_format, tier_id)
             results_channel = await self.client.fetch_channel(db_results_channel)
-
             # Pre MMR table calculate
             value_table = await calculate_pre_mmr(
                 sorted_list,
-                SPECIAL_TEAMS_INTEGER,
-                OTHER_SPECIAL_INT,
-                MULTIPLIER_SPECIAL,
             )
-
-            # Actually calculate the MMR
-            logging.info("POP_LOG | Calculating MMR")
-            for idx, team in enumerate(sorted_list):
-                temp_value = 0.0
-                for pre_mmr_list in value_table:
-                    for idx2, value in enumerate(pre_mmr_list):
-                        if idx == idx2:
-                            temp_value += value
-                        else:
-                            pass
-                team.append(math.floor(temp_value.real))
+            await calculate_mmr(sorted_list, value_table)
 
             # Create mmr table string
             if mogi_format == 1:

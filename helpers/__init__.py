@@ -1,3 +1,4 @@
+from .create_mogi import create_mogi
 from .generate_random_name import generate_random_name
 from .delete_discord_channel import delete_discord_channel
 from .delete_discord_category import delete_discord_category

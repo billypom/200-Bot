@@ -1,15 +1,29 @@
-# uh
-
-
 async def calculate_pre_mmr(
     sorted_list: list,
-    SPECIAL_TEAMS_INTEGER: int,
-    OTHER_SPECIAL_INT: int,
-    MULTIPLIER_SPECIAL: float,
 ) -> list:
     """does some stuff on the table of players
 
     returns a table of values"""
+    if mogi_format == 1:
+        SPECIAL_TEAMS_INTEGER = 63
+        OTHER_SPECIAL_INT = 19
+        MULTIPLIER_SPECIAL = 2.1
+    elif mogi_format == 2:
+        SPECIAL_TEAMS_INTEGER = 142
+        OTHER_SPECIAL_INT = 39
+        MULTIPLIER_SPECIAL = 3.0000001
+    elif mogi_format == 3:
+        SPECIAL_TEAMS_INTEGER = 288
+        OTHER_SPECIAL_INT = 59
+        MULTIPLIER_SPECIAL = 3.1
+    elif mogi_format == 4:
+        SPECIAL_TEAMS_INTEGER = 402
+        OTHER_SPECIAL_INT = 79
+        MULTIPLIER_SPECIAL = 3.35
+    elif mogi_format == 6:
+        SPECIAL_TEAMS_INTEGER = 525
+        OTHER_SPECIAL_INT = 99
+        MULTIPLIER_SPECIAL = 3.5
     # Get the highest MMR ever
     # There was a very high integer in the formula for
     #   calculating mmr on the original google sheet (9998)
@@ -40,7 +54,6 @@ async def calculate_pre_mmr(
                         * ((((team_x_mmr - team_y_mmr) / highest_mmr) ** 2) ** (1 / 3))
                         ** 2
                     )
-                    # print(f'1pre mmr: {pre_mmr}')
                     if team_x_mmr >= team_y_mmr:
                         pass
                     else:  # team_x_mmr < team_y_mmr:
