@@ -6,6 +6,7 @@ from constants import SQUAD_QUEUE_CHANNEL_ID
 from helpers.getters import get_results_tier_dict
 from helpers.checkers import (
     check_for_dupes_in_list,
+    check_for_rank_changes,
     check_if_banned_characters,
     check_if_mkc_user_id_used,
     check_if_mogi_id_exists,
@@ -52,6 +53,19 @@ async def test_check_for_dupes_in_list():
     input: list = [1, 2, 2, 3]
     result = await check_for_dupes_in_list(input)
     assert result
+
+
+@pytest.mark.asyncio
+async def test_check_for_rank_changes():
+    (
+        rank_changed,
+        rank_went_up,
+        new_rank_id,
+    ) = await check_for_rank_changes(4000, 5000)
+    # :TODO: write tests for this func
+    assert rank_changed
+    assert rank_went_up
+    assert new_rank_id == 0
 
 
 @pytest.mark.asyncio

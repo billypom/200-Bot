@@ -2,7 +2,7 @@ import logging
 import math
 
 
-async def calculate_mmr(sorted_list, value_table):
+async def calculate_mmr(sorted_list: list, value_table: list) -> None:
     # Actually calculate the MMR
     logging.info("POP_LOG | Calculating MMR")
     for idx, team in enumerate(sorted_list):

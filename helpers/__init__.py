@@ -1,4 +1,6 @@
 from .create_mogi import create_mogi
+from .calculate_mmr import calculate_mmr
+from .calculate_pre_mmr import calculate_pre_mmr
 from .generate_random_name import generate_random_name
 from .delete_discord_channel import delete_discord_channel
 from .delete_discord_category import delete_discord_category

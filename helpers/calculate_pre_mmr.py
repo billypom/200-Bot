@@ -1,4 +1,5 @@
 async def calculate_pre_mmr(
+    mogi_format: int,
     sorted_list: list,
 ) -> list:
     """does some stuff on the table of players
@@ -24,6 +25,8 @@ async def calculate_pre_mmr(
         SPECIAL_TEAMS_INTEGER = 525
         OTHER_SPECIAL_INT = 99
         MULTIPLIER_SPECIAL = 3.5
+    else:
+        return [None]
     # Get the highest MMR ever
     # There was a very high integer in the formula for
     #   calculating mmr on the original google sheet (9998)
