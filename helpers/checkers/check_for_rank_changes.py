@@ -4,7 +4,7 @@ import logging
 
 async def check_for_rank_changes(
     player_mmr: int, player_new_mmr: int
-) -> tuple[bool, bool, int] | None:
+) -> tuple[bool, bool, int] | tuple[None, None, None]:
     """Checks for a rank up or down, based on given current and new mmr values
 
     Returns:
@@ -20,7 +20,7 @@ async def check_for_rank_changes(
             )
     except Exception as e:
         logging.warning(f"ERROR in check_for_rank_changes - db access error - {str(e)}")
-        return None
+        return None, None, None
     for i in range(len(db_ranks_table)):
         rank_id = int(db_ranks_table[i][0])  # type: ignore
         min_mmr = int(db_ranks_table[i][1])  # type: ignore

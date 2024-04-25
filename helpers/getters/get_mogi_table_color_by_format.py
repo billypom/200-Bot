@@ -1,6 +1,6 @@
 async def get_mogi_table_color_by_format(
     mogi_format: int,
-) -> list[str]:
+) -> list[str] | list[None]:
     """Returns data to be used in MMR calculations & some colors for the Lorenzi tables based on the mogi format"""
     if mogi_format == 1:
         table_color = ["#76D7C4", "#A3E4D7"]

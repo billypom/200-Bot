@@ -51,6 +51,7 @@ async def test_get_mogi_table_color_by_format():
         assert isinstance(result, list)
         assert result[0] is not None
     result = await get_mogi_table_color_by_format(-1)
+    assert isinstance(result, list)
     assert result[0] is None
 
 
