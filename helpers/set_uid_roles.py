@@ -21,7 +21,7 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
                 (uid,),
             )
         player_name = temp[0][0]  # type: ignore
-        mmr = int(temp[0][1])  # type: ignore
+        mmr = temp[0][1]  # type: ignore - could be null
         is_chat_restricted = temp[0][2]  # type: ignore
 
         # Get discord.Guild and discord.Member objects

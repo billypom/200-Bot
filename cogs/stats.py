@@ -85,10 +85,7 @@ class StatsCog(commands.Cog):
                         )[0][0]  # type: ignore
                     )
                     tier_channel = await self.client.fetch_channel(tier_id)
-            except Exception as e:  # bad input 2 - no tier by that name
-                await send_raw_to_debug_channel(
-                    self.client, f"/stats invalid tier: {tier}", e
-                )
+            except Exception:  # bad input 2 - no tier by that name
                 await ctx.respond("Invalid tier")
                 return
         # Status for self or others
@@ -178,9 +175,11 @@ class StatsCog(commands.Cog):
                     "SELECT COUNT(*) FROM player WHERE mmr >= %s ORDER BY mmr DESC;",
                     (mmr,),
                 )[0][0]  # type: ignore
-        except Exception as e:
-            await send_to_debug_channel(self.client, ctx, f"/stats error 31 | {e}")
-            await ctx.respond("``Error 31:`` Player not found.")
+        except TypeError:
+            await ctx.respond("Player not found.")
+            return
+        except Exception:
+            await ctx.respond("Player not found.")
             return
 
         # Get emoji flag for iso country
