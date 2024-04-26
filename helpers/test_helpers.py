@@ -28,9 +28,17 @@ def create_database():
 
 
 @pytest.mark.asyncio
-async def test_calculate_mmr():
+async def test_calculate_mmr(create_database):
     # chunked_list = [[player_id, score], [player_id, score]]...
     chunked_list = [
+        [[1, "72"], [2, "120"]],
+        [[3, "75"], [4, "107"]],
+        [[5, "91"], [6, "83"]],
+        [[7, "88"], [8, "75"]],
+        [[9, "103"], [10, "46"]],
+        [[11, "32"], [12, "92"]],
+    ]
+    original_chunked_list = [
         [[1, "72"], [2, "120"]],
         [[3, "75"], [4, "107"]],
         [[5, "91"], [6, "83"]],
@@ -44,6 +52,9 @@ async def test_calculate_mmr():
         _,
         original_scores,
     ) = await handle_team_placements_for_lorenzi_table(chunked_list)
+    for team in original_chunked_list:
+        for player in team:
+            assert original_scores[player[0]] == int(player[1])
     # chunked_list = [player_id, score], team_score, team_mmr]
     sorted_list = sorted(chunked_list, key=lambda x: int(x[-2]))  # type: ignore
     sorted_list.reverse()
@@ -91,7 +102,7 @@ async def test_calculate_mmr():
 
 
 @pytest.mark.asyncio
-async def test_create_mogi():
+async def test_create_mogi(create_database):
     import random
 
     tiers = await get_results_tier_dict()

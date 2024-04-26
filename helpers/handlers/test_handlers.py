@@ -79,7 +79,7 @@ async def test_handle_team_placements_for_lorenzi_table(create_database):
         score_string="1 82 2 81+1 3 82 4 82 5 82 6 82 7 82 8 82 9 82 10 82 11 82 12 82",
         mogi_format=2,
     )
-    assert chunked_list = [
+    assert chunked_list == [
         [[1, "82"], [2, "81+1"]],
         [[3, "82"], [4, "82"]],
         [[5, "82"], [6, "82"]],
