@@ -10,7 +10,7 @@ skip_class_def: False
 skip_private: True
 follow_links: True
 ignore_names_file: .*/test # regex
-#fail_under: 90
+fail_under: 90
 percentage_only: False
 #ignore_patterns: # Dict with key/value pairs of file-pattern/node-pattern
 #  .*: method_to_ignore_in_all_files

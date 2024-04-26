@@ -2,7 +2,7 @@ async def calculate_pre_mmr(
     mogi_format: int,
     sorted_list: list,
 ) -> list:
-    """does some stuff on the table of players
+    """does some stuff on the table of playerss
 
     returns a table of values"""
     if mogi_format == 1:
