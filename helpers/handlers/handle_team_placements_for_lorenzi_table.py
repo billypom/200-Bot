@@ -8,6 +8,7 @@ async def handle_team_placements_for_lorenzi_table(
 ) -> tuple[bool, str, int, dict]:
     """- Alters the chunked list in place, appends team score and team MMR to the team record
     - Saves individual player scores to a dict
+    ALTERS THE CHUNKED LIST IN PLACE!!!!!!!!!!!
 
     Returns:
     tuple[
@@ -26,7 +27,6 @@ async def handle_team_placements_for_lorenzi_table(
         for player in team:
             player_id = player[0]
             player_score = player[1]
-            original_scores[player_id] = player_score
             try:  # get mmr, else 0
                 with DBA.DBAccess() as db:
                     retrieved_mmr = int(
@@ -43,6 +43,7 @@ async def handle_team_placements_for_lorenzi_table(
                 count += 1  # added this line 10/10/22 because placement players ppl are mad grrr i need my mmr
             try:  # accumulate team scores
                 team_score += int(player_score)
+                original_scores[player_id] = int(player_score)
             except Exception:
                 # Split the string into sub strings with scores and operations
                 # Do calculation + -
@@ -75,7 +76,14 @@ async def handle_team_placements_for_lorenzi_table(
                 points += int(f"{sign}{current_group}")
                 if sign == "-":
                     mogi_score += int(current_group)
-                player_score = points
+                # Make sure to assign the calculated score to
+                # the player in original scores
+                original_scores[player_id] = points
+                print(type(points))
+                print(points)
+                print(original_scores)
+                print(original_scores[player_id])
+                print(type(original_scores[player_id]))
                 team_score = team_score + points
         if count == 0:
             count = 1

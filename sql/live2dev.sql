@@ -6,12 +6,7 @@ DROP TABLE IF EXISTS sq_schedule;
 DROP TABLE IF EXISTS player_punishment;
 DROP TABLE IF EXISTS punishment;
 DROP TABLE IF EXISTS suggestion;
-DROP TABLE IF EXISTS sub_leaver;
 DROP TABLE IF EXISTS player_name_request;
-DROP TABLE IF EXISTS lounge_queue_channel;
-DROP TABLE IF EXISTS lounge_queue_category;
-DROP TABLE IF EXISTS lounge_queue_player;
-DROP TABLE IF EXISTS lineups;
 DROP TABLE IF EXISTS player_mogi;
 DROP TABLE IF EXISTS strike;
 DROP TABLE IF EXISTS mogi;
@@ -102,23 +97,6 @@ CREATE TABLE player_mogi (
     CONSTRAINT playermogifk2 FOREIGN KEY (mogi_id) REFERENCES mogi(mogi_id)
 );
 
--- player_tier
--- temporary table for ongoing mogis
-CREATE TABLE lineups (
-    player_id bigint unsigned,
-    tier_id bigint unsigned,
-    vote int unsigned,
-    is_sub boolean default 0,
-    can_drop boolean default 1,
-    create_date TIMESTAMP default CURRENT_TIMESTAMP NOT NULL,
-    last_active TIMESTAMP,
-    wait_for_activity boolean default 0,
-    mogi_start_time TIMESTAMP default NULL,
-    CONSTRAINT lineupspk PRIMARY KEY (player_id, tier_id),
-    CONSTRAINT lineupsfk1 FOREIGN KEY (player_id) REFERENCES player(player_id),
-    CONSTRAINT lineupsfk2 FOREIGN KEY (tier_id) REFERENCES tier(tier_id)
-);
-
 CREATE TABLE player_name_request(
     id int unsigned auto_increment,
     player_id bigint unsigned,
@@ -130,14 +108,6 @@ CREATE TABLE player_name_request(
     CONSTRAINT playernamerequestfk FOREIGN KEY (player_id) REFERENCES player(player_id)
 );
 
-CREATE TABLE sub_leaver(
-    id int unsigned auto_increment,
-    player_id bigint unsigned,
-    tier_id bigint unsigned,
-    CONSTRAINT subleaverspk PRIMARY KEY (id),
-    CONSTRAINT subleaversfk1 FOREIGN KEY (player_id) REFERENCES player(player_id),
-    CONSTRAINT subleaversfk2 FOREIGN KEY (tier_id) REFERENCES tier(tier_id)
-);
 
 -- null = suggestion sent but not responded to
 -- 0 = suggestion denied
@@ -192,30 +162,6 @@ CREATE TABLE sq_default_schedule(
     CONSTRAINT default_sq_schedulepk PRIMARY KEY (id)
 );
 
-CREATE TABLE lounge_queue_category(
-    category_id bigint unsigned,
-    CONSTRAINT lounge_queue_categorypk PRIMARY KEY (category_id)
-);
-
-CREATE TABLE lounge_queue_channel(
-    channel_id bigint unsigned,
-    category_id bigint unsigned,
-    is_table_submitted boolean default 0,
-    average_mmr int unsigned,
-    max_mmr int unsigned,
-    min_mmr int unsigned,
-    CONSTRAINT lounge_queue_channelpk PRIMARY KEY (channel_id),
-    CONSTRAINT lounge_queue_channelfk FOREIGN KEY (category_id) REFERENCES lounge_queue_category(category_id)
-);
-
-CREATE TABLE lounge_queue_player(
-    player_id bigint unsigned,
-    create_date TIMESTAMP default CURRENT_TIMESTAMP,
-    last_active TIMESTAMP,
-    wait_for_activity boolean default 0,
-    CONSTRAINT lounge_queue_playerpk PRIMARY KEY (player_id),
-    CONSTRAINT lounge_queue_playerfk FOREIGN KEY (player_id) REFERENCES player(player_id)
-);
 
 -- Migrate production data to dev db
 CREATE PROCEDURE copy_data_to_dev(IN source_schema VARCHAR(255))
@@ -280,35 +226,6 @@ BEGIN
   EXECUTE stmt;
   DEALLOCATE PREPARE stmt;
 
-  SET @sql = CONCAT(
-        'INSERT INTO lounge_dev.lounge_queue_player SELECT * FROM ',
-        source_schema,
-        '.lounge_queue_player'
-    );
-    PREPARE stmt
-    FROM @sql;
-    EXECUTE stmt;
-    DEALLOCATE PREPARE stmt;
-
-    SET @sql = CONCAT(
-            'INSERT INTO lounge_dev.lounge_queue_channel SELECT * FROM ',
-            source_schema,
-            '.lounge_queue_channel'
-        );
-    PREPARE stmt
-    FROM @sql;
-    EXECUTE stmt;
-    DEALLOCATE PREPARE stmt;
-
-    SET @sql = CONCAT(
-            'INSERT INTO lounge_dev.lounge_queue_category SELECT * FROM ',
-            source_schema,
-            '.lounge_queue_category'
-        );
-    PREPARE stmt
-    FROM @sql;
-    EXECUTE stmt;
-    DEALLOCATE PREPARE stmt;
 
 END;
 

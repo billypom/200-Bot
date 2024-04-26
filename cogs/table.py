@@ -203,7 +203,7 @@ class TableCog(commands.Cog):
                         player_rank_id = int(temp[0][3])  # type: ignore
                         if player_peak is None:
                             player_peak = 0
-                    player_score = int(player[1])
+                    player_score = int(original_scores[player[0]])
                     # Place the placement players
                     if player_mmr is None:
                         _, player_mmr = await handle_placement_init(
@@ -242,11 +242,11 @@ class TableCog(commands.Cog):
                         formatted_player_new_mmr = await peak_mmr(
                             string_my_player_new_mmr
                         )
-                        with DBA.DBAccess() as db:
-                            db.execute(
-                                "UPDATE player SET peak_mmr = %s WHERE player_id = %s;",
-                                (player_new_mmr, player[0]),
-                            )
+                        # with DBA.DBAccess() as db:
+                        #     db.execute(
+                        #         "UPDATE player SET peak_mmr = %s WHERE player_id = %s;",
+                        #         (player_new_mmr, player[0]),
+                        #     )
                     else:
                         formatted_player_new_mmr = string_my_player_new_mmr
                     mmr_table_string += f"{formatted_player_new_mmr}|"
@@ -268,7 +268,7 @@ class TableCog(commands.Cog):
                                     db_mogi_id,
                                     int(player_place),
                                     int(player_score),
-                                    int(player_mmr),  # type: ignore
+                                    player_mmr,  # type: ignore
                                     int(player_mmr_change),
                                     int(player_new_mmr),
                                 ),

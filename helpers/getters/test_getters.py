@@ -46,7 +46,7 @@ async def test_get_lounge_guild():
 
 @pytest.mark.asyncio
 async def test_get_mogi_table_color_by_format():
-    for i in range(1, 6):
+    for i in [1, 2, 3, 4, 6]:
         result = await get_mogi_table_color_by_format(i)
         assert isinstance(result, list)
         assert result[0] is not None
