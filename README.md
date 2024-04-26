@@ -9,7 +9,7 @@ This bot is the primary driver for all things related to the MK8DX 200cc Lounge 
 # Development Environment / Installation
 ![Static Badge](https://img.shields.io/badge/python-3.10-yellow?style=flat-square&logo=python&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/MySQL-8.0.36-blue?style=flat-square&logo=mysql&logoColor=white)
-![Static Badge](https://img.shields.io/badge/website-red?style=flat-square&logo=htmx&logoColor=white&label=200-lounge.com)
+![Static Badge](https://img.shields.io/badge/website-red?style=flat-square&logo=htmx&logoColor=white&label=200-lounge.com&link=https%3A%2F%2F200-lounge.com%2F)
 ## Discord Developer account
 
 - Create a Discord Developer account on Discord's [web page](https://discord.com/developers/docs/) 
