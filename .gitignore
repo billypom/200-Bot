@@ -15,6 +15,7 @@ rules.txt
 # folders
 /dont
 /venv
+/tables
 __pycache__
 .pytest_cache
 .ruff_cache
