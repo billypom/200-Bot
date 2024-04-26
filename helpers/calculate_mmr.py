@@ -3,6 +3,8 @@ import math
 
 
 async def calculate_mmr(sorted_list: list, value_table: list) -> None:
+    """Alters the sorted list in place, based on the MMR value table
+    Adds the mmr delta to the sorted list"""
     # Actually calculate the MMR
     logging.info("POP_LOG | Calculating MMR")
     for idx, team in enumerate(sorted_list):

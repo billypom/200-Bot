@@ -5,6 +5,7 @@ async def create_lorenzi_query(
     sorted_list: list, original_scores: dict, mogi_format: int, table_color: list
 ) -> str:
     """Creates a string to be sent to the lorenzi API for mogi table
+    ALTERS THE SORTED LIST IN PLACE - adds team placement
 
     Params:
     - Sorted list of Teams[Player, score]s

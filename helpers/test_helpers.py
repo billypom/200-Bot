@@ -1,7 +1,7 @@
 import pytest
 import DBA
-
-# import config
+from helpers.getters import get_results_tier_dict
+from helpers.handlers import handle_team_placements_for_lorenzi_table
 from helpers import (
     calculate_mmr,
     calculate_pre_mmr,
@@ -11,9 +11,6 @@ from helpers import (
     convert_datetime_to_unix_timestamp,
     generate_random_name,
     jp_kr_romanize,
-)
-from helpers.handlers.handle_team_placements_for_lorenzi_table import (
-    handle_team_placements_for_lorenzi_table,
 )
 
 
@@ -32,19 +29,52 @@ def create_database():
 
 @pytest.mark.asyncio
 async def test_calculate_mmr():
-    # [player_id, score], team_score, team_mmr]
-    # await handle_team_placements_for_lorenzi_table(sorted_list)
-    sorted_list = [
-        [[1, "72"], [2, "120"], 192, 6670.0, 1, 80],
-        [[3, "75"], [4, "107"], 182, 3792.5, 2, 136],
-        [[5, "91"], [6, "83"], 174, 4867.5, 3, -4],
-        [[7, "88"], [8, "75"], 163, 3953.0, 4, -35],
-        [[9, "103"], [10, "46"], 149, 1640.0, 5, 0],
-        [[11, "32"], [12, "92"], 124, 3535.5, 6, -180],
+    # chunked_list = [[player_id, score], [player_id, score]]...
+    chunked_list = [
+        [[1, "72"], [2, "120"]],
+        [[3, "75"], [4, "107"]],
+        [[5, "91"], [6, "83"]],
+        [[7, "88"], [8, "75"]],
+        [[9, "103"], [10, "46"]],
+        [[11, "32"], [12, "92"]],
+    ]
+    (
+        _,
+        _,
+        _,
+        original_scores,
+    ) = await handle_team_placements_for_lorenzi_table(chunked_list)
+    # chunked_list = [player_id, score], team_score, team_mmr]
+    sorted_list = sorted(chunked_list, key=lambda x: int(x[-2]))  # type: ignore
+    sorted_list.reverse()
+    await create_lorenzi_query(sorted_list, original_scores, 2, ["a", "b"])
+    # sorted_list = [[player_id, score], [...], team_score, team_mmr, place]
+    assert sorted_list == [
+        [[1, "72"], [2, "120"], 192, 4000.0, 1],
+        [[3, "75"], [4, "107"], 182, 4000.0, 2],
+        [[5, "91"], [6, "83"], 174, 4000.0, 3],
+        [[7, "88"], [8, "75"], 163, 4000.0, 4],
+        [[9, "103"], [10, "46"], 149, 2000.0, 5],
+        [[11, "32"], [12, "92"], 124, 4000.0, 6],
     ]
     value_table = await calculate_pre_mmr(2, sorted_list)
-    # player_id, score, team_score, team_mmr, place, mmr_delta
-    result = await calculate_mmr(sorted_list, value_table)
+    assert value_table == [
+        [0.0, -40.0, -40.0, -40.0, -22.359336000524674, -40.0],
+        [40.0, 0.0, -40.0, -40.0, -22.359336000524674, -40.0],
+        [40.0, 40.0, 0.0, -40.0, -22.359336000524674, -40.0],
+        [40.0, 40.0, 40.0, 0.0, -22.359336000524674, -40.0],
+        [
+            22.359336000524674,
+            22.359336000524674,
+            22.359336000524674,
+            22.359336000524674,
+            0.0,
+            -65.3776084895605,
+        ],
+        [40.0, 40.0, 40.0, 40.0, 65.3776084895605, 0.0],
+    ]
+    # sorted_list = [[player_id, score], [...], team_score, team_mmr, place, mmr_delta]
+    await calculate_mmr(sorted_list, value_table)
     assert sorted_list[0][4] == 1
     assert sorted_list[1][4] == 2
     assert sorted_list[2][4] == 3
@@ -52,56 +82,52 @@ async def test_calculate_mmr():
     assert sorted_list[4][4] == 5
     assert sorted_list[5][4] == 6
     # MMR delta assertions
-    assert sorted_list[0][5] == 80
-    assert sorted_list[1][5] == 136
-    assert sorted_list[2][5] == -4
-    assert sorted_list[3][5] == -35
-    assert sorted_list[4][5] == 0
-    assert sorted_list[5][5] == -180
-
-
-@pytest.mark.asyncio
-async def test_calculate_pre_mmr():
-    # [player_id, score], team_score, team_mmr]
-    sorted_list = [
-        [[1, "72"], [2, "120"], 192, 6670.0, 1, 80],
-        [[3, "75"], [4, "107"], 182, 3792.5, 2, 136],
-        [[5, "91"], [6, "83"], 174, 4867.5, 3, -4],
-        [[7, "88"], [8, "75"], 163, 3953.0, 4, -35],
-        [[9, "103"], [10, "46"], 149, 1640.0, 5, 0],
-        [[11, "32"], [12, "92"], 124, 3535.5, 6, -180],
-    ]
-    result = await calculate_pre_mmr(mogi_format=2, sorted_list=sorted_list)
-    assert isinstance(result, list)
-    # Place assertions
-    # player_id, score, team_score, team_mmr, place, mmr_delta
-
-
-@pytest.mark.asyncio
-async def test_create_lorenzi_query():
-    pass
+    assert sorted_list[0][5] == 182
+    assert sorted_list[1][5] == 102
+    assert sorted_list[2][5] == 22
+    assert sorted_list[3][5] == -58
+    assert sorted_list[4][5] == -25
+    assert sorted_list[5][5] == -226
 
 
 @pytest.mark.asyncio
 async def test_create_mogi():
-    pass
+    import random
+
+    tiers = await get_results_tier_dict()
+
+    for tier in tiers.items():
+        mogi_format = random.choice([1, 2, 3, 4, 6])
+        results_id, tier_name = await create_mogi(mogi_format, tier[0])
+        assert isinstance(results_id, int)
+        assert isinstance(tier_name, str)
+        assert results_id == tier[1]
 
 
 @pytest.mark.asyncio
 async def test_create_player():
+    # impossible to test
     pass
 
 
 @pytest.mark.asyncio
 async def test_convert_datetime_to_unix_timestamp():
-    pass
+    import datetime
+
+    date = datetime.datetime.now()
+    unix = await convert_datetime_to_unix_timestamp(date)
+    assert isinstance(unix, int)
 
 
 @pytest.mark.asyncio
 async def test_generate_random_name():
-    pass
+    name = await generate_random_name()
+    assert isinstance(name, str)
 
 
 @pytest.mark.asyncio
 async def test_jp_kr_romanize():
-    pass
+    result = await jp_kr_romanize("정말")
+    assert result == "jeongmal"
+    result = await jp_kr_romanize("日本語のキーボード")
+    assert result == "nihongonokiiboodo"

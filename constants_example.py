@@ -46,18 +46,11 @@ LOUNGELESS_ROLE_ID = 0
 PLACEMENT_ROLE_ID = 0
 SUGGESTION_RESTRICTED_ROLE_ID = 0
 
-# DB config for Discord Bot
-# Create your own mysql.user
-HOST = "localhost"
-PASS = ""
-USER = ""
-DTB = "lounge_dev"
-
-# DB config for integration test user (test-runner from the README)
-TEST_HOST = "localhost"
-TEST_PASS = ""
-TEST_USER = "test_runner"
-TEST_DTB = "test_lounge_dev"
+# DB config
+HOST = "localhost"  # db host
+PASS = ""  # db user
+USER = ""  # db user
+DTB = "lounge_dev"  # db name
 
 # Jazzy's MKC config
 JAZZY_MKC_NAME = ""

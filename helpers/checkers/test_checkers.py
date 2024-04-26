@@ -56,16 +56,50 @@ async def test_check_for_dupes_in_list():
 
 
 @pytest.mark.asyncio
-async def test_check_for_rank_changes():
-    (
-        rank_changed,
-        rank_went_up,
-        new_rank_id,
-    ) = await check_for_rank_changes(4000, 5000)
-    # :TODO: write tests for this func
-    assert rank_changed
-    assert rank_went_up
-    assert new_rank_id == 0
+async def test_check_for_rank_changes(create_database):
+    # Rank ID: min, max
+    ranks = [
+        [1041162011536527391, 0, 1499],
+        [1041162011536527392, 1500, 2999],
+        [1041162011536527393, 3000, 4499],
+        [1041162011536527394, 4500, 5999],
+        [1041162011536527395, 6000, 7499],
+        [1041162011536527396, 7500, 8999],
+        [1041162011536527397, 9000, 10999],
+        [1041162011536527398, 11000, 99999],
+    ]
+    for i, rank in enumerate(ranks):
+        min_mmr = rank[1]
+        max_mmr = rank[2]
+        # No change
+        (
+            rank_changed,
+            rank_went_up,
+            new_rank_id,
+        ) = await check_for_rank_changes(min_mmr, max_mmr)
+        assert not rank_changed
+        assert not rank_went_up
+        assert new_rank_id == 0
+        # Rank up
+        if rank[0] != 1041162011536527398:  # gm dont go up
+            (
+                rank_changed,
+                rank_went_up,
+                new_rank_id,
+            ) = await check_for_rank_changes(max_mmr, max_mmr + 1)
+            assert rank_changed
+            assert rank_went_up
+            assert new_rank_id == ranks[i + 1][0]
+        # Rank down
+        if rank[0] != 1041162011536527391:  # iron dont go down
+            (
+                rank_changed,
+                rank_went_up,
+                new_rank_id,
+            ) = await check_for_rank_changes(min_mmr, min_mmr - 1)
+            assert rank_changed
+            assert not rank_went_up
+            assert new_rank_id == ranks[i - 1][0]
 
 
 @pytest.mark.asyncio

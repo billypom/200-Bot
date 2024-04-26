@@ -79,19 +79,31 @@ async def test_handle_team_placements_for_lorenzi_table(create_database):
         score_string="1 82 2 81+1 3 82 4 82 5 82 6 82 7 82 8 82 9 82 10 82 11 82 12 82",
         mogi_format=2,
     )
+    assert chunked_list = [
+        [[1, "82"], [2, "81+1"]],
+        [[3, "82"], [4, "82"]],
+        [[5, "82"], [6, "82"]],
+        [[7, "82"], [8, "82"]],
+        [[9, "82"], [10, "82"]],
+        [[11, "82"], [12, "82"]],
+    ]
     (
         data_is_valid,
         error_message,
         mogi_score,
         original_scores,
     ) = await handle_team_placements_for_lorenzi_table(chunked_list)
+    # Scores validation
+    for player in original_scores.items():
+        assert player[1] == 82
+    # handler validation
     assert data_is_valid
     assert isinstance(error_message, str)
     assert mogi_score == 984
     assert isinstance(original_scores, dict)
     for item in original_scores.items():
         assert isinstance(item[1], int)
-
+    # Bad mogi score validation
     chunked_list = await handle_score_input(
         score_string="1 999 2 82 3 82 4 82 5 82 6 82 7 82 8 82 9 82 10 82 11 82 12 82",
         mogi_format=2,

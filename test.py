@@ -1,5 +1,5 @@
 import DBA
-from helpers import calculate_pre_mmr, calculate_mmr
+from helpers import calculate_pre_mmr, calculate_mmr, create_lorenzi_query
 from helpers.handlers import (
     handle_score_input,
     handle_team_placements_for_lorenzi_table,
@@ -13,17 +13,25 @@ async def function():
         score_string="1 72 2 120 3 75 4 107 5 91 6 83 7 88 8 75 9 103 10 46 11 32 12 92",
         mogi_format=2,
     )
-    await handle_team_placements_for_lorenzi_table(chunked_list)
+    (
+        data_is_valid,
+        error_message,
+        mogi_score,
+        original_scores,
+    ) = await handle_team_placements_for_lorenzi_table(chunked_list)
     print("chunked_list:")
     pprint(chunked_list)
-    sorted_list = sorted(chunked_list, key=lambda x: int(x[len(chunked_list[0]) - 2]))
+    sorted_list = sorted(chunked_list, key=lambda x: int(x[-2]))
     sorted_list.reverse()
+    await create_lorenzi_query(sorted_list, original_scores, 2, ["a", "b"])
     # [player_id, score], team_score, team_mmr]
     print("sorted list:")
     pprint(sorted_list)
     value_table = await calculate_pre_mmr(2, sorted_list)
     print("value table")
     pprint(value_table)
+    print("sorted list after pre mmr")
+    pprint(sorted_list)
     # player_id, score, team_score, team_mmr, place, mmr_delta
     await calculate_mmr(sorted_list, value_table)
     print("finished sorted list")

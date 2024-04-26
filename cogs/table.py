@@ -127,7 +127,7 @@ class TableCog(commands.Cog):
         # [[players players players], team_score, team_mmr]
         sorted_list = sorted(
             chunked_list,  # type: ignore
-            key=lambda x: int(x[len(chunked_list[0]) - 2]),  # type: ignore
+            key=lambda x: int(x[-2]),  # type: ignore
         )
         sorted_list.reverse()
         # Create hlorenzi string

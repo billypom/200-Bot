@@ -27,6 +27,7 @@ async def create_player(client, member, mkc_user_id, country_code):
     logging.info("create_player | start")
     altered_name = await handle_player_name(member.display_name)
     logging.info(f"create_player | Finished handling name: {altered_name}")
+    # Create player record
     try:
         with DBA.DBAccess() as db:
             db.execute(
@@ -50,9 +51,9 @@ async def create_player(client, member, mkc_user_id, country_code):
             f"create_player error 15 - CANNOT EDIT NICK FOR USER <@{member.id}>",
             e,
         )
+    # Assign placement role
     role = get_lounge_guild(client).get_role(PLACEMENT_ROLE_ID)
     logging.info(f"create_player | {altered_name} | Attempted to edit nickname")
-    # Add role
     try:
         await member.add_roles(role)
     except Exception as e:
