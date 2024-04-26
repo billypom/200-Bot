@@ -35,7 +35,7 @@ jobs:
           python-version: 3.x
 
       - name: Install docstr-coverage
-        run: pip install docstr-coverage==2.2.0
+        run: pip install docstr-coverage
 
       - name: Get SHAs
         run: |
@@ -46,7 +46,7 @@ jobs:
           elif [[ ${{ github.event_name }} == 'pull_request' ]]; then
             echo "BASE=${{ github.event.pull_request.base.sha }}" >> $GITHUB_ENV
             echo "HEAD=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
-          
+
           else
             echo "Unexpected event trigger"
             exit 1
