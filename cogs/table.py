@@ -1,4 +1,5 @@
 import vlog_msg
+import traceback
 import DBA
 from discord import Option, File, Embed, Color
 import logging
@@ -186,8 +187,9 @@ class TableCog(commands.Cog):
             # and build the MMR table string
             # [[player_id, score as str], [player_id, score as str], team_score, avg mmr, place, mmr_gain/loss]
             for team in sorted_list:
+                print(team)
                 logging.info(f"table | team in sorted_list: {team}")
-                player_place = int(team[len(team) - 2])
+                player_place = int(team[-2])
                 for idx, player in enumerate(team):
                     mmr_table_string += "\n"
                     if idx > (mogi_format - 1):
@@ -242,11 +244,11 @@ class TableCog(commands.Cog):
                         formatted_player_new_mmr = await peak_mmr(
                             string_my_player_new_mmr
                         )
-                        # with DBA.DBAccess() as db:
-                        #     db.execute(
-                        #         "UPDATE player SET peak_mmr = %s WHERE player_id = %s;",
-                        #         (player_new_mmr, player[0]),
-                        #     )
+                        with DBA.DBAccess() as db:
+                            db.execute(
+                                "UPDATE player SET peak_mmr = %s WHERE player_id = %s;",
+                                (player_new_mmr, player[0]),
+                            )
                     else:
                         formatted_player_new_mmr = string_my_player_new_mmr
                     mmr_table_string += f"{formatted_player_new_mmr}|"
@@ -280,9 +282,11 @@ class TableCog(commands.Cog):
                             )
                     except Exception as e:
                         await send_raw_to_debug_channel(
-                            self.client, "FATAL TABLE ERROR", e
+                            self.client,
+                            f"FATAL TABLE ERROR {str(traceback.format_exc())}",
+                            e,
                         )
-                        return
+                        print(traceback.format_exc())
                     # Check for rank changes
                     (
                         rank_changed,
@@ -295,23 +299,29 @@ class TableCog(commands.Cog):
                             guild = get_lounge_guild(self.client)
                             current_role = guild.get_role(player_rank_id)  # type: ignore
                             new_role = guild.get_role(new_rank_id)
-                            member = await guild.fetch_member(player[0])
-                            await member.remove_roles(current_role)  # type: ignore
-                            await member.add_roles(new_role)  # type: ignore
-                            await results_channel.send(
-                                f"<@{player[0]}> has been promoted to {new_role}!"
-                            )
+                            try:
+                                member = await guild.fetch_member(player[0])
+                                await member.remove_roles(current_role)  # type: ignore
+                                await member.add_roles(new_role)  # type: ignore
+                                await results_channel.send(
+                                    f"<@{player[0]}> has been promoted to {new_role}!"
+                                )
+                            except Exception:
+                                pass
                             player_new_rank += f"+ {new_role}"
                         else:
                             guild = get_lounge_guild(self.client)
                             current_role = guild.get_role(player_rank_id)  # type: ignore
                             new_role = guild.get_role(new_rank_id)
-                            member = await guild.fetch_member(player[0])
-                            await member.remove_roles(current_role)  # type: ignore
-                            await member.add_roles(new_role)  # type: ignore
-                            await results_channel.send(
-                                f"<@{player[0]}> has been demoted to {new_role}"
-                            )
+                            try:
+                                member = await guild.fetch_member(player[0])
+                                await member.remove_roles(current_role)  # type: ignore
+                                await member.add_roles(new_role)  # type: ignore
+                                await results_channel.send(
+                                    f"<@{player[0]}> has been demoted to {new_role}"
+                                )
+                            except Exception:
+                                pass
                             player_new_rank += f"- {new_role}"
                         with DBA.DBAccess() as db:
                             db.execute(
@@ -322,7 +332,7 @@ class TableCog(commands.Cog):
                         f"{str(player_new_rank).center(12)}", player_new_mmr
                     )
                     mmr_table_string += formatted_player_new_rank
-                    player_place = ""
+                    player_place = 0
 
             # finished creating mmr table string
             # imagemagick time
