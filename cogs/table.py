@@ -226,7 +226,7 @@ class TableCog(commands.Cog):
                     # Start creating string for MMR table
                     player_new_rank = ""
                     mmr_table_string += (
-                        f"{"" if player_place == 0 else str(player_place).center(6)}|"
+                        f"{'' if player_place == 0 else str(player_place).center(6)}|"
                     )
                     mmr_table_string += html.escape(f"{player_name.center(18)}|")  # type: ignore
                     mmr_table_string += f"{str(player_mmr).center(7)}|"
