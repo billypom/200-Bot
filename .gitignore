@@ -16,6 +16,7 @@ rules.txt
 /dont
 /venv
 /tables
+/images/tables
 __pycache__
 .pytest_cache
 .ruff_cache
