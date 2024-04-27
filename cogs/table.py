@@ -210,7 +210,8 @@ class TableCog(commands.Cog):
                     if player_mmr is None:
                         _, player_mmr = await handle_placement_init(
                             self.client,
-                            player,
+                            player[0],
+                            player_score,
                             ctx.channel.name,  # type: ignore
                             results_channel,
                         )
