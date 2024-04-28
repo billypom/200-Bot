@@ -17,7 +17,7 @@ from typing import Any
 
 class Unban_check(commands.Cog):
     def __init__(self, client):
-        self.check.start()
+        self.check.start()  # type: ignore
         self.punishment_check.start()
         self.client = client
         self.title = "Hourly Unban Check"
@@ -34,10 +34,7 @@ class Unban_check(commands.Cog):
 
     async def send_error_embed(self, anything: Any, error: Exception):
         channel = self.client.get_channel(DEBUG_CHANNEL_ID)
-        embed = Embed(title=self.title, description="🔨", color=Color.red())
-        embed.add_field(name="Description: ", value=str(anything), inline=False)
-        embed.add_field(name="Details: ", value=str(error), inline=False)
-        await channel.send(content=None, embed=embed)
+        await channel.send(f"### Error\n{str(anything)}\n`{str(error)}`")
 
     def cog_unload(self):
         self.check.cancel()
@@ -83,11 +80,15 @@ class Unban_check(commands.Cog):
                     str(player_id),
                 )
                 pass
-            with DBA.DBAccess() as db:
-                db.execute(
-                    "UPDATE player SET unban_date = NULL WHERE player_id = %s;",
-                    (player_id,),
-                )
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute(
+                        "UPDATE player SET banned_by_strikes_unban_date = NULL WHERE player_id = %s;",
+                        (player_id,),
+                    )
+            except Exception as e:
+                await self.send_error_embed(f"unban_check error 4 {PING_DEVELOPER}", e)
+                return
 
     @tasks.loop(hours=1)
     async def punishment_check(self):

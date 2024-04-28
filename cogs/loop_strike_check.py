@@ -4,6 +4,7 @@ import datetime
 import DBA
 from constants import DEBUG_CHANNEL_ID, PING_DEVELOPER
 import logging
+from typing import Any
 
 
 class strike_check(commands.Cog):
@@ -23,13 +24,10 @@ class strike_check(commands.Cog):
         embed.add_field(name="Strike IDs: ", value=str(error), inline=False)
         await channel.send(content=None, embed=embed)
 
-    async def send_error_embed(self, anything, error):
-        """Sends an error embed to the debug channel"""
+    async def send_error_embed(self, anything: Any, error: Exception):
+        """Send an error message to the debug channel"""
         channel = self.client.get_channel(DEBUG_CHANNEL_ID)
-        embed = Embed(title=self.title, description="✅", color=Color.red())
-        embed.add_field(name="Description: ", value=anything, inline=False)
-        embed.add_field(name="Details: ", value=str(error), inline=False)
-        await channel.send(content=None, embed=embed)
+        await channel.send(f"### Error\n{str(anything)}\n`{str(error)}`")
 
     def cog_unload(self):
         """Unloads cog"""
