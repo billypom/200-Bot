@@ -28,16 +28,28 @@ class ReloadCogsCog(commands.Cog):
     )
     @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
     async def zreload_cogs(self, ctx):
-        for extension in self.LOOP_EXTENSIONS.split(","):
-            self.client.load_extension(f"cogs.{extension.strip()}")
+        extensions_to_reload = (
+            self.LOOP_EXTENSIONS.split(",")
+            + self.COMMAND_EXTENSIONS.split(",")
+            + self.ADMIN_COMMAND_EXTENSIONS.split(",")
+        )
+        failed_extensions = ""
+        for extension in extensions_to_reload:
+            extension = extension.strip()
+            if extension:  # Check if the extension name is not empty
+                try:
+                    self.client.unload_extension(f"cogs.{extension}")
+                except Exception as e:
+                    continue
+                try:
+                    self.client.load_extension(f"cogs.{extension}")
+                except Exception as e:
+                    failed_extensions += f" {extension},"
+                    continue
 
-        for extension in self.COMMAND_EXTENSIONS.split(","):
-            self.client.load_extension(f"cogs.{extension.strip()}")
-
-        for extension in self.ADMIN_COMMAND_EXTENSIONS.split(","):
-            self.client.load_extension(f"cogs.{extension.strip()}")
-
-        await ctx.respond("All cogs reloaded successfully :smile:")
+        await ctx.respond(
+            f"All cogs reloaded successfully :smile: `{failed_extensions}`"
+        )
 
 
 def setup(client):
