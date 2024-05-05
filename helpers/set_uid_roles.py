@@ -14,7 +14,6 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
     Args:
         client - discord bot
         uid - Discord User ID"""
-
     try:
         # Get discord.Guild and discord.Member objects
         guild = get_lounge_guild(client)
@@ -22,7 +21,7 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
     except Exception as e:
         # member not in server
         return None, None
-    try:
+    try:  # chat restricted
         with DBA.DBAccess() as db:
             temp = db.query(
                 "SELECT player_name, mmr, is_chat_restricted FROM player WHERE player_id = %s;",
@@ -35,14 +34,12 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
         if is_chat_restricted:  # Add chat restricted role
             role = guild.get_role(CHAT_RESTRICTED_ROLE_ID)
             await member.add_roles(role)  # type: ignore
-    except IndexError:
-        return None, None
     except Exception as e:
         await send_raw_to_debug_channel(
             client, f"set_uid_roles exception triggered by <@{uid}>:", e
         )
         return None, None
-    try:
+    try:  # loungeless
         with DBA.DBAccess() as db:
             temp = db.query(
                 "SELECT punishment_id, unban_date FROM player_punishment WHERE player_id = %s ORDER BY create_date DESC LIMIT 1;",
@@ -55,8 +52,7 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
             if unban_date > unix_now and punishment_id == 2:  # type: ignore
                 role = guild.get_role(LOUNGELESS_ROLE_ID)
                 await member.add_roles(role)  # type: ignore
-    except Exception as e:
-        # no punishments exist
+    except Exception:  # no punishments exist
         pass
 
     # Outcome #1

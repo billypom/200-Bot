@@ -1,10 +1,11 @@
 import discord
 from discord.ext import commands
 import DBA
-from helpers.senders import send_to_debug_channel
+from helpers.senders import send_to_debug_channel, send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild
 from constants import LOUNGE, REPORTER_ROLE_ID, PING_DEVELOPER
 from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from discord import ApplicationContext
@@ -53,16 +54,28 @@ class RevertCog(commands.Cog):
             )
             return
         # Check for rank changes
-        with DBA.DBAccess() as db:
-            players_mogi = db.query(
-                "select p.player_id, p.player_name, p.mmr, pm.mmr_change, p.rank_id, t.results_id FROM player p JOIN player_mogi pm ON p.player_id = pm.player_id JOIN mogi m on pm.mogi_id = m.mogi_id JOIN tier t on t.tier_id = m.tier_id WHERE m.mogi_id = %s",
-                (mogi_id,),
+        try:
+            with DBA.DBAccess() as db:
+                players_mogi = db.query(
+                    "select p.player_id, p.player_name, p.mmr, pm.mmr_change, p.rank_id, t.results_id FROM player p JOIN player_mogi pm ON p.player_id = pm.player_id JOIN mogi m on pm.mogi_id = m.mogi_id JOIN tier t on t.tier_id = m.tier_id WHERE m.mogi_id = %s",
+                    (mogi_id,),
+                )
+        except Exception as e:
+            await ctx.respond(
+                f"`Database error`: Could not retrieve the mogi {PING_DEVELOPER}"
             )
-        with DBA.DBAccess() as db:
-            db_ranks_table = db.query(
-                "SELECT rank_id, mmr_min, mmr_max FROM ranks WHERE rank_id > %s ORDER BY mmr_min DESC LIMIT 8;",
-                (1,),
+            return
+        try:
+            with DBA.DBAccess() as db:
+                db_ranks_table = db.query(
+                    "SELECT rank_id, mmr_min, mmr_max FROM ranks WHERE rank_id > %s ORDER BY mmr_min DESC LIMIT 8;",
+                    (1,),
+                )
+        except Exception as e:
+            await ctx.respond(
+                f"`Database error`: Could not retrieve ranks {PING_DEVELOPER}"
             )
+            return
         for j in range(len(db_ranks_table)):
             for i in range(len(players_mogi)):
                 rank_id = int(db_ranks_table[j][0])  # type: ignore
@@ -85,18 +98,34 @@ class RevertCog(commands.Cog):
                         guild = get_lounge_guild(self.client)
                         current_role = guild.get_role(my_player_rank_id)
                         new_role = guild.get_role(rank_id)
-                        member = await guild.fetch_member(my_player_id)
-                        await member.remove_roles(current_role)  # type: ignore
-                        await member.add_roles(new_role)  # type: ignore
+                        try:
+                            member = await guild.fetch_member(my_player_id)
+                            await member.remove_roles(current_role)  # type: ignore
+                            await member.add_roles(new_role)  # type: ignore
+                        except Exception as e:
+                            await send_raw_to_debug_channel(
+                                self.client,
+                                "Member not found. Skipping role assignment",
+                                e,
+                            )
+                            pass
                         await results_channel.send(
                             f"<@{my_player_id}> has been promoted to {new_role}"
                         )
-                        with DBA.DBAccess() as db:
-                            db.execute(
-                                "UPDATE player SET rank_id = %s, mmr = %s WHERE player_id = %s;",
-                                (rank_id, my_player_new_mmr, my_player_id),
+                        try:
+                            with DBA.DBAccess() as db:
+                                db.execute(
+                                    "UPDATE player SET rank_id = %s, mmr = %s WHERE player_id = %s;",
+                                    (rank_id, my_player_new_mmr, my_player_id),
+                                )
+                        except Exception as e:
+                            await send_raw_to_debug_channel(
+                                self.client,
+                                f"revert_mogi error - unable to update player {my_player_id} from {my_player_mmr} mmr -> {my_player_new_mmr}, with new rank {rank_id}",
+                                e,
                             )
-                    # Rank back down
+                            continue
+                    # Rank down
                     elif (
                         my_player_mmr > max_mmr
                         and my_player_new_mmr <= max_mmr
@@ -105,17 +134,33 @@ class RevertCog(commands.Cog):
                         guild = get_lounge_guild(self.client)
                         current_role = guild.get_role(my_player_rank_id)
                         new_role = guild.get_role(rank_id)
-                        member = await guild.fetch_member(my_player_id)
-                        await member.remove_roles(current_role)  # type: ignore
-                        await member.add_roles(new_role)  # type: ignore
+                        try:
+                            member = await guild.fetch_member(my_player_id)
+                            await member.remove_roles(current_role)  # type: ignore
+                            await member.add_roles(new_role)  # type: ignore
+                        except Exception as e:
+                            await send_raw_to_debug_channel(
+                                self.client,
+                                "Member not found. Skipping role assignment",
+                                e,
+                            )
+                            pass
                         await results_channel.send(
                             f"<@{my_player_id}> has been demoted to {new_role}"
                         )
-                        with DBA.DBAccess() as db:
-                            db.execute(
-                                "UPDATE player SET rank_id = %s, mmr = %s WHERE player_id = %s;",
-                                (rank_id, my_player_new_mmr, my_player_id),
+                        try:
+                            with DBA.DBAccess() as db:
+                                db.execute(
+                                    "UPDATE player SET rank_id = %s, mmr = %s WHERE player_id = %s;",
+                                    (rank_id, my_player_new_mmr, my_player_id),
+                                )
+                        except Exception as e:
+                            await send_raw_to_debug_channel(
+                                self.client,
+                                f"revert_mogi error - unable to update player {my_player_id} from {my_player_mmr} mmr -> {my_player_new_mmr}, with new rank {rank_id}",
+                                e,
                             )
+                            continue
                 except Exception as e:
                     await send_to_debug_channel(
                         self.client, ctx, f"/revert_mogi FATAL ERROR | {e}"

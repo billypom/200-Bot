@@ -96,7 +96,7 @@ class TableCog(commands.Cog):
         chunked_list = await handle_score_input(scores, mogi_format)
         if isinstance(chunked_list[0], str):
             channel = self.client.get_channel(ctx.channel.id)  # type: ignore
-            channel.send(chunked_list[0])  # send error info
+            await channel.send(chunked_list[0])  # send error info
             await ctx.respond(
                 "``Error 73:`` Invalid input. There must be 12 players and 12 scores."
             )

@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands
-from DBA import DBAccess  # Import your DBA class here
+from DBA import DBAccess
 from helpers import create_player
 from helpers.getters import get_lounge_guild
 from helpers.checkers import check_if_uid_exists
@@ -10,7 +10,7 @@ from constants import LOUNGE, ADMIN_ROLE_ID, UPDATER_ROLE_ID, PING_DEVELOPER
 import vlog_msg
 
 
-class ManuallyVerifyPlayerCog(commands.Cog):
+class ZManuallyVerifyPlayerCog(commands.Cog):
     def __init__(self, client):
         self.client = client
 
@@ -26,21 +26,21 @@ class ManuallyVerifyPlayerCog(commands.Cog):
         ctx,
         player_id: discord.Option(
             str, "Discord ID of player to be verified", required=True
-        ),
+        ),  # type: ignore
         mkc_id: discord.Option(
             str,
             "Last numbers in MKC forum link. (e.g. popuko mkc_id = 154)",
             required=True,
-        ),
+        ),  # type: ignore
         country_code: discord.Option(
             str,
             "ISO 3166 Alpha-2 Code - https://en.wikipedia.org/wiki/List_of_ISO_3166_country_codes",
             required=True,
-        ),
+        ),  # type: ignore
     ):
         # mkc_player_id = registry id
         # mkc_user_id = forum id
-        await ctx.defer(ephemeral=False)
+        await ctx.defer(ephemeral=True)
         x = await check_if_uid_exists(int(player_id))
         if x:
             await ctx.respond(
@@ -49,7 +49,6 @@ class ManuallyVerifyPlayerCog(commands.Cog):
             return
         else:
             pass
-        # All clear. Roll out.
         verify_description = vlog_msg.success
         # Check if someone has verified as this user before...
         x = await check_if_mkc_user_id_used(mkc_id)
@@ -66,10 +65,11 @@ class ManuallyVerifyPlayerCog(commands.Cog):
                 self.client,
                 ctx,
                 f"Error 82: {player_id} | {mkc_id} | {country_code}",
-                f"{verify_description} | <@{x[1]}> already using MKC **FORUM** ID {x[0]}",
+                f"{verify_description} | <@{uh_oh_player}> already using MKC **FORUM** ID {mkc_id}",
             )
             return
         else:
+            # All clear. Roll out.
             try:
                 member = await get_lounge_guild(self.client).fetch_member(player_id)
             except Exception:
@@ -87,7 +87,7 @@ class ManuallyVerifyPlayerCog(commands.Cog):
                 await send_to_verification_log(
                     self.client,
                     ctx,
-                    f"{player_id} | {mkc_id} | {country_code}",
+                    f"Player ID: {player_id}\nMKC ID: {mkc_id}\nCountry Code: {country_code}",
                     verify_description,
                 )
             except Exception:
@@ -99,4 +99,4 @@ class ManuallyVerifyPlayerCog(commands.Cog):
 
 
 def setup(client):
-    client.add_cog(ManuallyVerifyPlayerCog(client))
+    client.add_cog(ZManuallyVerifyPlayerCog(client))
