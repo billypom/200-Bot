@@ -145,8 +145,16 @@ class Unban_check(commands.Cog):
             # 2 = Loungeless
             if punishment_id == 1:
                 punishment_role = guild.get_role(CHAT_RESTRICTED_ROLE_ID)
+                await self.send_embed(
+                    "I have successfully acquired the chat restricted role object",
+                    "get_role success",
+                )
             elif punishment_id == 2:
                 punishment_role = guild.get_role(LOUNGELESS_ROLE_ID)
+                await self.send_embed(
+                    "I have successfully acquired the loungeless role object",
+                    "get_role success",
+                )
             else:
                 continue
             # Update DB
@@ -156,6 +164,10 @@ class Unban_check(commands.Cog):
                         "UPDATE player_punishment SET unban_date = NULL WHERE id = %s;",
                         (player_punishment_id,),
                     )
+                await self.send_embed(
+                    f"I have successfully updated {player_id}'s unban_date to NULL",
+                    "db update success",
+                )
             except Exception as e:
                 await self.send_error_embed(
                     f"loop_unban_check | Could not remove unban_date field for player {player_id}",
@@ -169,6 +181,10 @@ class Unban_check(commands.Cog):
                             (player_id,),
                         )
                     logging.info(f"{player} - Punishment removed | {punishment_role}")
+                    await self.send_embed(
+                        f"I have successfully removed the chat restricted boolean from {player_id} player record",
+                        "db player table update success",
+                    )
                 except Exception as e:
                     await self.send_error_embed(
                         "loop_unban_check | Could not update player table", e
@@ -178,6 +194,10 @@ class Unban_check(commands.Cog):
                 # Get the user
                 try:
                     user = await guild.fetch_member(player_id)
+                    await self.send_embed(
+                        f"I have successfully acquired the member object for {player_id}",
+                        "fetch_member success",
+                    )
                 except Exception:
                     await self.send_embed(
                         f"loop_unban_check | Player <@{player_id}> is not in the server. Therefore I cannot remove their punishment. I will attempt to remove their punishment during the next hour of checks.",
@@ -186,6 +206,10 @@ class Unban_check(commands.Cog):
                     continue
                 try:
                     await user.remove_roles(punishment_role)
+                    await self.send_embed(
+                        f"I have successfully removed the punishment role from {player_id}",
+                        "remove_roles success",
+                    )
                 except Exception:
                     logging.info(
                         "loop_unban_check | could not remove user roles (OK in dev env)"
@@ -193,6 +217,10 @@ class Unban_check(commands.Cog):
                     pass
                 try:
                     await set_uid_roles(self.client, player_id)
+                    await self.send_embed(
+                        f"I have successfully ran the set uid roles function for {player_id}",
+                        "set_uid_roles success",
+                    )
                 except Exception:
                     logging.info(
                         "loop_unban_check | could not add user roles (OK in dev env)"
