@@ -1,4 +1,5 @@
 import discord
+import logging
 from discord.ext import commands
 from helpers.getters import get_lounge_guild, get_rank_id_list
 from constants import LOUNGE, ADMIN_ROLE_ID
@@ -27,9 +28,9 @@ class ZRemoveAllRanks(commands.Cog):
                     test_role = guild.get_role(rank_id_list[i])
                     if test_role in member.roles:
                         await member.remove_roles(test_role)
-                        print(f"removed {test_role} from {member}")
+                        logging.info(f"removed {test_role} from {member}")
                 except Exception as e:
-                    print(e)
+                    logging.info(e)
         await ctx.respond("All player rank roles have been removed")
 
 

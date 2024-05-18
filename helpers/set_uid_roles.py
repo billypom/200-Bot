@@ -34,7 +34,7 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
         await member.edit(nick=str(player_name))
     except Exception:
         await member.send(
-            "Hello. I am lower in the role hierarchy, therefore I cannot edit your nickname for you. I updated the database with your new name, but you will need to right-click and edit your nickname yourself. c:"
+            "Hello. Your name change request has been accepted. However, I am lower in the role hierarchy, therefore I cannot edit your nickname for you. I updated the database with your new name, but you will need to right-click and edit your nickname yourself. c:"
         )
         pass
     try:  # chat restricted

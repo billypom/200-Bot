@@ -68,7 +68,7 @@ class strike_check(commands.Cog):
     @check.before_loop
     async def before_check(self):
         """Runs before the cog"""
-        print("strike waiting...")
+        logging.info("strike waiting...")
         await self.client.wait_until_ready()
 
 

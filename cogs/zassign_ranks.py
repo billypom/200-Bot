@@ -31,9 +31,9 @@ class ZAssignRanks(commands.Cog):
                     role = guild.get_role(PLACEMENT_ROLE_ID)
                     member = guild.get_member(players[i][0])
                     await member.add_roles(role)
-                    print(f"assigned {role} to {players[i][0]}")
+                    logging.info(f"assigned {role} to {players[i][0]}")
                 except Exception as e:
-                    print(f"{players[i][0]} | {e}")
+                    logging.info(f"{players[i][0]} | {e}")
                 continue
             for j in range(len(temp)):
                 # If MMR > min & MMR < max, assign role
@@ -54,10 +54,10 @@ class ZAssignRanks(commands.Cog):
                             "UPDATE player SET rank_id = %s WHERE player_id = %s;",
                             (temp[j][0], players[i][0]),
                         )
-                    print(f"assigned {role} to {member}")
+                    logging.info(f"assigned {role} to {member}")
                     break
                 except Exception as e:
-                    print(f"{players[i][0]} | {e}")
+                    logging.info(f"{players[i][0]} | {e}")
                     break
         await ctx.respond("done")
 

@@ -50,19 +50,19 @@ async def handle_team_placements_for_lorenzi_table(
                 sign = ""
                 points = 0
                 for idx, char in enumerate(str(player_score)):
-                    print(f"/table | parsing char: {char}")
+                    logging.info(f"/table | parsing char: {char}")
                     if char.isdigit():
                         current_group += char
-                        print(
+                        logging.info(
                             f"/table | parsing char: {char} | IS DIGIT, current_group = {current_group}"
                         )
                     elif char == "-" or char == "+":
-                        print(
+                        logging.info(
                             f"/table | parsing char: {char} | IS - or +, current_group = {current_group}"
                         )
                         points += int(f"{sign}{current_group}")
                         sign = char
-                        print(f"/table | player: {player} | points: {points}")
+                        logging.info(f"/table | player: {player} | points: {points}")
                         current_group = ""
                     else:
                         return (

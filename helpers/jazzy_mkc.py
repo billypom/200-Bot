@@ -67,7 +67,6 @@ def mt_mkc_request_forum_info(mkc_user_id):
             response_lines = response_string.split("\\n")
             # \t\t\t\t\t\t\t\t\t\t\t<time  class="u-dt" dir="auto" datetime="2022-07-30T11:07:30-0400" data-time="1659193650" data-date-string="Jul 30, 2022" data-time-string="11:07 AM" title="Jul 30, 2022 at 11:07 AM">A moment ago</time> <span role="presentation" aria-hidden="true">&middot;</span> Viewing member profile <em><a href="/forums/index.php?members/popuko.154/" dir="auto">popuko</a></em>
             for idx, line in enumerate(response_lines):
-                # print(line)
                 if "Last seen" in line:
                     last_seen_string = response_lines[idx + 2]
                     regex_pattern = r'data-time="\d*"'
@@ -75,7 +74,6 @@ def mt_mkc_request_forum_info(mkc_user_id):
                         regex_group = re.search(regex_pattern, last_seen_string)
                         x = regex_group.group()
                         reg_array = re.split('"', x)
-                        # print(reg_array)
                         last_seen_unix_timestamp = reg_array[1]
                         break
             if last_seen_unix_timestamp is None:

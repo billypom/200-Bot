@@ -94,7 +94,6 @@ class Unban_check(commands.Cog):
     async def punishment_check(self):
         # current time to compare against ban dates
         unix_now = await self.get_unix_time_now()
-        print(unix_now)
         current_time = datetime.datetime.now()
         # guild object
         guild = await self.client.fetch_guild(LOUNGE[0])
@@ -243,12 +242,12 @@ class Unban_check(commands.Cog):
 
     @check.before_loop
     async def before_check(self):
-        print("unban waiting...")
+        logging.info("unban waiting...")
         await self.client.wait_until_ready()
 
     @punishment_check.before_loop
     async def before_punishment_check(self):
-        print("punishment waiting...")
+        logging.info("punishment waiting...")
         await self.client.wait_until_ready()
 
 

@@ -1,6 +1,7 @@
 import DBA
 import sys
 import time
+import logging
 
 
 def add_random_players_to_queue(number_of_players):
@@ -14,7 +15,7 @@ def add_random_players_to_queue(number_of_players):
                 (number_of_players,),
             )
     except Exception as e:
-        print(f"what the hck 1 | {e}")
+        logging.info(f"what the hck 1 | {e}")
         return False
 
     for player in temp:
