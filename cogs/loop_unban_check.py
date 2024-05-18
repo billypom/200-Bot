@@ -158,7 +158,7 @@ class Unban_check(commands.Cog):
                         f"loop_unban_check | Player <@{player_id}> is not in the server. Therefore I cannot remove their punishment. I will attempt to remove their punishment during the next hour of checks.",
                         "Player not found in server",
                     )
-                    return
+                    continue
                 try:
                     await user.remove_roles(punishment_role)
                 except Exception:
