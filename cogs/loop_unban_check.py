@@ -149,6 +149,31 @@ class Unban_check(commands.Cog):
                 punishment_role = guild.get_role(LOUNGELESS_ROLE_ID)
             else:
                 continue
+            # Update DB
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute(
+                        "UPDATE player_punishment SET unban_date = NULL WHERE id = %s;",
+                        (player_punishment_id,),
+                    )
+            except Exception as e:
+                await self.send_error_embed(
+                    f"loop_unban_check | Could not remove unban_date field for player {player_id}",
+                    e,
+                )
+            if punishment_id == 1:
+                try:
+                    with DBA.DBAccess() as db:
+                        db.execute(
+                            "UPDATE player SET is_chat_restricted = 0 WHERE player_id = %s;",
+                            (player_id,),
+                        )
+                    logging.info(f"{player} - Punishment removed | {punishment_role}")
+                except Exception as e:
+                    await self.send_error_embed(
+                        "loop_unban_check | Could not update player table", e
+                    )
+            # Update Discord member
             try:
                 # Get the user
                 try:
@@ -187,29 +212,6 @@ class Unban_check(commands.Cog):
                 )
                 logging.info(f"loop_unban_check | failed because: {e}")
                 pass
-            try:
-                with DBA.DBAccess() as db:
-                    db.execute(
-                        "UPDATE player_punishment SET unban_date = NULL WHERE id = %s;",
-                        (player_punishment_id,),
-                    )
-            except Exception as e:
-                await self.send_error_embed(
-                    f"loop_unban_check | Could not remove unban_date field for player {player_id}",
-                    e,
-                )
-            if punishment_id == 1:
-                try:
-                    with DBA.DBAccess() as db:
-                        db.execute(
-                            "UPDATE player SET is_chat_restricted = 0 WHERE player_id = %s;",
-                            (player_id,),
-                        )
-                    logging.info(f"{player} - Punishment removed | {punishment_role}")
-                except Exception as e:
-                    await self.send_error_embed(
-                        "loop_unban_check | Could not update player table", e
-                    )
 
     @check.before_loop
     async def before_check(self):
