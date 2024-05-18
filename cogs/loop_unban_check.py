@@ -94,6 +94,7 @@ class Unban_check(commands.Cog):
     async def punishment_check(self):
         # current time to compare against ban dates
         unix_now = await self.get_unix_time_now()
+        print(unix_now)
         current_time = datetime.datetime.now()
         # guild object
         guild = await self.client.fetch_guild(LOUNGE[0])
@@ -110,7 +111,13 @@ class Unban_check(commands.Cog):
             player_punishment_id = player[3]  # type: ignore
             punishment_id = player[4]  # type: ignore
             punishment_type = player[5]  # type: ignore
-            logging.info(f"Punishment checking {player}")
+            logging.info(
+                f"loop_unban_check punishment_check() | Punishment checking {player}"
+            )
+            await self.send_embed(
+                f"loop_unban_check | punishment checking <@{player_id}>",
+                "I found someone who has a punishment that should be removed. I will attempt to process the removal.",
+            )
             # check if already banned by automatic strike system
             try:
                 with DBA.DBAccess() as db:
@@ -120,7 +127,7 @@ class Unban_check(commands.Cog):
                     )[0][0]  # type: ignore
                 if player_id_retrieved == player_id:
                     await self.send_embed(
-                        f"cogs | unban_check | <@{player_id}> still banned by strikes. no unban",
+                        f"loop_unban_check | <@{player_id}> is still banned by strikes, so I will not unban them here yet.",
                         "nope",
                     )
                     continue  # next player
@@ -130,7 +137,7 @@ class Unban_check(commands.Cog):
                 # list index out of range means there is nobody that is already banned
                 pass
             except Exception:
-                logging.warning("cogs | unban_check | generic error")
+                logging.warning("loop_unban_check | generic error")
                 pass
 
             # Find the punishment id for nice messages to admins
@@ -147,23 +154,27 @@ class Unban_check(commands.Cog):
                 try:
                     user = await guild.fetch_member(player_id)
                 except Exception:
+                    await self.send_embed(
+                        f"loop_unban_check | Player <@{player_id}> is not in the server. Therefore I cannot remove their punishment. I will attempt to remove their punishment during the next hour of checks.",
+                        "Player not found in server",
+                    )
                     return
                 try:
                     await user.remove_roles(punishment_role)
                 except Exception:
                     logging.info(
-                        "cogs | unban_check | punishment_check | could not remove user roles (OK in dev env)"
+                        "loop_unban_check | could not remove user roles (OK in dev env)"
                     )
                     pass
                 try:
                     await set_uid_roles(self.client, player_id)
                 except Exception:
                     logging.info(
-                        "cogs | unban_check | punishment_check | could not add user roles (OK in dev env)"
+                        "loop_unban_check | could not add user roles (OK in dev env)"
                     )
                     pass
                 await self.send_embed(
-                    f"<@{player_id}>\nPlayer unbanned - {punishment_type} removed\nOriginal reason: {reason}",
+                    f"loop_unban_check | <@{player_id}>\nPlayer unbanned - {punishment_type} removed\nOriginal reason: {reason}",
                     str(player_id),
                 )
             except Exception as e:
@@ -171,28 +182,43 @@ class Unban_check(commands.Cog):
                     "cogs | unban_check | punishment check failed", e
                 )
                 await self.send_embed(
-                    f"<@{player_id}>\nPlayer unbanned - Not found in server - {punishment_type} roles not assigned",
+                    f"loop_unban_check | <@{player_id}>\nPlayer unbanned - Not found in server - {punishment_type} roles not assigned",
                     str(player_id),
                 )
-                logging.info(
-                    f"cogs | unban_check | punishment check | failed because: {e}"
-                )
+                logging.info(f"loop_unban_check | failed because: {e}")
                 pass
-            with DBA.DBAccess() as db:
-                db.execute(
-                    "UPDATE player_punishment SET unban_date = NULL WHERE id = %s;",
-                    (player_punishment_id,),
+            try:
+                with DBA.DBAccess() as db:
+                    db.execute(
+                        "UPDATE player_punishment SET unban_date = NULL WHERE id = %s;",
+                        (player_punishment_id,),
+                    )
+            except Exception as e:
+                await self.send_error_embed(
+                    f"loop_unban_check | Could not remove unban_date field for player {player_id}",
+                    e,
                 )
-            with DBA.DBAccess() as db:
-                db.execute(
-                    "UPDATE player SET is_chat_restricted = 0 WHERE player_id = %s;",
-                    (player_id,),
-                )
-            logging.info(f"{player} - Punishment removed | {punishment_role}")
+            if punishment_id == 1:
+                try:
+                    with DBA.DBAccess() as db:
+                        db.execute(
+                            "UPDATE player SET is_chat_restricted = 0 WHERE player_id = %s;",
+                            (player_id,),
+                        )
+                    logging.info(f"{player} - Punishment removed | {punishment_role}")
+                except Exception as e:
+                    await self.send_error_embed(
+                        "loop_unban_check | Could not update player table", e
+                    )
 
     @check.before_loop
     async def before_check(self):
         print("unban waiting...")
+        await self.client.wait_until_ready()
+
+    @punishment_check.before_loop
+    async def before_punishment_check(self):
+        print("punishment waiting...")
         await self.client.wait_until_ready()
 
 
