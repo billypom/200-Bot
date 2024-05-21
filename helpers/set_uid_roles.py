@@ -20,6 +20,7 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
         member = await guild.fetch_member(uid)
     except Exception as e:
         # member not in server
+        await send_raw_to_debug_channel(client, f'{uid} not found in server. Not setting roles', e)
         return None, None
     try:  # Edit their discord nickname
         with DBA.DBAccess() as db:
@@ -27,14 +28,15 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
                 "SELECT player_name FROM player WHERE player_id = %s;",
                 (uid,),
             )[0][0]  # type: ignore
-    except Exception:
+    except Exception as e:
         # member not in leaderboard
+        await send_raw_to_debug_channel(client, f'{uid} not found in leaderboard. Not setting roles', e)
         return None, None
     try:
         await member.edit(nick=str(player_name))
     except Exception:
         await member.send(
-            "Hello. Your name change request has been accepted. However, I am lower in the role hierarchy, therefore I cannot edit your nickname for you. I updated the database with your new name, but you will need to right-click and edit your nickname yourself. c:"
+            "Hello. I am lower in the role hierarchy, therefore I cannot edit your nickname for you. I updated the database with your new name, but you will need to right-click and edit your nickname yourself. c:"
         )
         pass
     try:  # chat restricted
