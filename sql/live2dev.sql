@@ -1,6 +1,9 @@
 -- I use this file to make a copy of the live data for debugging.
 -- Other developers can ignore this file
 USE lounge_dev;
+DROP TABLE IF EXISTS lounge_queue_player;
+DROP TABLE IF EXISTS lounge_queue_channel;
+DROP TABLE IF EXISTS lounge_queue_category;
 DROP TABLE IF EXISTS sq_default_schedule;
 DROP TABLE IF EXISTS sq_schedule;
 DROP TABLE IF EXISTS player_punishment;
@@ -40,7 +43,7 @@ CREATE TABLE player (
     times_strike_limit_reached int unsigned default 0,
     twitch_link varchar(50) default NULL,
     mogi_media_message_id bigint unsigned default NULL,
-    banned_by_strikes_unban_date TIMESTAMP default NULL,
+    banned_by_strikes_unban_date bigint unsigned default NULL,
     CONSTRAINT playerpk PRIMARY KEY (player_id),
     CONSTRAINT playerfk FOREIGN KEY (rank_id) REFERENCES ranks(rank_id)
 );

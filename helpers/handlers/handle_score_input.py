@@ -17,6 +17,15 @@ async def handle_score_input(score_string: str, mogi_format: int) -> list:
     score_list = score_string.split()
     if len(score_list) != 24:
         return [f"`WRONG AMOUNT OF INPUTS:` {len(score_list)}"]
+    # Make sure every player in the list is unique
+    players_in_list = []
+    duplicate_players = ""
+    for i in range(0, len(score_list), 2):
+        if score_list[i] in players_in_list:
+            duplicate_players += f'{score_list[i]} '
+        players_in_list.append(score_list[i])
+    if players_in_list != set(players_in_list):
+        return [f"Each player must be unique. Duplicate players: \n```{str(duplicate_players).replace('[', '').replace(']', '')}```"]
     # Make sure every player in the list exists
     for i in range(0, len(score_list), 2):
         try:
