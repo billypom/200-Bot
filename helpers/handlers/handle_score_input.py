@@ -1,4 +1,5 @@
 import DBA
+from collections import Counter
 
 
 async def handle_score_input(score_string: str, mogi_format: int) -> list:
@@ -19,13 +20,12 @@ async def handle_score_input(score_string: str, mogi_format: int) -> list:
         return [f"`WRONG AMOUNT OF INPUTS:` {len(score_list)}"]
     # Make sure every player in the list is unique
     players_in_list = []
-    duplicate_players = ""
     for i in range(0, len(score_list), 2):
-        if score_list[i] in players_in_list:
-            duplicate_players += f'{score_list[i]} '
         players_in_list.append(score_list[i])
-    if players_in_list != set(players_in_list):
-        return [f"Each player must be unique. Duplicate players: \n```{str(duplicate_players).replace('[', '').replace(']', '')}```"]
+    duplicates = [k for k,v in Counter(players_in_list).items() if v > 1]
+    if duplicates:
+        translation = {39: None}
+        return [f"Each player must be unique. Duplicate players: \n```{str(duplicates).replace('[', '').replace(']', '').translate(translation)}```"]
     # Make sure every player in the list exists
     for i in range(0, len(score_list), 2):
         try:
