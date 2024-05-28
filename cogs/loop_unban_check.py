@@ -42,7 +42,7 @@ class Unban_check(commands.Cog):
 
     @tasks.loop(hours=1)
     async def check(self):
-        current_time = self.get_unix_time_now()
+        current_time = await self.get_unix_time_now()
         try:
             with DBA.DBAccess() as db:
                 temp = db.query(
