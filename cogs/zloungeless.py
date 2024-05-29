@@ -61,14 +61,15 @@ class LoungelessCog(commands.Cog):
             unban_date = unix_now + unix_ban_length
             await user.add_roles(loungeless_role)
             await remove_rank_roles_from_uid(self.client, player_id)
+            channel = self.client.get_channel(ctx.channel.id)  # type: ignore
             try:
                 # Notify the player
                 dm_message = f"You have been banned from competing in MK8DX 200cc Lounge.\nBan length: {ban_length} days\nReason:\n> {reason}"
                 await user.send(dm_message)
                 # Notify the staff member using the command that the player was DM'd
-                channel = self.client.get_channel(ctx.channel.id)  # type: ignore
                 await channel.send(f'<@{user.id}> was sent a DM:\n```{dm_message}```')
             except Exception as e:
+                await channel.send(f'I tried to DM the user your message, but their Discord settings do not allow me to DM them.')
                 await send_raw_to_debug_channel(
                     self.client,
                     "/zloungeless error - Failed to send user DM. Probably not allowed to because they are too awesome :)",

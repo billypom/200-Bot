@@ -83,13 +83,14 @@ class RestrictCog(commands.Cog):
                 except Exception:
                     pass
                 # Notify user
+                channel = self.client.get_channel(ctx.channel.id)  # type: ignore
                 try:
                     dm_message = f"You have been restricted in MK8DX 200cc Lounge for {ban_length} days\nReason:\n> {reason}"
                     await user.send(dm_message)
                     # Notify staff member using the command that a DM was sent to the player
-                    channel = self.client.get_channel(ctx.channel.id)  # type: ignore
                     await channel.send(f'<@{user.id}> was sent a DM:\n```{dm_message}```')
                 except Exception:
+                    await channel.send(f'I tried to DM the user your message, but their Discord settings do not allow me to DM them.')
                     pass
 
         # update database for restricted/unrestricted
