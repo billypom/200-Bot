@@ -82,11 +82,13 @@ class RestrictCog(commands.Cog):
                     await user.add_roles(chat_restricted_role)
                 except Exception:
                     pass
-                # Notify
+                # Notify user
                 try:
-                    await user.send(
-                        f"You have been restricted in MK8DX 200cc Lounge for {ban_length} days\nReason: `{reason}`"
-                    )
+                    dm_message = f"You have been restricted in MK8DX 200cc Lounge for {ban_length} days\nReason:\n> {reason}"
+                    await user.send(dm_message)
+                    # Notify staff member using the command that a DM was sent to the player
+                    channel = self.client.get_channel(ctx.channel.id)  # type: ignore
+                    await channel.send(f'<@{user.id}> was sent a DM:\n```{dm_message}```')
                 except Exception:
                     pass
 
@@ -129,7 +131,7 @@ class RestrictCog(commands.Cog):
                     "/zrestrict error - Failed to insert punishment record",
                     e,
                 )
-                logging.info(
+                logging.error(
                     f"ERROR: /zrestrict failed to insert punishment record for player [{player}, {player_id}] with length of [{ban_length} days] with message [{reason}]"
                 )
                 return

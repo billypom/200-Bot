@@ -28,9 +28,9 @@ class ZRemoveAllRanks(commands.Cog):
                     test_role = guild.get_role(rank_id_list[i])
                     if test_role in member.roles:
                         await member.remove_roles(test_role)
-                        logging.info(f"removed {test_role} from {member}")
+                        logging.info(f"zremove_all_ranks.py | removed {test_role} from {member}")
                 except Exception as e:
-                    logging.info(e)
+                    logging.error(f'zremove_all_ranks.py | could not apply role to {member.id} | {e}')
         await ctx.respond("All player rank roles have been removed")
 
 

@@ -8,7 +8,7 @@ async def iso_country_to_emoji(iso_code: str) -> str:
         emoji_flag = countries.country_to_emoji.get(iso_code, "")
         return emoji_flag
     except Exception as e:
-        logging.info(
-            f"iso_country_to_emoji | could not retrieve country flag. iso code = {iso_code} | {e}"
+        logging.error(
+            f"iso_country_to_emoji.py | could not retrieve country flag. iso code = {iso_code} | {e}"
         )
         return ""

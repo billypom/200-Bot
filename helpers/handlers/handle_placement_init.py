@@ -33,9 +33,6 @@ async def handle_placement_init(
         1: name of a role i.e., iron, bronze, silver, etc
         2: final MMR value
     """
-    logging.info(
-        f"handle_placement_init: {player_id} scored {player_score}  | {tier_name}"
-    )
     placement_name = ""
     my_player_score = player_score
     if tier_name == "tier-c":

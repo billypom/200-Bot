@@ -69,7 +69,7 @@ class UnstrikeCog(commands.Cog):
                         )[0][0]  # type: ignore
                     )
                 except Exception:
-                    logging.info(f"UNSTRIKE Failed - {player_id} not found")
+                    logging.error(f"UNSTRIKE Failed - {player_id} not found")
                     await ctx.respond(
                         "Something went wrong. Player on strike not found."
                     )
@@ -85,7 +85,7 @@ class UnstrikeCog(commands.Cog):
                         (player_new_mmr, player_id),
                     )
                 except Exception:
-                    logging.info(
+                    logging.error(
                         f"UNSTRIKE Failed - {player_id} MMR ({player_mmr}) could not be updated to ({player_new_mmr})"
                     )
                     await ctx.respond(

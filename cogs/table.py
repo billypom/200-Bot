@@ -187,7 +187,6 @@ class TableCog(commands.Cog):
             # and build the MMR table string
             # [[player_id, score as str], [player_id, score as str], team_score, avg mmr, place, mmr_gain/loss]
             for team in sorted_list:
-                logging.info(f"table | team in sorted_list: {team}")
                 player_place = int(team[-2])
                 for idx, player in enumerate(team):
                     mmr_table_string += "\n"
@@ -288,8 +287,8 @@ class TableCog(commands.Cog):
                             f"FATAL TABLE ERROR {str(traceback.format_exc())}",
                             e,
                         )
-                        logging.info("FATAL TABLE ERROR")
-                        logging.info(traceback.format_exc())
+                        logging.error("FATAL TABLE ERROR")
+                        logging.error(traceback.format_exc())
                     # Check for rank changes
                     (
                         rank_changed,

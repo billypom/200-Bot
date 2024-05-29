@@ -24,9 +24,7 @@ async def create_player(client, member, mkc_user_id, country_code):
         country_code: Alpha-2 ISO Country Code
     Returns:
         User feedback message - confirmation or error message"""
-    logging.info("create_player | start")
     altered_name = await handle_player_name(member.display_name)
-    logging.info(f"create_player | Finished handling name: {altered_name}")
     # Create player record
     try:
         with DBA.DBAccess() as db:
@@ -53,7 +51,6 @@ async def create_player(client, member, mkc_user_id, country_code):
         )
     # Assign placement role
     role = get_lounge_guild(client).get_role(PLACEMENT_ROLE_ID)
-    logging.info(f"create_player | {altered_name} | Attempted to edit nickname")
     try:
         await member.add_roles(role)
     except Exception as e:
@@ -62,7 +59,6 @@ async def create_player(client, member, mkc_user_id, country_code):
             f"create_player error 16 - CANNOT EDIT ROLE FOR USER <@{member.id}>",
             e,
         )
-    logging.info(f"create_player | {altered_name} | Attempted to add roles")
     # Confirmation log
     await send_raw_to_verification_log(
         client,

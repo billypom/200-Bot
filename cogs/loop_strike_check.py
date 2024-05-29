@@ -45,12 +45,12 @@ class strike_check(commands.Cog):
                     (current_time, 1),
                 )
         except Exception as e:
-            logging.info(f"strike_check | ERROR - unable to retrieve strike | {e}")
+            logging.error(f"loop_strike_check.py | ERROR - unable to retrieve strike | {e}")
             await self.send_error_embed(f"strike_check error 1 {PING_DEVELOPER}", e)
             return
         # Set strikes inactive
         if temp:
-            logging.info(f"strike_check | Strikes expiring: {str(temp)}")
+            logging.error(f"loop_strike_check.py | Strikes expiring: {str(temp)}")
             await self.send_embed("Strikes expiring by strike_id", str(temp))
             try:
                 with DBA.DBAccess() as db:
@@ -59,8 +59,8 @@ class strike_check(commands.Cog):
                         (0, current_time),
                     )
             except Exception as e:
-                logging.info(
-                    f"strike_check | ERROR - unable to set strikes to inactive | {e}"
+                logging.error(
+                    f"loop_strike_check.py | ERROR - unable to set strikes to inactive | {e}"
                 )
                 await self.send_error_embed(f"strike_check error 2 {PING_DEVELOPER}", e)
                 return

@@ -23,6 +23,8 @@ from constants import (
 )
 from typing import TYPE_CHECKING
 
+from helpers.senders.send_raw_to_debug_channel import send_raw_to_debug_channel
+
 if TYPE_CHECKING:
     from discord import ApplicationContext
 
@@ -98,8 +100,8 @@ class StrikeCog(commands.Cog):
                         )[0][0]  # type: ignore
                     )
                 except Exception:
-                    logging.info(
-                        "Strike application failed - could not retrieve last inserted strike"
+                    logging.error(
+                        "strike_player.py, player_is_placement=true | Strike application failed - could not retrieve last inserted strike"
                     )
                     return
         else:
@@ -128,8 +130,8 @@ class StrikeCog(commands.Cog):
                         )[0][0]  # type: ignore
                     )
                 except Exception:
-                    logging.info(
-                        "Strike application failed - could not retrieve last inserted strike"
+                    logging.error(
+                        "strike_player.py, player_is_placement=false | Strike application failed - could not retrieve last inserted strike"
                     )
                     return
 
@@ -152,9 +154,7 @@ class StrikeCog(commands.Cog):
                     )
                     + 1
                 )
-                logging.info(
-                    f"Strike limit reached. {7*times_strike_limit_reached} day ban will be applied to: {player_id}"
-                )
+                await send_raw_to_debug_channel(self.client, f"Strike limit reached. {7*times_strike_limit_reached} day ban will be applied to: {player_id}", None)
                 unban_unix_time = (
                     await get_unix_time_now()
                     + 7 * 24 * 60 * 60 * times_strike_limit_reached
@@ -172,7 +172,8 @@ class StrikeCog(commands.Cog):
                 for rank in rank_id_list:
                     bye = get_lounge_guild(self.client).get_role(rank)
                     await user.remove_roles(bye)  # type: ignore
-            except Exception:
+            except Exception as e:
+                await send_raw_to_debug_channel(self.client, f'strike_player.py | Could not apply discord roles to {player_id} after receiving >3 strikes', e)
                 pass
 
             channel = self.client.get_channel(STRIKES_CHANNEL_ID)

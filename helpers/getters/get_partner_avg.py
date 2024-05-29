@@ -77,12 +77,12 @@ async def get_partner_avg(
             temp = db.query(sql, (uid, tier_id, number_of_mogis, uid))
 
             try:
-                # logging.info(f'get_partner_avg | SQL Debug 1 returned: {debug_temp1}')
-                # logging.info(f'get_partner_avg | SQL Debug 2 returned: {debug_temp2}')
-                # logging.info(f'get_partner_avg | SQL returned: {temp}')
+                # logging.warning(f'get_partner_avg | SQL Debug 1 returned: {debug_temp1}')
+                # logging.warning(f'get_partner_avg | SQL Debug 2 returned: {debug_temp2}')
+                # logging.warning(f'get_partner_avg | SQL returned: {temp}')
                 return round(float(temp[0][0]), 2)  # type: ignore
-            except Exception:
-                logging.info("get_partner_avg | SQL did not return any average")
+            except Exception as e:
+                logging.error(f"get_partner_avg | SQL did not return any average | {e}")
                 return 0
     except Exception as e:
         await send_raw_to_debug_channel(client, "partner average error", e)

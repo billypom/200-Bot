@@ -38,7 +38,7 @@ async def handle_suggestion_decision(
         admin = await get_lounge_guild(client).fetch_member(admin_id)
     except Exception:
         admin = None
-        logging.info("handle_suggestion_decision | no admin found... among us moment")
+        logging.error("handle_suggestion_decision | no admin found... among us moment")
         return False
     # Return if no decision was made
     if approved is None:

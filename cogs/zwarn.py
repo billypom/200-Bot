@@ -49,7 +49,7 @@ class WarnCog(commands.Cog):
             await send_raw_to_debug_channel(
                 self.client, "/zwarn error - Failed to insert punishment record", e
             )
-            logging.info(
+            logging.error(
                 f"ERROR: /zwarn failed to insert punishment record for player [{player_id}] with message [{reason}]"
             )
 
@@ -61,7 +61,7 @@ class WarnCog(commands.Cog):
             await send_raw_to_debug_channel(
                 self.client, f"/zwarn error - member [{player}] not found", e
             )
-            logging.info(f"/zwarn error - member [{player}] not found")
+            logging.error(f"/zwarn error - member [{player}] not found")
 
 
 def setup(client):

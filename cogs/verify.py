@@ -61,11 +61,7 @@ class VerifyCog(commands.Cog):
                 member = await get_lounge_guild(self.client).fetch_member(ctx.author.id)
                 msg_response = f":flag_us:\nWelcome back to 200cc Lounge.\nYou have been given the role: <@&{response[0]}>\n\n:flag_jp:\n`200ccラウンジにおかえり！`\n<@&{response[0]}>`が割り当てられています`"
                 await ctx.respond(msg_response)
-                logging.info(
-                    f"POP_LOG | {member.display_name} | Responded to verification message"
-                )
                 await member.send(msg_response)
-                logging.info(f"POP_LOG | {member.display_name} | Sent verification DM")
             else:
                 await ctx.respond(
                     f"``Error 29:`` Could not re-enter the lounge. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."
@@ -209,16 +205,9 @@ class VerifyCog(commands.Cog):
         else:
             member = await get_lounge_guild(self.client).fetch_member(ctx.author.id)
             x = await create_player(self.client, member, mkc_user_id, country_code)
-            logging.info(
-                f"POP_LOG | Created player: discord.Member: {member} | mkc_user_id: {mkc_user_id} | country: {country_code}"
-            )
             try:
                 await ctx.respond(x)
-                logging.info(
-                    f"POP_LOG | {member.display_name} | Responded to verification message"
-                )
                 await member.send(x)
-                logging.info(f"POP_LOG | {member.display_name} | Sent verification DM")
             except Exception:
                 await ctx.respond("oops")
             await send_to_verification_log(

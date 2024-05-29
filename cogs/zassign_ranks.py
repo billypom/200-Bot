@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import DBA
+import logging
 from helpers.getters import get_lounge_guild
 from constants import LOUNGE, ADMIN_ROLE_ID, PLACEMENT_ROLE_ID
 
@@ -31,9 +32,8 @@ class ZAssignRanks(commands.Cog):
                     role = guild.get_role(PLACEMENT_ROLE_ID)
                     member = guild.get_member(players[i][0])
                     await member.add_roles(role)
-                    logging.info(f"assigned {role} to {players[i][0]}")
                 except Exception as e:
-                    logging.info(f"{players[i][0]} | {e}")
+                    pass
                 continue
             for j in range(len(temp)):
                 # If MMR > min & MMR < max, assign role
@@ -54,10 +54,9 @@ class ZAssignRanks(commands.Cog):
                             "UPDATE player SET rank_id = %s WHERE player_id = %s;",
                             (temp[j][0], players[i][0]),
                         )
-                    logging.info(f"assigned {role} to {member}")
                     break
                 except Exception as e:
-                    logging.info(f"{players[i][0]} | {e}")
+                    logging.error(f"zassign_ranks.py | {players[i][0]} | {e}")
                     break
         await ctx.respond("done")
 

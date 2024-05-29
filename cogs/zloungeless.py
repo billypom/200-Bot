@@ -39,9 +39,10 @@ class LoungelessCog(commands.Cog):
         await ctx.defer()
         # Retrieve player from DB
         with DBA.DBAccess() as db:
-            player_id = db.query(
+            player_id = int(db.query(
                 "SELECT player_id FROM player WHERE player_name = %s;", (player,)
             )[0][0]  # type: ignore
+            )
 
         if player_id:
             pass
@@ -61,9 +62,12 @@ class LoungelessCog(commands.Cog):
             await user.add_roles(loungeless_role)
             await remove_rank_roles_from_uid(self.client, player_id)
             try:
-                await user.send(
-                    f"You have been banned from competing in MK8DX 200cc Lounge.\nBan length: {ban_length} days\nReason: `{reason}`"
-                )
+                # Notify the player
+                dm_message = f"You have been banned from competing in MK8DX 200cc Lounge.\nBan length: {ban_length} days\nReason:\n> {reason}"
+                await user.send(dm_message)
+                # Notify the staff member using the command that the player was DM'd
+                channel = self.client.get_channel(ctx.channel.id)  # type: ignore
+                await channel.send(f'<@{user.id}> was sent a DM:\n```{dm_message}```')
             except Exception as e:
                 await send_raw_to_debug_channel(
                     self.client,
