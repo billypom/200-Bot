@@ -43,6 +43,6 @@ class DBAccess:
     def fetchone(self):
         return self.cursor.fetchone()
 
-    def query(self, sql, params):
+    def query(self, sql, params) -> list:
         self.cursor.execute(sql, params or ())
         return self.fetchall()
