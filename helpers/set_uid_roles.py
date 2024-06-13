@@ -20,7 +20,7 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
         member = await guild.fetch_member(uid)
     except Exception as e:
         # member not in server
-        await send_raw_to_debug_channel(client, f'{uid} not found in server. Not setting roles', e)
+        # await send_raw_to_debug_channel(client, f'{uid} not found in server. Not setting roles', e)
         return None, None
     try:  # Edit their discord nickname
         with DBA.DBAccess() as db:
@@ -30,7 +30,7 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
             )[0][0]  # type: ignore
     except Exception as e:
         # member not in leaderboard
-        await send_raw_to_debug_channel(client, f'{uid} not found in leaderboard. Not setting roles', e)
+        # await send_raw_to_debug_channel(client, f'{uid} not found in leaderboard. Not setting roles', e)
         return None, None
     try:
         await member.edit(nick=str(player_name))
