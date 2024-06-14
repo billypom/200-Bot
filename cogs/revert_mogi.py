@@ -3,7 +3,7 @@ from discord.ext import commands
 import DBA
 from helpers.senders import send_to_debug_channel, send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild
-from constants import LOUNGE, REPORTER_ROLE_ID, PING_DEVELOPER
+from constants import DEVELOPER_UID, LOUNGE, REPORTER_ROLE_ID, PING_DEVELOPER
 from typing import TYPE_CHECKING
 
 
@@ -49,10 +49,13 @@ class RevertCog(commands.Cog):
             return
         # If mogi has reduced loss, do not revert
         if has_reduced_loss:
-            await ctx.respond(
-                f"You cannot `/revert` a mogi that has reduced loss. :warning: {PING_DEVELOPER}"
-            )
-            return
+            if ctx.author.id == DEVELOPER_UID:
+                pass
+            else:
+                await ctx.respond(
+                    f"You cannot `/revert` a mogi that has reduced loss. :warning: {PING_DEVELOPER}"
+                )
+                return
         # Check for rank changes
         try:
             with DBA.DBAccess() as db:
