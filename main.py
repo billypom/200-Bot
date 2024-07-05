@@ -180,31 +180,30 @@ async def on_raw_reaction_add(payload):
                         pass
                     member = guild.get_member(message_ids[i][1])  # type: ignore
                     # Player not in guild
-                    if member is None:
+                    if member is not None:
                         await send_raw_to_debug_channel(
                             client,
                             "Name change exception 5 - User is not in guild",
                             None,
                         )
-                        return
-                    # DM player
-                    try:
-                        await member.send(
-                            f"Your name change [{message_ids[i][2]}] has been approved."  # type: ignore
-                        )
-                    except Exception as e:
-                        await send_raw_to_debug_channel(
-                            client, "Name change exception 3", e
-                        )
-                        pass
-                    # Edit discord nickname
-                    try:
-                        await member.edit(nick=str(message_ids[i][2]))  # type: ignore
-                    except Exception as e:
-                        await send_raw_to_debug_channel(
-                            client, "Name change exception 4", e
-                        )
-                        pass
+                        # 1. DM player
+                        try:
+                            await member.send(
+                                f"Your name change [{message_ids[i][2]}] has been approved."  # type: ignore
+                            )
+                        except Exception as e:
+                            await send_raw_to_debug_channel(
+                                client, "Name change exception 3", e
+                            )
+                            pass
+                        # 2. Edit discord nickname
+                        try:
+                            await member.edit(nick=str(message_ids[i][2]))  # type: ignore
+                        except Exception as e:
+                            await send_raw_to_debug_channel(
+                                client, "Name change exception 4", e
+                            )
+                            pass
                 # Deny
                 elif str(payload.emoji) == "❌":
                     with DBA.DBAccess() as db:
