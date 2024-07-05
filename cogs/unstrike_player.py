@@ -36,7 +36,7 @@ class UnstrikeCog(commands.Cog):
         strike_id: Option(int, description="Enter the strike ID", required=True),  # type: ignore
     ):
         await ctx.defer()
-        is_results_channel = await check_if_is_results_channel()
+        is_results_channel = await check_if_is_results_channel(ctx.channel.id)  # type: ignore
         if not is_results_channel:
             await ctx.respond("You cannot use this command in this channel")
             return
