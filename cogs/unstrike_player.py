@@ -6,7 +6,10 @@ import logging
 from constants import DEVELOPER_UID, REPORTER_ROLE_ID, LOUNGE
 from helpers import set_uid_roles
 from helpers.getters import get_unix_time_now
-from helpers.checkers import check_if_uid_is_chat_restricted
+from helpers.checkers import (
+    check_if_uid_is_chat_restricted,
+    check_if_is_results_channel,
+)
 from typing import TYPE_CHECKING
 from math import floor
 
@@ -33,6 +36,10 @@ class UnstrikeCog(commands.Cog):
         strike_id: Option(int, description="Enter the strike ID", required=True),  # type: ignore
     ):
         await ctx.defer()
+        is_results_channel = await check_if_is_results_channel()
+        if not is_results_channel:
+            await ctx.respond("You cannot use this command in this channel")
+            return
         is_chat_restricted = await check_if_uid_is_chat_restricted(ctx.author.id)
         if is_chat_restricted:
             await ctx.respond("You cannot use this command")
@@ -110,10 +117,17 @@ class UnstrikeCog(commands.Cog):
         # Check if the removed strike was the 3rd strike for player
         try:
             with DBA.DBAccess() as db:
-                data = db.query('SELECT times_strike_limit_reached, banned_by_strikes_unban_date FROM player WHERE player_id = %s;', (player_id,))
+                data = db.query(
+                    "SELECT times_strike_limit_reached, banned_by_strikes_unban_date FROM player WHERE player_id = %s;",
+                    (player_id,),
+                )
         except Exception as e:
-            logging.warning(f'unstrike_player | unable to retrieve player record for 3 strikes check. Player_id = {player_id}')
-            await ctx.respond('Something went wrong. Player may still be restricted per 3 strike rule')
+            logging.warning(
+                f"unstrike_player | unable to retrieve player record for 3 strikes check. Player_id = {player_id}"
+            )
+            await ctx.respond(
+                "Something went wrong. Player may still be restricted per 3 strike rule"
+            )
             return
         times_strike_limit_reached = data[0][0]
         banned_by_strikes_unban_date = data[0][1]
@@ -122,17 +136,31 @@ class UnstrikeCog(commands.Cog):
             strike_limit_reached_counter = floor(times_strike_limit_reached - 1)
             try:
                 with DBA.DBAccess() as db:
-                    db.execute('UPDATE player SET times_strike_limit_reached = %s WHERE player_id = %s;', (strike_limit_reached_counter, player_id))
+                    db.execute(
+                        "UPDATE player SET times_strike_limit_reached = %s WHERE player_id = %s;",
+                        (strike_limit_reached_counter, player_id),
+                    )
             except Exception as e:
-                logging.warning(f'unstrike_player | unable to update times_strike_limit_reached per 3 strikes check. Player_id = {player_id}')
-                await ctx.respond('Something went wrong. Player may still be restricted per 3 strike rule')
+                logging.warning(
+                    f"unstrike_player | unable to update times_strike_limit_reached per 3 strikes check. Player_id = {player_id}"
+                )
+                await ctx.respond(
+                    "Something went wrong. Player may still be restricted per 3 strike rule"
+                )
                 return
             try:
                 with DBA.DBAccess() as db:
-                    db.execute('UPDATE player SET banned_by_strikes_unban_date = %s WHERE player_id = %s;', (None, player_id))
+                    db.execute(
+                        "UPDATE player SET banned_by_strikes_unban_date = %s WHERE player_id = %s;",
+                        (None, player_id),
+                    )
             except Exception as e:
-                logging.warning(f'unstrike_player | unable to update banned_by_strikes_unban_date per 3 strikes check. Player_id = {player_id}')
-                await ctx.respond('Something went wrong. Player may still be restricted per 3 strike rule')
+                logging.warning(
+                    f"unstrike_player | unable to update banned_by_strikes_unban_date per 3 strikes check. Player_id = {player_id}"
+                )
+                await ctx.respond(
+                    "Something went wrong. Player may still be restricted per 3 strike rule"
+                )
                 return
         await set_uid_roles(self.client, player_id)
         await ctx.respond(f"Strike ID {strike_id} has been removed.")

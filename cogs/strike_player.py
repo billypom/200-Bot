@@ -8,6 +8,7 @@ from helpers.checkers import (
     check_if_uid_is_placement,
     check_if_banned_characters,
     check_if_uid_is_chat_restricted,
+    check_if_is_results_channel,
 )
 from helpers.getters import get_number_of_strikes_for_uid
 from helpers.getters import get_lounge_guild
@@ -51,6 +52,10 @@ class StrikeCog(commands.Cog):
         reason: Option(str, description="Why?", required=True),  # type: ignore
     ):
         await ctx.defer()
+        is_results_channel = await check_if_is_results_channel()
+        if not is_results_channel:
+            await ctx.respond("You cannot use this command in this channel")
+            return
         is_chat_restricted = await check_if_uid_is_chat_restricted(ctx.author.id)
         if is_chat_restricted:
             await ctx.respond("You cannot use this command")
@@ -154,7 +159,11 @@ class StrikeCog(commands.Cog):
                     )
                     + 1
                 )
-                await send_raw_to_debug_channel(self.client, f"Strike limit reached. {7*times_strike_limit_reached} day ban will be applied to: {player_id}", None)
+                await send_raw_to_debug_channel(
+                    self.client,
+                    f"Strike limit reached. {7*times_strike_limit_reached} day ban will be applied to: {player_id}",
+                    None,
+                )
                 unban_unix_time = (
                     await get_unix_time_now()
                     + 7 * 24 * 60 * 60 * times_strike_limit_reached
@@ -173,7 +182,11 @@ class StrikeCog(commands.Cog):
                     bye = get_lounge_guild(self.client).get_role(rank)
                     await user.remove_roles(bye)  # type: ignore
             except Exception as e:
-                await send_raw_to_debug_channel(self.client, f'strike_player.py | Could not apply discord roles to {player_id} after receiving >3 strikes', e)
+                await send_raw_to_debug_channel(
+                    self.client,
+                    f"strike_player.py | Could not apply discord roles to {player_id} after receiving >3 strikes",
+                    e,
+                )
                 pass
 
             channel = self.client.get_channel(STRIKES_CHANNEL_ID)

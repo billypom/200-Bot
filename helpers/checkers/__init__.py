@@ -9,6 +9,7 @@ from .check_if_uid_exists import check_if_uid_exists
 from .check_if_uid_is_chat_restricted import check_if_uid_is_chat_restricted
 from .check_if_uid_is_lounge_banned import check_if_uid_is_lounge_banned
 from .check_if_uid_is_placement import check_if_uid_is_placement
+from .check_if_is_results_channel import check_if_is_results_channel
 from .check_if_valid_table_submission_channel import (
     check_if_valid_table_submission_channel,
 )
