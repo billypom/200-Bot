@@ -20,6 +20,7 @@ class PlayerInfoCog(commands.Cog):
         ctx,
         name: discord.Option(str, "Name", required=False),
         discord_id: discord.Option(str, "Discord ID", required=False),
+        mkc_id: discord.Option(str, "MKC Forum ID", required=False),
     ):
         await ctx.defer()
 
@@ -31,8 +32,14 @@ class PlayerInfoCog(commands.Cog):
                     "SELECT player_id FROM player WHERE player_name = %s;", (name,)
                 )
                 discord_id = temp[0][0]
+        elif mkc_id:
+            with DBA.DBAccess() as db:
+                temp = db.query(
+                    "SELECT player_id FROM player WHERE mkc_id = %s;", (mkc_id,)
+                )
+                discord_id = temp[0][0]
         else:
-            await ctx.respond("You must provide a `name` or `discord_id`")
+            await ctx.respond("You must provide a `name` or `discord_id` or `mkc_id`")
             return
         try:
             with DBA.DBAccess() as db:
