@@ -101,6 +101,10 @@ class ChangeDiscordAccountCog(commands.Cog):
                     "UPDATE strike SET player_id = %s WHERE player_id = %s;",
                     (new_discord_id, old_discord_id),
                 )
+                db.execute(
+                    "UPDATE player_punishment SET player_id = %s WHERE player_id = %s;",
+                    (new_discord_id, old_discord_id),
+                )
                 # update sub_leaver instances
                 # db.execute('UPDATE sub_leaver SET player_id = %s WHERE player_id = %s;', (new_discord_id, old_discord_id))
                 # delete old player
