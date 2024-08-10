@@ -331,7 +331,7 @@ class StatsCog(commands.Cog):
             red, green, blue = 185, 242, 255
         if mmr >= 9000:
             red, green, blue = 0, 0, 0
-        if mmr >= 11000
+        if mmr >= 11000:
             red, green, blue = 163, 2, 44
         rank_filename = "./images/rank.png"
         stats_rank_filename = "./images/stats_rank.png"
