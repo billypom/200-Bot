@@ -14,6 +14,7 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
     Args:
         client - discord bot
         uid - Discord User ID"""
+    role = None
     try:
         # Get discord.Guild and discord.Member objects
         guild = get_lounge_guild(client)
@@ -57,6 +58,7 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
             client, f"set_uid_roles exception triggered by <@{uid}>:", e
         )
         return None, None
+    is_loungeless = False
     try:  # loungeless
         with DBA.DBAccess() as db:
             temp = db.query(
@@ -70,34 +72,34 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
             if unban_date > unix_now and punishment_id == 2:  # type: ignore
                 role = guild.get_role(LOUNGELESS_ROLE_ID)
                 await member.add_roles(role)  # type: ignore
+                is_loungeless = True
     except Exception:  # no punishments exist
         pass
-
-    # Outcome #1
-
-    if mmr is None:  # Add placement role & return
-        role = guild.get_role(PLACEMENT_ROLE_ID)
-        await member.add_roles(role)  # type: ignore
-        return (role.id, role)  # type: ignore
-
-    # Outcome #2
-
-    with DBA.DBAccess() as db:  # Get ranks info
-        ranks = db.query("SELECT rank_id, mmr_min, mmr_max FROM ranks", ())
-
-    for rank in ranks:  # Remove any ranks from player
-        remove_rank = guild.get_role(rank[0])  # type: ignore
-        await member.remove_roles(remove_rank)  # type: ignore
-
-    for i in range(len(ranks)):  # Find their rank, based on MMR
-        if mmr >= int(ranks[i][1]) and mmr < int(ranks[i][2]):  # type: ignore
-            # Found your rank
-            role = guild.get_role(ranks[i][0])  # type: ignore
+    # Loungeless people do not get their rank roles
+    if not is_loungeless:
+        # Outcome #1
+        if mmr is None:  # Add placement role & return
+            role = guild.get_role(PLACEMENT_ROLE_ID)
             await member.add_roles(role)  # type: ignore
-            with DBA.DBAccess() as db:
-                db.execute(
-                    "UPDATE player SET rank_id = %s WHERE player_id = %s;",
-                    (ranks[i][0], member.id),  # type: ignore
-                )
+            return (role.id, role)  # type: ignore
+
+        # Outcome #2
+        with DBA.DBAccess() as db:  # Get ranks info
+            ranks = db.query("SELECT rank_id, mmr_min, mmr_max FROM ranks", ())
+
+        for rank in ranks:  # Remove any ranks from player
+            remove_rank = guild.get_role(rank[0])  # type: ignore
+            await member.remove_roles(remove_rank)  # type: ignore
+
+        for i in range(len(ranks)):  # Find their rank, based on MMR
+            if mmr >= int(ranks[i][1]) and mmr < int(ranks[i][2]):  # type: ignore
+                # Found your rank
+                role = guild.get_role(ranks[i][0])  # type: ignore
+                await member.add_roles(role)  # type: ignore
+                with DBA.DBAccess() as db:
+                    db.execute(
+                        "UPDATE player SET rank_id = %s WHERE player_id = %s;",
+                        (ranks[i][0], member.id),  # type: ignore
+                    )
 
     return (role.id, role)  # type: ignore
