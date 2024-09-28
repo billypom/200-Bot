@@ -1,12 +1,11 @@
 import sys
 import os
+import logging
+import DBA
+import configparser
 import discord
 from discord.ext import commands
 from discord import Embed, Color
-import logging
-import DBA
-import datetime
-import configparser
 from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild
 from helpers.getters import get_discord_role
@@ -22,6 +21,8 @@ from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from discord import TextChannel
+    from discord.guild import Guild
+    from discord.member import Member
 
 # Config file
 config_file = configparser.ConfigParser()
@@ -131,17 +132,23 @@ async def on_message(ctx):
 
 @client.event
 async def on_raw_reaction_add(payload):
+    """
+    Used strictly for name change approvals
+    """
+    if client.user is None:
+        # Return if we somehow got a reaction from nobody :skull:
+        return
     if int(payload.user_id) == int(client.user.id):
         # Return if bot reaction
         return
-    if payload.channel_id == NAME_CHANGE_CHANNEL_ID:
-        pass
-    else:
+    if payload.channel_id != NAME_CHANGE_CHANNEL_ID:
         # Return if this isnt a name change approval
         return
 
     # Stuff relating to the current embed
-    guild = client.get_guild(payload.guild_id)
+    guild: Guild | None = client.get_guild(payload.guild_id)
+    if guild is None:
+        return
     channel: "TextChannel" = cast("TextChannel", client.get_channel(payload.channel_id))
     message = await channel.fetch_message(payload.message_id)
     try:
@@ -156,7 +163,7 @@ async def on_raw_reaction_add(payload):
 
     # Look @ all embed message ids
     for i in range(0, len(message_ids)):
-        if int(payload.message_id) == int(message_ids[i][0]):  # type: ignore
+        if int(payload.message_id) == int(message_ids[i][0]):
             try:
                 # Accept
                 if str(payload.emoji) == "✅":
@@ -171,16 +178,27 @@ async def on_raw_reaction_add(payload):
                             # Change the db username
                             db.execute(
                                 "UPDATE player SET player_name = %s WHERE player_id = %s;",
-                                (message_ids[i][2], message_ids[i][1]),  # type: ignore
+                                (message_ids[i][2], message_ids[i][1]),
                             )
                     except Exception as e:
                         await send_raw_to_debug_channel(
                             client, "Name change exception 2", e
                         )
                         pass
-                    member = guild.get_member(message_ids[i][1])  # type: ignore
-                    # Player not in guild
-                    if member is not None:
+                    member: Member | None = guild.get_member(message_ids[i][1])
+                    if member is None:
+                        # Player not in guild
+                        await send_raw_to_debug_channel(
+                            client,
+                            "Name change exception 5 - User is not in guild",
+                            None,
+                        )
+                        staff_member: Member | None = guild.get_member(client.user.id)
+                        if staff_member is not None:
+                            await staff_member.send(
+                                f"The name change to [{message_ids[i][2]}] requested by user [{message_ids[i][1]}] was automatically denied because they are not in the 200 Lounge server."
+                            )
+                    else:
                         await send_raw_to_debug_channel(
                             client,
                             "Name change exception 5 - User is not in guild",
@@ -189,7 +207,7 @@ async def on_raw_reaction_add(payload):
                         # 1. DM player
                         try:
                             await member.send(
-                                f"Your name change [{message_ids[i][2]}] has been approved."  # type: ignore
+                                f"Your name change [{message_ids[i][2]}] has been approved."
                             )
                         except Exception as e:
                             await send_raw_to_debug_channel(
@@ -198,7 +216,7 @@ async def on_raw_reaction_add(payload):
                             pass
                         # 2. Edit discord nickname
                         try:
-                            await member.edit(nick=str(message_ids[i][2]))  # type: ignore
+                            await member.edit(nick=str(message_ids[i][2]))
                         except Exception as e:
                             await send_raw_to_debug_channel(
                                 client, "Name change exception 4", e

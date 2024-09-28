@@ -94,6 +94,9 @@ CREATE TABLE player_mogi (
     CONSTRAINT playermogifk2 FOREIGN KEY (mogi_id) REFERENCES mogi(mogi_id)
 );
 
+-- 0 = not decided
+-- 1 = accepted
+-- on denial, record is deleted
 CREATE TABLE player_name_request(
     id int unsigned auto_increment,
     player_id bigint unsigned,
