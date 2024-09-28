@@ -89,7 +89,10 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
 
         for rank in ranks:  # Remove any ranks from player
             remove_rank = guild.get_role(rank[0])  # type: ignore
-            await member.remove_roles(remove_rank)  # type: ignore
+            try:
+                await member.remove_roles(remove_rank)  # type: ignore
+            except AttributeError:
+                pass
 
         for i in range(len(ranks)):  # Find their rank, based on MMR
             if mmr >= int(ranks[i][1]) and mmr < int(ranks[i][2]):  # type: ignore

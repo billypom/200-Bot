@@ -44,7 +44,7 @@ class VerifyCog(commands.Cog):
             "MKC Link | https://www.mariokartcentral.com/mkc/registry/players/930",
             required=True,
         ),  # type: ignore
-    ):
+    ) -> None:
         # mkc_player_id = registry id
         # mkc_user_id = forum id
         await ctx.defer(ephemeral=False)
@@ -199,7 +199,7 @@ class VerifyCog(commands.Cog):
                 self.client,
                 ctx,
                 f"Error 10: {message}",
-                f"{verify_description} | <@{x[1]}> already using MKC **FORUM** ID {x[0]}",  # type: ignore
+                f"{verify_description} | Somebody is already using MKC **FORUM** ID {mkc_user_id}",  # type: ignore
             )
             return
         else:

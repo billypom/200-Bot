@@ -1,4 +1,4 @@
-from constants import VERIFICATION_CHANNEL_ID
+from constants import VERIFICATION_LOG_CHANNEL_ID
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
@@ -9,5 +9,5 @@ if TYPE_CHECKING:
 async def send_to_verification_log(
     client: "Bot", ctx: "ApplicationContext", message: str, title: str
 ):
-    channel = cast("TextChannel", client.get_channel(VERIFICATION_CHANNEL_ID))
+    channel = cast("TextChannel", client.get_channel(VERIFICATION_LOG_CHANNEL_ID))
     await channel.send(f"{title}\nIssued by:{ctx.author.id}\n{message}")

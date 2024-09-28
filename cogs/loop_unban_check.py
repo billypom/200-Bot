@@ -86,7 +86,7 @@ class Unban_check(commands.Cog):
                         (player_id,),
                     )
             except Exception as e:
-                logging.warning(f'loop_unban_check.py | Error 4 | {e}')
+                logging.warning(f"loop_unban_check.py | Error 4 | {e}")
                 await self.send_error_embed(f"unban_check error 4 {PING_DEVELOPER}", e)
                 return
 
@@ -110,8 +110,7 @@ class Unban_check(commands.Cog):
             punishment_id = player[4]  # type: ignore
             punishment_type = player[5]  # type: ignore
             logging.info(
-                f"loop_unban_check | punishment checking <@{player_id}>",
-                "I found someone who has a punishment that should be removed. I will attempt to process the removal."
+                f"loop_unban_check | punishment checking <@{player_id}>. I found someone who has a punishment that should be removed. I will attempt to process the removal."
             )
             # check if already banned by automatic strike system
             try:
@@ -173,7 +172,7 @@ class Unban_check(commands.Cog):
                 except Exception:
                     await self.send_embed(
                         f"loop_unban_check | Player <@{player_id}> is not in the server. Therefore I cannot remove their punishment. I will attempt to remove their punishment during the next hour of checks.",
-                        "Player not found in server"
+                        "Player not found in server",
                     )
                     continue
                 try:
