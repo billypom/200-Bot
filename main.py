@@ -199,11 +199,6 @@ async def on_raw_reaction_add(payload):
                                 f"The name change to [{message_ids[i][2]}] requested by user [{message_ids[i][1]}] was automatically denied because they are not in the 200 Lounge server."
                             )
                     else:
-                        await send_raw_to_debug_channel(
-                            client,
-                            "Name change exception 5 - User is not in guild",
-                            None,
-                        )
                         # 1. DM player
                         try:
                             await member.send(
