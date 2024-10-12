@@ -45,49 +45,33 @@ class LoungelessCog(commands.Cog):
                 )[0][0]  # type: ignore
             )
 
-        if player_id:
-            pass
-        else:
+        if not player_id:
             await ctx.respond("Player not found")
             return
+        # channel we sent admin command from
         channel = self.client.get_channel(ctx.channel.id)  # type: ignore
+        guild = get_lounge_guild(self.client)
+        loungeless_role = get_discord_role(self.client, LOUNGELESS_ROLE_ID)
         try:
-            user = await get_lounge_guild(self.client).fetch_member(player_id)
-            loungeless_role = get_discord_role(self.client, LOUNGELESS_ROLE_ID)
-            if loungeless_role in user.roles:
-                await user.remove_roles(loungeless_role)
-                await set_uid_roles(self.client, player_id)
-                await ctx.respond(f"Loungeless removed from <@{player_id}>")
-                await remove_rank_roles_from_uid(self.client, player_id)
-                return
-            else:
-                await user.add_roles(loungeless_role)
-                try:
-                    # Notify the player
-                    dm_message = f"You have been banned from competing in MK8DX 200cc Lounge.\nBan length: {ban_length} days\nReason:\n> {reason}"
-                    await user.send(dm_message)
-                    # Notify the staff member using the command that the player was DM'd
-                    await channel.send(
-                        f"<@{player_id}> was sent a DM:\n```{dm_message}```"
-                    )
-                except Exception as e:
-                    await channel.send(
-                        "I tried to DM the user your message, but their Discord settings do not allow me to DM them."
-                    )
-                    await send_raw_to_debug_channel(
-                        self.client,
-                        "/zloungeless error - Failed to send user DM. Probably not allowed to because they are too awesome :)",
-                        e,
-                    )
+            # Get user information
+            user = await guild.fetch_member(player_id)
+            await user.add_roles(loungeless_role)
+            await remove_rank_roles_from_uid(self.client, player_id)
+            # Notify the user of their punishment
+            dm_message = f"You have been banned from competing in MK8DX 200cc Lounge.\nBan length: {ban_length} days\nReason:\n> {reason}"
+            await user.send(dm_message)
+            # Notify the staff member using the command that the player was DM'd
+            await channel.send(f"<@{player_id}> was sent a DM:\n```{dm_message}```")
         except Exception as e:
             await channel.send(
                 "I tried to DM the user your message, but their Discord settings do not allow me to DM them."
             )
             await send_raw_to_debug_channel(
                 self.client,
-                "/zloungeless error - Failed to send user DM. Probably not allowed to because they are not in the server or something",
+                "/zloungeless error - Failed to send Direct Message to user",
                 e,
             )
+        # Regardless of if we can reach the user or not, we need to update the database to apply their punishment
         unix_now = await get_unix_time_now()
         unix_ban_length = ban_length * self.SECONDS_IN_A_DAY
         unban_date = unix_now + unix_ban_length
