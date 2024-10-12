@@ -3,6 +3,7 @@ from helpers.senders import send_raw_to_debug_channel
 from helpers.getters import get_lounge_guild, get_unix_time_now
 from constants import CHAT_RESTRICTED_ROLE_ID, LOUNGELESS_ROLE_ID, PLACEMENT_ROLE_ID
 from typing import TYPE_CHECKING
+from helpers import remove_rank_roles_from_uid
 
 if TYPE_CHECKING:
     from discord import Bot
@@ -65,14 +66,15 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
                 "SELECT punishment_id, unban_date FROM player_punishment WHERE player_id = %s ORDER BY create_date DESC LIMIT 1;",
                 (uid,),
             )
-            punishment_id = temp[0][0]  # type: ignore
-            unban_date = temp[0][1]  # type: ignore
+            punishment_id = temp[0][0]
+            unban_date = temp[0][1]
             unix_now = await get_unix_time_now()
             role = None
-            if unban_date > unix_now and punishment_id == 2:  # type: ignore
+            if unban_date > unix_now and punishment_id == 2:
                 role = guild.get_role(LOUNGELESS_ROLE_ID)
-                await member.add_roles(role)  # type: ignore
+                await member.add_roles(role)
                 is_loungeless = True
+                await remove_rank_roles_from_uid(client, uid)
     except Exception:  # no punishments exist
         pass
     # Loungeless people do not get their rank roles
@@ -80,17 +82,17 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
         # Outcome #1
         if mmr is None:  # Add placement role & return
             role = guild.get_role(PLACEMENT_ROLE_ID)
-            await member.add_roles(role)  # type: ignore
-            return (role.id, role)  # type: ignore
+            await member.add_roles(role)
+            return (role.id, role)
 
         # Outcome #2
         with DBA.DBAccess() as db:  # Get ranks info
             ranks = db.query("SELECT rank_id, mmr_min, mmr_max FROM ranks", ())
 
         for rank in ranks:  # Remove any ranks from player
-            remove_rank = guild.get_role(rank[0])  # type: ignore
+            remove_rank = guild.get_role(rank[0])
             try:
-                await member.remove_roles(remove_rank)  # type: ignore
+                await member.remove_roles(remove_rank)
             except AttributeError:
                 pass
 

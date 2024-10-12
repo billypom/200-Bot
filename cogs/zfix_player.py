@@ -18,7 +18,9 @@ class FixPlayerCog(commands.Cog):
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zfix_player(
-        self, ctx, player: discord.Option(discord.Member, "@User", required=True) # type: ignore
+        self,
+        ctx,
+        player: discord.Option(discord.Member, "@User", required=True),  # type: ignore
     ):
         await ctx.defer()
         response = await set_uid_roles(self.client, player.id)
