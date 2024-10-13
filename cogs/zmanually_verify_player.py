@@ -11,6 +11,8 @@ import vlog_msg
 
 
 class ZManuallyVerifyPlayerCog(commands.Cog):
+    """/zmanually_verify_player - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -38,6 +40,7 @@ class ZManuallyVerifyPlayerCog(commands.Cog):
             required=True,
         ),  # type: ignore
     ):
+        """Manually verify a player"""
         # mkc_player_id = registry id
         # mkc_user_id = forum id
         await ctx.defer(ephemeral=True)

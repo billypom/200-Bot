@@ -9,6 +9,8 @@ if TYPE_CHECKING:
 
 
 class StrikesCog(commands.Cog):
+    """/strikes - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -16,6 +18,7 @@ class StrikesCog(commands.Cog):
         name="strikes", description="See your strikes", guild_ids=LOUNGE
     )
     async def strikes(self, ctx: "ApplicationContext"):
+        """Displays the issuer's strikes"""
         await ctx.defer()
         x = await check_if_uid_exists(ctx.author.id)
         if x:

@@ -7,6 +7,8 @@ from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 
 class FixPlayerCog(commands.Cog):
+    """/zfix_player - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -22,6 +24,10 @@ class FixPlayerCog(commands.Cog):
         ctx,
         player: discord.Option(discord.Member, "@User", required=True),  # type: ignore
     ):
+        """Sets discord roles for a specific user
+
+        Args:
+        - `player` (discord.Member): @user"""
         await ctx.defer()
         response = await set_uid_roles(self.client, player.id)
         if response:

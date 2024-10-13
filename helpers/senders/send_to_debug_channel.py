@@ -3,6 +3,12 @@ from constants import DEBUG_CHANNEL_ID
 
 
 async def send_to_debug_channel(client, ctx, error):
+    """Sends an embed to the developer debug channel
+
+    Args:
+    - `client` (discord.Bot): The bot
+    - `ctx` (discord.ApplicationContext): Context of the command
+    - `error` (str): An error message"""
     channel = client.get_channel(DEBUG_CHANNEL_ID)
     embed = discord.Embed(
         title="Debug", description=">.<", color=discord.Color.blurple()

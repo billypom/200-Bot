@@ -5,6 +5,8 @@ from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 
 class PlayerInfoCog(commands.Cog):
+    """/zget_player_info - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -18,10 +20,19 @@ class PlayerInfoCog(commands.Cog):
     async def zget_player_info(
         self,
         ctx,
-        name: discord.Option(str, "Name", required=False),
-        discord_id: discord.Option(str, "Discord ID", required=False),
-        mkc_id: discord.Option(str, "MKC Forum ID", required=False),
+        name: discord.Option(str, "Name", required=False),  # type: ignore
+        discord_id: discord.Option(str, "Discord ID", required=False),  # type: ignore
+        mkc_id: discord.Option(str, "MKC Forum ID", required=False),  # type: ignore
     ):
+        """
+        # STAFF ONLY
+        Gets db info about a particular player
+
+        Args:
+        - `name` (str): Player name
+        - `discord_id` (str): Discord user ID
+        - `mkc_id` (str): MKC forum ID
+        """
         await ctx.defer()
 
         if discord_id:

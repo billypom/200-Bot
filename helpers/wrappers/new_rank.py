@@ -4,11 +4,20 @@
 
 from helpers import wrappers
 
+
 # Input: (str, int mmr)
 #   Determines color of input text, based on mmr value
 # Output: <span> tag
 #   See implementation in functions below
 async def new_rank(input, mmr):
+    """Determines the element to use, based on an MMR value
+
+    Args:
+    - `input` (str): The string to be colored
+    - `mmr` (int): MMR value
+
+    Returns:
+    - A colored element for MMR table"""
     if input:
         if mmr < 1500:
             return await wrappers.iron(input)

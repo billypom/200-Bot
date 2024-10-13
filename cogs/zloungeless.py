@@ -14,6 +14,8 @@ from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGELESS_ROLE_ID, LOUNGE
 
 
 class LoungelessCog(commands.Cog):
+    """/zloungeless - slash command"""
+
     def __init__(self, client):
         self.client = client
         config_file = configparser.ConfigParser()
@@ -36,6 +38,15 @@ class LoungelessCog(commands.Cog):
         ),  # type: ignore
         ban_length: discord.Option(int, description="# of days", required=True),  # type: ignore
     ):
+        """
+        # STAFF ONLY
+        Applied the LOUNGELESS (2) punishment to a specific player
+
+        Args:
+        - `player` (str): Player name
+        - `reason` (str): Official reason why they are getting Loungeless
+        - `ban_length` (int): Number of days banned
+        """
         await ctx.defer()
         # Retrieve player from DB
         with DBA.DBAccess() as db:

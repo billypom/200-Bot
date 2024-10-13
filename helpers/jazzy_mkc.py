@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup as Soup
 
 
 async def mkc_request_forum_info(mkc_user_id):
+    """dont care"""
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(mt_mkc_request_forum_info, mkc_user_id)
         return_value = future.result()
@@ -14,6 +15,7 @@ async def mkc_request_forum_info(mkc_user_id):
 
 
 def mt_mkc_request_forum_info(mkc_user_id):
+    """dont care"""
     headers = {"User-Agent": "200-Lounge Bot"}
     try:
         # Get shared ips
@@ -84,6 +86,7 @@ def mt_mkc_request_forum_info(mkc_user_id):
 
 
 async def mkc_request_mkc_player_id(mkc_user_id):
+    """dont care"""
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(mt_mkc_request_mkc_player_id, mkc_user_id)
         return_value = future.result()
@@ -91,6 +94,7 @@ async def mkc_request_mkc_player_id(mkc_user_id):
 
 
 def mt_mkc_request_mkc_player_id(mkc_user_id):
+    """dont care"""
     headers = {"User-Agent": "200-Lounge Bot"}
     mkc_player_id = None
     try:
@@ -126,6 +130,7 @@ def mt_mkc_request_mkc_player_id(mkc_user_id):
 
 
 async def mkc_request_registry_info(mkc_player_id):
+    """dont care"""
     with concurrent.futures.ThreadPoolExecutor() as executor:
         future = executor.submit(mt_mkc_request_registry_info, mkc_player_id)
         return_value = future.result()
@@ -136,6 +141,7 @@ async def mkc_request_registry_info(mkc_player_id):
 # Input: mkc registry id
 # Output: (mkc user id, alpha-2 iso country code, boolean is_banned)
 def mt_mkc_request_registry_info(mkc_player_id):
+    """dont care"""
     headers = {"User-Agent": "200-Lounge Bot"}
     try:
         mkcresponse = requests.get(

@@ -23,6 +23,8 @@ if TYPE_CHECKING:
 
 
 class ReduceLossCog(commands.Cog):
+    """/reduce_loss - slash command"""
+
     def __init__(self, client):
         self.client = client
 

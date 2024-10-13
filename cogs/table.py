@@ -51,6 +51,8 @@ if TYPE_CHECKING:
 
 
 class TableCog(commands.Cog):
+    """/table - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -68,6 +70,20 @@ class TableCog(commands.Cog):
             required=True,
         ),  # type: ignore
     ):
+        """
+        Command to submit a mogi results table
+        - Arranges the list of players, queries lorenzi's table maker
+        - Posts the table image, then asks issuer for confirmation
+        On confirm,
+        - Calculates MMR changes, generates a popuko MMR table
+        - Posts both tables in embeds in the appropriate results channel
+
+        Tables can only be created from tier/results channels
+
+        Args:
+        - `mogi_format` (int): Format of the mogi 1, 2, 3, 4, 6
+        - `scores` (str): Player scores (i.e., popuko 12 JPGiviner 42, Technical 180...)
+        """
         await ctx.defer()
         # User access check
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)

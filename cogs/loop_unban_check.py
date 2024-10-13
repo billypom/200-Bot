@@ -11,38 +11,51 @@ from constants import (
     LOUNGE,
 )
 from helpers import set_uid_roles
+from helpers.getters import get_unix_time_now
 import logging
 from typing import Any
 
 
 class Unban_check(commands.Cog):
+    """Cog to check for unbans"""
+
     def __init__(self, client):
         self.check.start()  # type: ignore
         self.punishment_check.start()
         self.client = client
         self.title = "Hourly Unban Check"
 
-    async def get_unix_time_now(self) -> int:
-        return int(time.mktime(datetime.datetime.now().timetuple()))
+    async def send_embed(self, description: Any, details: str) -> None:
+        """Sends an embed message to the developer debug channel
 
-    async def send_embed(self, anything: Any, details: str) -> None:
+        Args:
+        - `description`: A generic message
+        - `details`: Additional information
+        """
         channel = self.client.get_channel(DEBUG_CHANNEL_ID)
         embed = Embed(title=self.title, description="🔨", color=Color.blue())
-        embed.add_field(name="Description: ", value=str(anything), inline=False)
+        embed.add_field(name="Description: ", value=str(description), inline=False)
         embed.add_field(name="Details: ", value=str(details), inline=False)
         await channel.send(content=None, embed=embed)
 
-    async def send_error_embed(self, anything: Any, error: Exception) -> None:
+    async def send_error_embed(self, description: Any, error: Exception) -> None:
+        """Sends an error to the developer debug channel
+        Args:
+        - `description`: A generic message
+        - `details`: Additional information
+        """
         channel = self.client.get_channel(DEBUG_CHANNEL_ID)
-        await channel.send(f"### Error\n{str(anything)}\n`{str(error)}`")
+        await channel.send(f"### Error\n{str(description)}\n`{str(error)}`")
 
     def cog_unload(self) -> None:
+        """Unloads the cog"""
         self.check.cancel()
         self.punishment_check.cancel()
 
     @tasks.loop(hours=1)
     async def check(self):
-        unix_now: int = await self.get_unix_time_now()
+        """Check once every hour for players to be unbanned by strikes"""
+        unix_now: int = await get_unix_time_now()
         try:
             with DBA.DBAccess() as db:
                 temp = db.query(
@@ -92,8 +105,9 @@ class Unban_check(commands.Cog):
 
     @tasks.loop(hours=1)
     async def punishment_check(self):
+        """Check once every hour for loungeless or restricted players to be unbanned"""
         # current time to compare against ban dates
-        unix_now: int = await self.get_unix_time_now()
+        unix_now: int = await get_unix_time_now()
         # guild object
         guild = await self.client.fetch_guild(LOUNGE[0])
 
@@ -150,7 +164,7 @@ class Unban_check(commands.Cog):
                         "UPDATE player_punishment SET unban_date = NULL WHERE id = %s;",
                         (player_punishment_id,),
                     )
-            except Exception as e:
+            except Exception:
                 logging.error(
                     f"loop_unban_check | Could not remove unban_date field for player {player_id}",
                 )
@@ -162,7 +176,7 @@ class Unban_check(commands.Cog):
                             (player_id,),
                         )
                     logging.info(f"{player} - Punishment removed | {punishment_role}")
-                except Exception as e:
+                except Exception:
                     logging.error("loop_unban_check | Could not update player table")
             # Update Discord member
             try:
@@ -210,14 +224,17 @@ class Unban_check(commands.Cog):
 
     @check.before_loop
     async def before_check(self):
+        """Runs before the check() loop"""
         logging.info("unban waiting...")
         await self.client.wait_until_ready()
 
     @punishment_check.before_loop
     async def before_punishment_check(self):
+        """Runs before the punishment_check() loop"""
         logging.info("punishment waiting...")
         await self.client.wait_until_ready()
 
 
 def setup(client):
+    """Adds this command (cog) to the bot (client)"""
     client.add_cog(Unban_check(client))

@@ -9,6 +9,8 @@ from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 
 class WarnCog(commands.Cog):
+    """/zwarn - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -29,6 +31,14 @@ class WarnCog(commands.Cog):
             required=True,
         ),  # type: ignore
     ):
+        """
+        # STAFF ONLY
+        Backend informational command for logging all of the warnings handed out to players
+
+        Args:
+        - `player` (str): Player name
+        - `reason` (str): The warning given to the player - message verbatim preferred
+        """
         await ctx.defer()
         # get player
         with DBA.DBAccess() as db:

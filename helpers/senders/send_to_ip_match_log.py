@@ -2,7 +2,19 @@ import discord
 from constants import IP_MATCH_CHANNEL_ID
 
 
-async def send_to_ip_match_log(client, ctx, message, verify_color, user_matches_list):
+async def send_to_ip_match_log(
+    client: discord.Bot, ctx, message, verify_color, user_matches_list
+):
+    """
+    Sends an embed to the IP Match log channel
+
+    Args:
+    - `client` (discord.Bot): The bot
+    - `ctx` (discord.ApplicationContext): The context of the command
+    - `message` (str): A message
+    - `verify_color` (discord.Color): Color of the embed
+    - `user_matches_list`
+    """
     channel = client.get_channel(IP_MATCH_CHANNEL_ID)
     embed = discord.Embed(
         title="Verification",

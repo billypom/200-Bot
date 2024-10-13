@@ -9,6 +9,8 @@ if TYPE_CHECKING:
 
 
 class FixRolesCog(commands.Cog):
+    """/fix_roles - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -19,6 +21,7 @@ class FixRolesCog(commands.Cog):
         default_member_permissions=(Permissions(administrator=True)),
     )
     async def fix_roles(self, ctx: "ApplicationContext"):
+        """Sets discord roles for the command issuer"""
         await ctx.defer()
         response = await set_uid_roles(self.client, ctx.author.id)
         if response:
@@ -28,4 +31,5 @@ class FixRolesCog(commands.Cog):
 
 
 def setup(client):
+    """Adds this command (cog) to the bot (client)"""
     client.add_cog(FixRolesCog(client))

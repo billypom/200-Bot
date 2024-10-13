@@ -4,6 +4,8 @@ from discord.ui import View
 
 # Discord UI button - Confirmation button
 class Confirm(View):
+    """Discord UI button - confirmation"""
+
     def __init__(self, uid):
         super().__init__()
         self.value = None
@@ -13,6 +15,7 @@ class Confirm(View):
     async def confirm(
         self, button: discord.ui.Button, interaction: discord.Interaction
     ):
+        """Confirmation button"""
         # Only accept input from user who initiated the interaction
         if self.uid != interaction.user.id:
             return
@@ -22,6 +25,7 @@ class Confirm(View):
 
     @discord.ui.button(label="No", style=discord.ButtonStyle.red)
     async def cancel(self, button: discord.ui.Button, interaction: discord.Interaction):
+        """Cancellation button"""
         # Only accept input from user who initiated the interaction
         if self.uid != interaction.user.id:
             return

@@ -6,4 +6,11 @@ if TYPE_CHECKING:
 
 
 async def convert_datetime_to_unix_timestamp(dto: "datetime") -> int:
+    """Converts a python datetime object to a unix timestamp
+
+    Args:
+    - `dto` (datetime): Datetime object
+
+    Returns:
+    - (int): unix timestamp"""
     return int(time.mktime(dto.timetuple()))

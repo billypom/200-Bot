@@ -1,8 +1,11 @@
 import discord
+from discord.embeds import Embed
 from constants import SUGGESTION_VOTING_CHANNEL_ID
 
 
+# FIXME: Put proper types here...
 async def send_to_suggestion_voting_channel(client, ctx, suggestion_id, message):
+    """Sends an embed to the #suggestion-vote channel"""
     channel = client.get_channel(SUGGESTION_VOTING_CHANNEL_ID)
     embed = discord.Embed(
         title="Suggestion", description="", color=discord.Color.blurple()

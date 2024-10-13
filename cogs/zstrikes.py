@@ -6,6 +6,8 @@ from constants import LOUNGE, ADMIN_ROLE_ID, UPDATER_ROLE_ID
 
 
 class ZStrikesCog(commands.Cog):
+    """/zstrikes - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -17,8 +19,17 @@ class ZStrikesCog(commands.Cog):
     )
     @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
     async def zstrikes(
-        self, ctx, player: discord.Option(str, description="Player name", required=True)
+        self,
+        ctx,
+        player: discord.Option(str, description="Player name", required=True),  # type: ignore
     ):
+        """
+        # STAFF ONLY
+        View strikes for a player
+
+        Args:
+        - `player` (str): Player name
+        """
         await ctx.defer()
 
         with DBA.DBAccess() as db:

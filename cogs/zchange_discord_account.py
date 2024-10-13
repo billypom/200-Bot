@@ -11,6 +11,8 @@ import vlog_msg
 
 
 class ChangeDiscordAccountCog(commands.Cog):
+    """/zchange_discord_account - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -27,6 +29,14 @@ class ChangeDiscordAccountCog(commands.Cog):
         old_discord_id: Option(str, "Original Discord ID", required=True),  # type: ignore
         new_discord_id: Option(str, "New Discord ID", required=True),  # type: ignore
     ):
+        """
+        # STAFF ONLY
+        Swaps the discord user ID of a particular user to a new one
+        - Handles primary and tertiary table changes
+
+        Args:
+        - `old_discord_id` (str): Current discord user ID
+        - `new_discord_id` (str): New discord user ID"""
         await ctx.defer()
 
         bad = await check_if_banned_characters(old_discord_id)

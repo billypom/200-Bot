@@ -6,6 +6,8 @@ from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 
 class PlayerPunishmentsCog(commands.Cog):
+    """/zget_player_punishments - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -19,9 +21,17 @@ class PlayerPunishmentsCog(commands.Cog):
     async def zget_player_punishments(
         self,
         ctx,
-        name: discord.Option(str, "Name", required=False),
-        discord_id: discord.Option(str, "Discord ID", required=False),
+        name: discord.Option(str, "Name", required=False),  # type: ignore
+        discord_id: discord.Option(str, "Discord ID", required=False),  # type: ignore
     ):
+        """
+        # STAFF ONLY
+        Gets historical punishment data for a specific player
+
+        Args:
+        - `name` (str): Player name
+        - `discord_id` (str): Discord user ID
+        """
         await ctx.defer()
         if discord_id:
             with DBA.DBAccess() as db:

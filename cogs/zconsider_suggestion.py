@@ -7,6 +7,8 @@ from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 
 class ConsiderSuggestionCog(commands.Cog):
+    """/zconsider_suggestion - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -20,11 +22,18 @@ class ConsiderSuggestionCog(commands.Cog):
     async def consider(
         self,
         ctx,
-        suggestion_id: discord.Option(int, "Suggestion ID", required=True),
+        suggestion_id: discord.Option(int, "Suggestion ID", required=True),  # type: ignore
         reason: discord.Option(
             str, "Type your reason (1000 characters max)", required=True
-        ),
+        ),  # type: ignore
     ):
+        """
+        # STAFF ONLY
+        Considers a suggestion
+
+        Args:
+        - `reason` (str): Reason/justification/description of consideration
+        """
         await ctx.defer(ephemeral=True)
         try:
             with DBA.DBAccess() as db:
@@ -36,6 +45,7 @@ class ConsiderSuggestionCog(commands.Cog):
             await send_raw_to_debug_channel(
                 self.client, "/zconsider_suggestion error 1", e
             )
+            return
         try:
             with DBA.DBAccess() as db:
                 db.execute(

@@ -10,12 +10,14 @@ if TYPE_CHECKING:
 
 
 class MMR(commands.Cog):
+    """/mmr - slash command"""
+
     def __init__(self, client):
         self.client = client
 
     @commands.slash_command(name="mmr", description="Your mmr", guild_ids=LOUNGE)
     async def mmr(self, ctx: "ApplicationContext"):
-        """/mmr slash command displays the issuer's mmr"""
+        """/mmr - Displays the issuer's MMR"""
         await ctx.defer(ephemeral=True)
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:

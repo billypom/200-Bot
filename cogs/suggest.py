@@ -14,6 +14,8 @@ if TYPE_CHECKING:
 
 
 class SuggestCog(commands.Cog):
+    """/suggest - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -27,6 +29,14 @@ class SuggestCog(commands.Cog):
         ctx: "ApplicationContext",
         message: Option(str, "Type your suggestion", required=True),  # type: ignore
     ):
+        """
+        Submits a suggestion to Lounge Staff
+        - posts an embed of the suggestion in #suggestions-vote channel
+        - adds like and dislike reactions to the embed
+
+        Args:
+        - `message` (str): The suggestion from the issuer
+        """
         await ctx.defer(ephemeral=True)
         is_suggestion_restricted = await check_if_uid_has_role(
             self.client, ctx.author.id, SUGGESTION_RESTRICTED_ROLE_ID

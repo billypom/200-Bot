@@ -12,6 +12,8 @@ import vlog_msg
 
 
 class SetPlayerNameCog(commands.Cog):
+    """/zset_player_name - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -25,9 +27,17 @@ class SetPlayerNameCog(commands.Cog):
     async def zset_player_name(
         self,
         ctx,
-        player: discord.Option(discord.Member, "Player", required=True),
-        name: discord.Option(str, "New name", required=True),
+        player: discord.Option(discord.Member, "Player", required=True),  # type: ignore
+        name: discord.Option(str, "New name", required=True),  # type: ignore
     ):
+        """
+        # STAFF ONLY
+        Sets a player's leaderboard name and server nickname
+
+        Args:
+        - `player` (discord.Member): @user
+        - `name` (str): New name
+        """
         await ctx.defer()
         y = await check_if_uid_exists(player.id)
         if y:

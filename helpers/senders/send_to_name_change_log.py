@@ -10,6 +10,9 @@ if TYPE_CHECKING:
 async def send_to_name_change_log(
     client: "Bot", ctx: "ApplicationContext", id: int, message: str
 ) -> "Message":
+    """
+    Sends an embed to the name change request channel
+    """
     channel = cast("TextChannel", client.get_channel(NAME_CHANGE_CHANNEL_ID))
     embed = discord.Embed(
         title="Name Change Request",

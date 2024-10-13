@@ -6,6 +6,8 @@ from constants import LOUNGE, ADMIN_ROLE_ID
 
 
 class ZRemoveAllRanks(commands.Cog):
+    """/zremove_all_ranks - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -17,8 +19,11 @@ class ZRemoveAllRanks(commands.Cog):
     )
     @commands.has_any_role(ADMIN_ROLE_ID)
     async def zremove_all_ranks(self, ctx):
-        """Scans every member in the guild. Removes all ranks.
-        - Only used in season migration"""
+        """
+        # ADMIN ONLY
+        Scans every member in the guild. Removes all ranks.
+        - Only used in season migration
+        """
         await ctx.defer()
         guild = get_lounge_guild(self.client)
         rank_id_list = await get_rank_id_list()
@@ -28,9 +33,13 @@ class ZRemoveAllRanks(commands.Cog):
                     test_role = guild.get_role(rank_id_list[i])
                     if test_role in member.roles:
                         await member.remove_roles(test_role)
-                        logging.info(f"zremove_all_ranks.py | removed {test_role} from {member}")
+                        logging.info(
+                            f"zremove_all_ranks.py | removed {test_role} from {member}"
+                        )
                 except Exception as e:
-                    logging.error(f'zremove_all_ranks.py | could not apply role to {member.id} | {e}')
+                    logging.error(
+                        f"zremove_all_ranks.py | could not apply role to {member.id} | {e}"
+                    )
         await ctx.respond("All player rank roles have been removed")
 
 

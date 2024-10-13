@@ -7,6 +7,8 @@ from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, LOUNGE
 
 
 class DenySuggestionCog(commands.Cog):
+    """/zdeny_suggestion - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -25,6 +27,13 @@ class DenySuggestionCog(commands.Cog):
             str, "Type your reason (1000 characters max)", required=True
         ),
     ):
+        """
+        # STAFF ONLY
+        Denies a suggestion
+
+        Args:
+        - `reason` (str): Reason/justification/description of denial
+        """
         await ctx.defer(ephemeral=True)
         try:
             with DBA.DBAccess() as db:

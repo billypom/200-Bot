@@ -9,6 +9,8 @@ import configparser
 
 
 class ReloadCogsCog(commands.Cog):
+    """/zreload_cogs - slash command"""
+
     def __init__(self, client):
         self.client = client
         config_file = configparser.ConfigParser()
@@ -28,6 +30,7 @@ class ReloadCogsCog(commands.Cog):
     )
     @commands.has_any_role(ADMIN_ROLE_ID, UPDATER_ROLE_ID)
     async def zreload_cogs(self, ctx):
+        """Reloads all cogs from config file"""
         extensions_to_reload = (
             self.LOOP_EXTENSIONS.split(",")
             + self.COMMAND_EXTENSIONS.split(",")

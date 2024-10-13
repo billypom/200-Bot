@@ -13,6 +13,8 @@ if TYPE_CHECKING:
 
 
 class ScoreSwapCog(commands.Cog):
+    """/swapscore - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -29,6 +31,14 @@ class ScoreSwapCog(commands.Cog):
         player2: Option(str, "Player name", required=True),  # type: ignore
         mogi_id: Option(int, "Mogi ID", required=True),  # type: ignore
     ):
+        """
+        Swaps the score of 2 players on the same team
+
+        Args:
+        - `player1` (str): Player name
+        - `player2` (str): Player name
+        - `mogi_id` (int): ID of the mogi to have scores swapped
+        """
         await ctx.defer()
         x = await check_if_banned_characters(player1)
         if x:

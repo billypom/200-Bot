@@ -7,6 +7,8 @@ from constants import LOUNGE, ADMIN_ROLE_ID, PLACEMENT_ROLE_ID
 
 
 class ZAssignRanks(commands.Cog):
+    """/zassign_ranks - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -18,8 +20,11 @@ class ZAssignRanks(commands.Cog):
     )
     @commands.has_any_role(ADMIN_ROLE_ID)
     async def zassign_ranks(self, ctx):
-        """Scans the entire guild for all members, assigns leaderboard ranks.
-        - Should only be used for season migration"""
+        """
+        # ADMIN ONLY
+        Scans the entire guild for all members, assigns leaderboard ranks.
+        - Should only be used for season migration
+        """
         await ctx.defer()
         guild = get_lounge_guild(self.client)
         with DBA.DBAccess() as db:

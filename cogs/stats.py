@@ -22,6 +22,8 @@ if TYPE_CHECKING:
 
 
 class StatsCog(commands.Cog):
+    """/stats - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -37,8 +39,16 @@ class StatsCog(commands.Cog):
         ),  # type: ignore
         last: Option(int, description="How many mogis?", required=False),  # type: ignore
         player: Option(str, description="Which player?", required=False),  # type: ignore
-        season: Option(int, description="Season number (5, 6)", required=False),  # type: ignore
+        season: Option(int, description="Season number?", required=False),  # type: ignore
     ):
+        """Displays a player's stats (issuer stats by default)
+
+        Args:
+        - `tier` (str): a, b, c, all, sq (all tiers by default)
+        - `mogi_format` (int): 1, 2, 3, 4, 6 (all formats by default)
+        - `last` (int): data for the most recent X number of mogis (all mogis by default)
+        - `player` (str): player name (issuer name by default)
+        - `season` (int): data for only a specific season"""
         await ctx.defer()
         lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
         if lounge_ban:

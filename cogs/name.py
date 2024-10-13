@@ -20,6 +20,8 @@ if TYPE_CHECKING:
 
 
 class NameChangeCog(commands.Cog):
+    """/name - slash command"""
+
     def __init__(self, client):
         self.client = client
         config_file = configparser.ConfigParser()

@@ -12,6 +12,8 @@ from constants import ADMIN_ROLE_ID, UPDATER_ROLE_ID, CHAT_RESTRICTED_ROLE_ID, L
 
 
 class RestrictCog(commands.Cog):
+    """/zrestrict - slash command"""
+
     def __init__(self, client):
         self.client = client
         config_file = configparser.ConfigParser()
@@ -36,6 +38,16 @@ class RestrictCog(commands.Cog):
         ),  # type: ignore
         ban_length: discord.Option(int, description="# of days", required=True),  # type: ignore
     ):
+        """
+        # STAFF ONLY
+        Applied the RESTRICTED (1) punishment to a specific player
+        - All messages sent by restricted users are immediately deleted by this bot
+
+        Args:
+        - `player` (str): Player name
+        - `reason` (str): Official reason why they are getting Restricted
+        - `ban_length` (int): Number of days banned
+        """
         await ctx.defer()
         # get player
         try:
@@ -88,9 +100,13 @@ class RestrictCog(commands.Cog):
                     dm_message = f"You have been restricted in MK8DX 200cc Lounge for {ban_length} days\nReason:\n> {reason}"
                     await user.send(dm_message)
                     # Notify staff member using the command that a DM was sent to the player
-                    await channel.send(f'<@{user.id}> was sent a DM:\n```{dm_message}```')
+                    await channel.send(
+                        f"<@{user.id}> was sent a DM:\n```{dm_message}```"
+                    )
                 except Exception:
-                    await channel.send(f'I tried to DM the user your message, but their Discord settings do not allow me to DM them.')
+                    await channel.send(
+                        f"I tried to DM the user your message, but their Discord settings do not allow me to DM them."
+                    )
                     pass
 
         # update database for restricted/unrestricted

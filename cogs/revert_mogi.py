@@ -12,6 +12,8 @@ if TYPE_CHECKING:
 
 
 class RevertCog(commands.Cog):
+    """/revert_mogi - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -24,6 +26,15 @@ class RevertCog(commands.Cog):
         ctx: "ApplicationContext",
         mogi_id: discord.Option(int, "Mogi ID / Table ID", required=True),  # type: ignore
     ):
+        """Removes a mogi by ID
+        - Mogi must exist
+        - Mogi cannot have reduced loss
+        - Handles db rank changes
+        - Handles discord rank role reassigning
+        - Removes table embed from results channels
+
+        Args:
+        - `mogi_id`: The ID of the mogi to remove"""
         await ctx.defer()
         results_channel = None
         flag = 0
@@ -128,7 +139,7 @@ class RevertCog(commands.Cog):
                                 e,
                             )
                             continue
-                    # Rank down
+                    # Rank back down
                     elif (
                         my_player_mmr > max_mmr
                         and my_player_new_mmr <= max_mmr

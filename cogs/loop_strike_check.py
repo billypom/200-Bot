@@ -12,7 +12,7 @@ class strike_check(commands.Cog):
     Inactivates strikes that meet the criteria"""
 
     def __init__(self, client):
-        self.check.start()
+        self.check.start()  # type: ignore
         self.client = client
         self.title = "Hourly Strike Check"
 
@@ -45,7 +45,9 @@ class strike_check(commands.Cog):
                     (current_time, 1),
                 )
         except Exception as e:
-            logging.error(f"loop_strike_check.py | ERROR - unable to retrieve strike | {e}")
+            logging.error(
+                f"loop_strike_check.py | ERROR - unable to retrieve strike | {e}"
+            )
             await self.send_error_embed(f"strike_check error 1 {PING_DEVELOPER}", e)
             return
         # Set strikes inactive

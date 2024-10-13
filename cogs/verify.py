@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 
 
 class VerifyCog(commands.Cog):
+    """/verify - slash command"""
+
     def __init__(self, client):
         self.client = client
         config_file = configparser.ConfigParser()
@@ -44,7 +46,14 @@ class VerifyCog(commands.Cog):
             "MKC Link | https://www.mariokartcentral.com/mkc/registry/players/930",
             required=True,
         ),  # type: ignore
-    ) -> None:
+    ):
+        """Command to register yourself in the 200-Lounge system
+        - Your registry profile MUST exist
+
+        Args:
+        - `message` (str): Link to your MKC forum or registry profile"""
+        # FIXME: This command needs to be rewritten when the new MKC site launches
+
         # mkc_player_id = registry id
         # mkc_user_id = forum id
         await ctx.defer(ephemeral=False)

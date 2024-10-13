@@ -67,6 +67,7 @@ for extension in ADMIN_COMMAND_EXTENSIONS.split(","):
 
 @client.event
 async def on_ready():
+    """Built-in function, runs after the bot has initialized"""
     channel = cast("TextChannel", client.get_channel(DEBUG_CHANNEL_ID))
     embed = Embed(title="Startup", description=":3", color=Color.og_blurple())
     embed.add_field(name="200-Lounge Bot Restarted", value=":D", inline=False)
@@ -108,6 +109,7 @@ async def on_application_command_error(ctx, error) -> None:
 
 @client.event
 async def on_message(ctx):
+    """Built-in function, runs when a message is sent that the bot can read"""
     if ctx.author == client.user:  # ignore bot messages
         return
     if ctx.channel.id == 558096949337915413:  # ignore carl bot logging
@@ -250,6 +252,7 @@ async def on_raw_reaction_add(payload):
 
 @client.event
 async def on_member_join(member):
+    """Built-in function, runs when a user joins the guild"""
     # Try to set roles on join
     try:
         x = await set_uid_roles(client, member.id)

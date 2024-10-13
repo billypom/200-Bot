@@ -4,6 +4,8 @@ from constants import LOUNGE, ADMIN_ROLE_ID, UPDATER_ROLE_ID, BOT_ID
 
 
 class DeleteBotMessagesCog(commands.Cog):
+    """/zdelete_bot_messages"""
+
     def __init__(self, client):
         self.client = client
 
@@ -13,8 +15,12 @@ class DeleteBotMessagesCog(commands.Cog):
         default_member_permissions=(Permissions(moderate_members=True)),
         guild_ids=LOUNGE,
     )
-    @commands.has_any_role(UPDATER_ROLE_ID, ADMIN_ROLE_ID)
+    @commands.has_any_role(ADMIN_ROLE_ID)
     async def zdelete_bot_msgs(self, ctx):
+        """
+        # ADMIN ONLY
+        Deletes all bot messages from the past 14 days in the issued channel
+        """
         await ctx.defer()
         channel = ctx.channel
         # Fetch a certain number of messages from the channel, you can adjust the limit

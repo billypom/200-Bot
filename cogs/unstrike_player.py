@@ -18,6 +18,8 @@ if TYPE_CHECKING:
 
 
 class UnstrikeCog(commands.Cog):
+    """/unstrike_player - slash command"""
+
     def __init__(self, client):
         self.client = client
         config_file = configparser.ConfigParser()
@@ -35,6 +37,10 @@ class UnstrikeCog(commands.Cog):
         ctx: "ApplicationContext",
         strike_id: Option(int, description="Enter the strike ID", required=True),  # type: ignore
     ):
+        """Removes a strike from a player, and gives back the MMR taken, if applied
+
+        Args:
+        - `strike_id` (int): ID of the strike to remove"""
         await ctx.defer()
         is_results_channel = await check_if_is_results_channel(ctx.channel.id)  # type: ignore
         if not is_results_channel:

@@ -31,6 +31,8 @@ if TYPE_CHECKING:
 
 
 class StrikeCog(commands.Cog):
+    """/strike_player - slash command"""
+
     def __init__(self, client):
         self.client = client
 
@@ -51,6 +53,13 @@ class StrikeCog(commands.Cog):
         ),  # type: ignore
         reason: Option(str, description="Why?", required=True),  # type: ignore
     ):
+        """Applies a strike and MMR penalty to a specific player
+        - Usage allowed only in results channels
+
+        Args:
+        - `player` (str): player to apply to
+        - `mmr_penalty` (int): how much penalty to apply (positive integer)
+        - `reason` (str): why we are applying this strike"""
         await ctx.defer()
         is_results_channel = await check_if_is_results_channel(ctx.channel.id)  # type: ignore
         if not is_results_channel:

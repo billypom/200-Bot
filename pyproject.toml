@@ -1,0 +1,29 @@
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = true
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = false
+ignore-property-decorators = false
+ignore-module = true
+ignore-nested-functions = false
+ignore-nested-classes = false
+ignore-setters = false
+ignore-overloaded-functions = false
+fail-under = 80
+# example values
+exclude = ["setup.py", "docs", "build", "constants.py", "sql", "images", "badges", "DBA.py", "constants_example.py", "season_migration.py", "live_constants.py", "vlog_msg.py", "dont", "test*"]
+# example regex
+ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*", "^setup"]
+ext = []
+# possible values: sphinx (default), google
+style = "sphinx"
+# possible values: 0 (minimal output), 1 (-v), 2 (-vv)
+verbose = 2
+quiet = false
+whitelist-regex = []
+color = true
+omit-covered-files = false
+# output file logation
+generate-badge = "badges/"
+badge-format = "svg"
