@@ -23,7 +23,7 @@ jobs:
       uses: JackMcKew/python-interrogate-check@main
       with:
         path: '.'
-        badge-location: 'badges/interrogate_badge.svg'
+        badge-location: 'interrogate_badge.svg'
 
     - name: Commit files
       run: |
