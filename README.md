@@ -1,3 +1,4 @@
+![docstr-cov](./badges/interrogate_badge.svg)
 # 🏁 MK8DX 200cc Lounge Bot
 This bot is the primary driver for all things related to the MK8DX 200cc Lounge leaderboard.
 - Sign up on [mariokartcentral.com](https://www.mariokartcentral.com/)
@@ -8,7 +9,6 @@ This bot is the primary driver for all things related to the MK8DX 200cc Lounge 
 # Development Environment / Installation
 ![Static Badge](https://img.shields.io/badge/python-3.10-yellow?style=flat-square&logo=python&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/MySQL-8.0.36-blue?style=flat-square&logo=mysql&logoColor=white)
-![docstr-cov](./badges/interrogate_badge.svg)
 
 
 ## Discord Developer account
