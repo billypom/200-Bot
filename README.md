@@ -8,7 +8,8 @@ This bot is the primary driver for all things related to the MK8DX 200cc Lounge 
 # Development Environment / Installation
 ![Static Badge](https://img.shields.io/badge/python-3.10-yellow?style=flat-square&logo=python&logoColor=white)
 ![Static Badge](https://img.shields.io/badge/MySQL-8.0.36-blue?style=flat-square&logo=mysql&logoColor=white)
-![docstr-cov](https://img.shields.io/endpoint?url=https://jsonbin.org/billypom/200-Bot/badges/docstr-cov)
+![docstr-cov](./badges/interrogate_badge.svg)
+
 
 ## Discord Developer account
 
