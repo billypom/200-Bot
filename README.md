@@ -46,10 +46,12 @@ apt install mariadb-server
 
 - [ImageMagick](https://imagemagick.org/script/download.php) download page
 
+- [interrogate](https://github.com/econchick/interrogate)install Visual C++ compiler for Cairo
+
 ### Ubuntu/Debian
 
 ```bash
-apt install git, imagemagick, virtualenv, python3, python3-venv
+apt install git, imagemagick, virtualenv, python3, python3-venv, cairo, python3-dev, libffi-dev
 ```
 
 ## Fork & clone the repository
