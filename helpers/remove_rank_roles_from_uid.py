@@ -7,6 +7,11 @@ if TYPE_CHECKING:
 
 
 async def remove_rank_roles_from_uid(client: "Bot", uid: int) -> None:
+    """Removes discord rank roles from a specific player
+
+    Args:
+    - `client` (discord.Bot): The bot
+    - `uid` (int): Discord user ID"""
     member = await get_lounge_guild(client).fetch_member(uid)
     # Remove any ranks from member
     rank_id_list = await get_rank_id_list()
