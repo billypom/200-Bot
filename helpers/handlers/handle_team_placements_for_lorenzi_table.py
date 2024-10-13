@@ -6,16 +6,19 @@ from helpers.senders import send_raw_to_debug_channel
 async def handle_team_placements_for_lorenzi_table(
     chunked_list: list,
 ) -> tuple[bool, str, int, dict]:
-    """- Alters the chunked list in place, appends team score and team MMR to the team record
+    """- Alters `chunked_list` in place, appends team score and team MMR to the team record
     - Saves individual player scores to a dict
 
+    Args:
+    - `chunked_list`: list - [[player, score], [player2, score], next team...]
+
     Returns:
-    tuple[
-        data_is_valid: bool - self explanatory
-        error_message: str - error message if something goes wrong
-        mogi_score: int - total points in mogi
-        original_scores: dict - individual {player_id: score} dict
-    ]"""
+    tuple[bool, str, int, dict]:
+    - `data_is_valid`: bool - self explanatory
+    - `error_message`: str - error message if something goes wrong
+    - `mogi_score`: int - total points in mogi
+    - `original_scores`: dict - individual {player_id: score} dict
+    """
     # Get MMR data for each team, calculate team score, and determine team placement
     mogi_score = 0
     # Preserve the original score formatting for Lorenzi table

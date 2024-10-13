@@ -1,14 +1,13 @@
 import pytest
-import DBA
 from helpers.getters import get_results_tier_dict
 from helpers.handlers import handle_team_placements_for_lorenzi_table
 from helpers import (
     calculate_mmr,
     calculate_pre_mmr,
+    convert_datetime_to_unix_timestamp,
     create_lorenzi_query,
     create_mogi,
     create_player,
-    convert_datetime_to_unix_timestamp,
     generate_random_name,
     jp_kr_romanize,
 )
@@ -16,6 +15,8 @@ from helpers import (
 
 @pytest.fixture(scope="session")
 def create_database():
+    import DBA
+
     with DBA.DBAccess() as db:
         print("creating database")
         with open("sql/development_init.sql", "r") as file:
