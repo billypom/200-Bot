@@ -15,6 +15,7 @@ from helpers import (
 
 @pytest.fixture(scope="session")
 def create_database():
+    """Creates a temporary database for testing"""
     import DBA
 
     with DBA.DBAccess() as db:
@@ -30,6 +31,11 @@ def create_database():
 
 @pytest.mark.asyncio
 async def test_calculate_mmr(create_database):
+    """Tests the process of creating a 2v2 mmr table
+
+    - sorting
+    - mmr calculation
+    - final table result"""
     # chunked_list = [[player_id, score], [player_id, score]]...
     chunked_list = [
         [[1, "72"], [2, "120"]],
@@ -104,6 +110,10 @@ async def test_calculate_mmr(create_database):
 
 @pytest.mark.asyncio
 async def test_create_mogi(create_database):
+    """Integration test for mogi creation
+
+    Make sure we get `results channel id` & `tier name`
+    """
     import random
 
     tiers = await get_results_tier_dict()
@@ -118,12 +128,14 @@ async def test_create_mogi(create_database):
 
 @pytest.mark.asyncio
 async def test_create_player():
+    """can't test this?"""
     # impossible to test
     pass
 
 
 @pytest.mark.asyncio
 async def test_convert_datetime_to_unix_timestamp():
+    """Test that unix timestamp is an integer. doi"""
     import datetime
 
     date = datetime.datetime.now()
@@ -133,12 +145,14 @@ async def test_convert_datetime_to_unix_timestamp():
 
 @pytest.mark.asyncio
 async def test_generate_random_name():
+    """Test random name generation"""
     name = await generate_random_name()
     assert isinstance(name, str)
 
 
 @pytest.mark.asyncio
 async def test_jp_kr_romanize():
+    """Test japanese & korean romanization with a basic words"""
     result = await jp_kr_romanize("정말")
     assert result == "jeongmal"
     result = await jp_kr_romanize("日本語のキーボード")

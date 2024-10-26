@@ -21,6 +21,7 @@ from helpers.getters import (
 
 @pytest.fixture(scope="session")
 def create_database():
+    """Create a temp database"""
     with DBA.DBAccess() as db:
         print("creating database")
         with open("sql/development_init.sql", "r") as file:
@@ -34,18 +35,22 @@ def create_database():
 
 @pytest.mark.asyncio
 async def test_get_discord_role():
+    """can't test this"""
     # impossible to test
     pass
 
 
 @pytest.mark.asyncio
 async def test_get_lounge_guild():
+    """can't test this"""
     # impossible to test
     pass
 
 
 @pytest.mark.asyncio
 async def test_get_mogi_table_color_by_format():
+    """Tests that each valid mogi format has a binding for color
+    and invalid mogi format returns None"""
     for i in [1, 2, 3, 4, 6]:
         result = await get_mogi_table_color_by_format(i)
         assert isinstance(result, list)
@@ -57,40 +62,47 @@ async def test_get_mogi_table_color_by_format():
 
 @pytest.mark.asyncio
 async def test_get_number_of_strikes_for_uid():
+    """unfinished"""
     pass
 
 
 @pytest.mark.asyncio
 async def test_get_partner_avg():
+    """unfinished"""
     pass
 
 
 @pytest.mark.asyncio
 async def test_get_random_name():
+    """Tests that random name generator works"""
     result = await get_random_name()
     assert isinstance(result, str)
 
 
 @pytest.mark.asyncio
 async def test_get_rank_id_list(create_database):
+    """Integration test"""
     result = await get_rank_id_list()
     assert isinstance(result, list)
 
 
 @pytest.mark.asyncio
 async def test_get_results_id_list(create_database):
+    """Integration test"""
     result = await get_results_id_list()
     assert isinstance(result, list)
 
 
 @pytest.mark.asyncio
 async def test_get_results_tier_dict(create_database):
+    """Integration test"""
     result = await get_results_tier_dict()
     assert isinstance(result, dict)
 
 
 @pytest.mark.asyncio
 async def test_get_tier_from_submission_channel(create_database):
+    """Test that each results channel has a binding for a tier channel"""
     tier_results = await get_results_tier_dict()
     for key, value in tier_results.items():
         result = await get_tier_from_submission_channel(key)
@@ -103,11 +115,13 @@ async def test_get_tier_from_submission_channel(create_database):
 
 @pytest.mark.asyncio
 async def test_get_tier_id_list(create_database):
+    """Integration test"""
     result = await get_tier_id_list()
     assert isinstance(result, list)
 
 
 @pytest.mark.asyncio
 async def get_test_get_unix_time_now():
+    """Unix timestamp is an int"""
     result = await get_unix_time_now()
     assert isinstance(result, int)

@@ -15,6 +15,7 @@ from helpers.handlers import (
 
 @pytest.fixture(scope="session")
 def create_database():
+    """Creates a temp database"""
     with DBA.DBAccess() as db:
         print("creating database")
         with open("sql/development_init.sql", "r") as file:
@@ -28,12 +29,14 @@ def create_database():
 
 @pytest.mark.asyncio
 async def test_handle_placement_init():
+    """can't test this"""
     # impossible to test
     pass
 
 
 @pytest.mark.asyncio
 async def test_handle_player_name():
+    """Test name handling"""
     result = await handle_player_name("this is the name")
     assert result == "thisisthename"
     result = await handle_player_name("정말")
@@ -45,6 +48,7 @@ async def test_handle_player_name():
 
 @pytest.mark.asyncio
 async def test_handle_queued_mmr_penalties(create_database):
+    """Test updating a player who incurred penalties and left the server"""
     # Player with no penalties
     total_queued_penalties, final_mmr = await handle_queued_mmr_penalties(1, 4000)
     assert total_queued_penalties == 0
@@ -57,6 +61,7 @@ async def test_handle_queued_mmr_penalties(create_database):
 
 @pytest.mark.asyncio
 async def test_handle_score_input(create_database):
+    """Handle /table score field input parsing"""
     result = await handle_score_input(
         score_string="1 82 2 82 3 82 4 82 5 82 6 82 7 82 8 82 9 82 10 82 11 82 12 82",
         mogi_format=2,
@@ -69,12 +74,14 @@ async def test_handle_score_input(create_database):
 
 @pytest.mark.asyncio
 async def test_handle_suggestion_decision():
+    """can't test this"""
     # impossible to test
     pass
 
 
 @pytest.mark.asyncio
 async def test_handle_team_placements_for_lorenzi_table(create_database):
+    """Test score validation for /table command"""
     chunked_list = await handle_score_input(
         score_string="1 82 2 81+1 3 82 4 82 5 82 6 82 7 82 8 82 9 82 10 82 11 82 12 82",
         mogi_format=2,

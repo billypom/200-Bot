@@ -20,18 +20,10 @@ from helpers.checkers import (
 )
 
 
-@pytest.fixture
-def example_data():
-    return ["data", "goes", "here"]
-
-
-def use_example_date():
-    data = example_data()
-    assert isinstance(data, list)
-
 
 @pytest.fixture(scope="session")
 def create_database():
+    """Creates a temp database"""
     with DBA.DBAccess() as db:
         print("creating database")
         with open("sql/development_init.sql", "r") as file:
@@ -45,6 +37,7 @@ def create_database():
 
 @pytest.mark.asyncio
 async def test_check_for_dupes_in_list():
+    """Test duplicate values in list for /table command"""
     # List without duplicates
     input: list = [1, 2, 3, 4]
     result = await check_for_dupes_in_list(input)
@@ -57,6 +50,7 @@ async def test_check_for_dupes_in_list():
 
 @pytest.mark.asyncio
 async def test_check_for_rank_changes(create_database):
+    """Tests rank up/down, account for upper and lower bounds (gm and iron)"""
     # Rank ID: min, max
     ranks = [
         [1041162011536527391, 0, 1499],
@@ -104,6 +98,7 @@ async def test_check_for_rank_changes(create_database):
 
 @pytest.mark.asyncio
 async def test_check_if_banned_characters():
+    """Test for banned characters"""
     # Good input
     input = "this is nice input"
     result = await check_if_banned_characters(input)
@@ -116,6 +111,7 @@ async def test_check_if_banned_characters():
 
 @pytest.mark.asyncio
 async def test_check_if_mkc_user_id_used(create_database):
+    """Integration test"""
     result = await check_if_mkc_user_id_used(1)
     assert result  # true
     result = await check_if_mkc_user_id_used(999)
@@ -124,6 +120,7 @@ async def test_check_if_mkc_user_id_used(create_database):
 
 @pytest.mark.asyncio
 async def test_check_if_mogi_id_exists(create_database):
+    """Integration test"""
     result = await check_if_mogi_id_exists(1)
     assert result
     result = await check_if_mogi_id_exists(999)
@@ -132,6 +129,7 @@ async def test_check_if_mogi_id_exists(create_database):
 
 @pytest.mark.asyncio
 async def test_check_if_name_is_unique(create_database):
+    """Integration test"""
     # need test data
     result = await check_if_name_is_unique("1")
     assert not result
@@ -141,6 +139,7 @@ async def test_check_if_name_is_unique(create_database):
 
 @pytest.mark.asyncio
 async def test_check_if_uid_exists(create_database):
+    """Integration test"""
     # need test data
     result = await check_if_uid_exists(1)
     assert result
@@ -150,6 +149,7 @@ async def test_check_if_uid_exists(create_database):
 
 @pytest.mark.asyncio
 async def test_check_if_uid_has_role():
+    """can't test this"""
     pass
     # impossible to test
 
@@ -169,6 +169,7 @@ async def test_check_if_uid_has_role():
 
 @pytest.mark.asyncio
 async def test_check_if_uid_is_chat_restricted(create_database):
+    """Integration test"""
     result = await check_if_uid_is_chat_restricted(1)
     assert not result
     result = await check_if_uid_is_chat_restricted(12)
@@ -177,6 +178,7 @@ async def test_check_if_uid_is_chat_restricted(create_database):
 
 @pytest.mark.asyncio
 async def test_check_if_uid_is_lounge_banned(create_database):
+    """Integration test"""
     result = await check_if_uid_is_lounge_banned(1)
     assert not result
     result = await check_if_uid_is_lounge_banned(11)
@@ -185,6 +187,7 @@ async def test_check_if_uid_is_lounge_banned(create_database):
 
 @pytest.mark.asyncio
 async def test_check_if_uid_is_placement(create_database):
+    """Integration test"""
     result = await check_if_uid_is_placement(1)
     assert not result
     result = await check_if_uid_is_placement(10)
@@ -193,6 +196,7 @@ async def test_check_if_uid_is_placement(create_database):
 
 @pytest.mark.asyncio
 async def test_check_if_valid_table_submission_channel(create_database):
+    """Integration test"""
     # set up a category in the db
     with DBA.DBAccess() as db:
         db.execute("INSERT INTO sq_helper (category_id) values (%s);", (1,))
