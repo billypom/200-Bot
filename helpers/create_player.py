@@ -11,7 +11,7 @@ from constants import (
 
 
 async def create_player(client, member, mkc_user_id, country_code):
-    """Handles creation of a new player on the leaderboard
+    """Creates a new player on the leaderboard
     - Handles nickname
     - Adds to database
     - Adds discord role
@@ -66,4 +66,4 @@ async def create_player(client, member, mkc_user_id, country_code):
         "**Creating player**",
     )
     # User feedback
-    return f":flag_us:\nVerified & registered successfully. :thewman: Assigned <@&{role.id}>\n:flag_jp:認証に成功しました。{role}が割り当てられました。"  # type: ignore
+    return f":flag_us:\nVerified & registered successfully. Assigned <@&{role.id}>\n:flag_jp:認証に成功しました。{role}が割り当てられました。"  # type: ignore
