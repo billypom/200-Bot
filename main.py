@@ -13,6 +13,7 @@ from helpers import set_uid_roles
 from constants import (
     CHAT_RESTRICTED_ROLE_ID,
     DEBUG_CHANNEL_ID,
+    LOUNGE,
     SUPPORT_CHANNEL_ID,
     NAME_CHANGE_CHANNEL_ID,
     TOKEN,
@@ -71,6 +72,12 @@ async def on_ready():
     channel = cast("TextChannel", client.get_channel(DEBUG_CHANNEL_ID))
     embed = Embed(title="Startup", description=":3", color=Color.og_blurple())
     embed.add_field(name="200-Lounge Bot Restarted", value=":D", inline=False)
+    servers_to_leave = [server.id for server in client.guilds]
+    for guild in client.guilds:
+        if guild.id == LOUNGE:
+            continue
+        await guild.leave()
+        await channel.send(f'left guild: {guild}')
     await channel.send(content=None, embed=embed)
 
 
