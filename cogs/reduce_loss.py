@@ -62,6 +62,9 @@ class ReduceLossCog(commands.Cog):
                     "SELECT player_id FROM player WHERE player_name = %s;", (player,)
                 )[0][0]  # type: ignore
             )
+        if player_id == ctx.author.id:
+            await ctx.respond("You cannot reduce your own score")
+            return
         if player_id:
             pass
         else:

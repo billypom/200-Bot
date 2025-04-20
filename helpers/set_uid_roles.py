@@ -24,6 +24,7 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
         # member not in server
         # await send_raw_to_debug_channel(client, f'{uid} not found in server. Not setting roles', e)
         return None, None
+
     try:  # Edit their discord nickname
         with DBA.DBAccess() as db:
             player_name = db.query(
@@ -41,6 +42,7 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
             "Hello. I am lower in the role hierarchy, therefore I cannot edit your nickname for you. I updated the database with your new name, but you will need to right-click and edit your nickname yourself. c:"
         )
         pass
+
     try:  # chat restricted
         with DBA.DBAccess() as db:
             temp = db.query(

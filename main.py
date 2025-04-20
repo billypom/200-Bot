@@ -74,10 +74,10 @@ async def on_ready():
     embed.add_field(name="200-Lounge Bot Restarted", value=":D", inline=False)
     servers_to_leave = [server.id for server in client.guilds]
     for guild in client.guilds:
-        if guild.id == LOUNGE:
+        if guild.id == LOUNGE[0]:
             continue
         await guild.leave()
-        await channel.send(f'left guild: {guild}')
+        await channel.send(f"left guild: {guild}")
     await channel.send(content=None, embed=embed)
 
 
