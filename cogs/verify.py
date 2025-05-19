@@ -1,6 +1,7 @@
 from discord import Color, Option
-import re
+import json
 import time
+import requests
 import datetime
 import vlog_msg
 from discord.ext import commands
@@ -35,6 +36,23 @@ class VerifyCog(commands.Cog):
             "SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT"
         )
 
+    async def mkc_api_get(self, mkc_player_id: int) -> dict:
+        """get mkc api data for player"""
+        headers = {"User-Agent": "200-Lounge Bot"}
+        try:
+            mkcresponse = requests.get(
+                "https://mkcentral.com/api/registry/players/" + str(mkc_player_id),
+                headers=headers,
+            )
+            mkc_data = mkcresponse.json()
+            buh = json.dumps(mkc_data)
+            mkc_data_dict = json.loads(buh)
+            return mkc_data_dict
+        except Exception as e:
+            print("mkc api get failed")
+            print(e)
+            return {}
+
     @commands.slash_command(
         name="verify", description="Verify your MKC account", guild_ids=LOUNGE
     )
@@ -43,19 +61,15 @@ class VerifyCog(commands.Cog):
         ctx: "ApplicationContext",
         message: Option(
             str,
-            "MKC Link | https://www.mariokartcentral.com/mkc/registry/players/930",
+            "MKC Link | https://mkcentral.com/en-us/registry/players/profile?id=930",
             required=True,
         ),  # type: ignore
     ):
         """Command to register yourself in the 200-Lounge system
-        - Your registry profile MUST exist
 
         Args:
         - `message` (str): Link to your MKC forum or registry profile"""
-        # FIXME: This command needs to be rewritten when the new MKC site launches
 
-        # mkc_player_id = registry id
-        # mkc_user_id = forum id
         await ctx.defer(ephemeral=False)
         x = await check_if_uid_exists(ctx.author.id)
         if x:
@@ -78,63 +92,37 @@ class VerifyCog(commands.Cog):
             return
         else:
             pass
-        # Regex on https://www.mariokartcentral.com/mkc/registry/players/930
-        if "registry" in message:
-            regex_pattern = "players/\d*"
-            regex_pattern2 = "users/\d*"
-            if re.search(regex_pattern, str(message)):
-                regex_group = re.search(regex_pattern, message)
-                x = regex_group.group()
-                reg_array = re.split("/", x)
-                mkc_player_id = reg_array[len(reg_array) - 1]
-            elif re.search(regex_pattern2, str(message)):
-                regex_group = re.search(regex_pattern2, message)
-                x = regex_group.group()
-                reg_array = re.split("/", x)
-                mkc_player_id = reg_array[len(reg_array) - 1]
-            else:
-                await ctx.respond(
-                    "``Error 2:`` Oops! Something went wrong. Check your link or try again later"
-                )
-                return
-        # Regex on https://www.mariokartcentral.com/forums/index.php?members/popuko.154/
-        elif "forums" in message:
-            regex_pattern = "members/.*\.\d*"
-            regex_pattern2 = "members/\d*"
-            if re.search(regex_pattern, str(message)):
-                regex_group = re.search(regex_pattern, message)
-                x = regex_group.group()
-                temp = re.split("\.|/", x)
-                mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp) - 1])
-            elif re.search(regex_pattern2, str(message)):
-                regex_group = re.search(regex_pattern2, message)
-                x = regex_group.group()
-                temp = re.split("\.|/", x)
-                mkc_player_id = await mkc_request_mkc_player_id(temp[len(temp) - 1])
-            else:
-                # player doesnt exist on forums
-                await ctx.respond(
-                    "``Error 3:`` Oops! Something went wrong. Check your link or try again later"
-                )
-                return
-        else:
-            await ctx.respond(
-                "``Error 80:`` Oops! Something went wrong. Check your link or try again later"
-            )
-            return
-        # Make sure player_id was received properly
-        if mkc_player_id != -1:
-            pass
-        else:
-            await ctx.respond(
-                "``Error 4:`` Oops! Something went wrong. ```MKC Player ID not transmitted properly.\nMake sure you are signed up in the MKC Registry or try again later.```"
-            )
-            return
+        temp = message.split("/")
+        mkc_player_id = temp[len(temp) - 1].split("=")[1]
+
         # Request registry data
-        mkc_registry_data = await mkc_request_registry_info(mkc_player_id)
-        mkc_user_id = mkc_registry_data[0]
-        country_code = mkc_registry_data[1]
-        is_banned = mkc_registry_data[2]
+        data = await self.mkc_api_get(mkc_player_id)
+        mkc_user_id = data["id"]
+        country_code = data["country_code"]
+        is_banned = data["is_banned"]
+        if data["discord"] is None:
+            verify_description = "Discord ID does not exist on MKC profile"
+            await ctx.respond(
+                "This discord account is not linked to the provided MKCentral account"
+            )
+            await send_to_verification_log(
+                self.client, ctx, message, verify_description
+            )
+            return
+
+        discord_id = data["discord"]["discord_id"]
+
+        if discord_id != ctx.author.id:
+            verify_description = (
+                f"Wrong discord:mkc mapping\n{ctx.author.id}:{discord_id}"
+            )
+            await ctx.respond(
+                "This discord account is not linked to the provided MKCentral account"
+            )
+            await send_to_verification_log(
+                self.client, ctx, message, verify_description
+            )
+            return
 
         if is_banned:
             # Is banned
@@ -154,48 +142,6 @@ class VerifyCog(commands.Cog):
             return
         else:
             pass
-        # Check for shared ips
-        # Check for last seen date
-        # If last seen in the last week? pass else: send message (please log in to your mkc account and retry)
-        mkc_forum_data = await mkc_request_forum_info(mkc_user_id)
-        last_seen_unix_timestamp = float(mkc_forum_data[0])
-        # name.mkc_user_id
-        user_matches_list = mkc_forum_data[1]
-
-        # Check if seen in last week
-        if mkc_forum_data[0] != -1:
-            dtobject_now = datetime.datetime.now()
-            unix_now = time.mktime(dtobject_now.timetuple())
-            seconds_since_last_login = unix_now - last_seen_unix_timestamp
-            if seconds_since_last_login > self.seconds_since_last_login_delta_limit:
-                verify_description = vlog_msg.error5
-                await ctx.respond(
-                    "``Error 5:`` Please log in to your MKC account, then retry. \n\nIf you are still being refused verification, click this link then try again: https://www.mariokartcentral.com/forums/index.php?members/popuko.154/"
-                )
-                await send_to_verification_log(
-                    self.client, ctx, message, verify_description
-                )
-                return
-            else:
-                pass
-        else:
-            verify_description = vlog_msg.error7
-            verify_color = Color.red()
-            await ctx.respond(
-                "``Error 6:`` Oops! Something went wrong. Check your link or try again later"
-            )
-            await send_to_verification_log(
-                self.client, ctx, f"Error 6: {message}", verify_description
-            )
-            return
-        if user_matches_list:
-            verify_color = Color.teal()
-            await send_to_ip_match_log(
-                self.client, ctx, message, verify_color, user_matches_list
-            )
-        # All clear. Roll out.
-        verify_description = vlog_msg.success
-        verify_color = Color.green()
         # Check if someone has verified as this user before...
         x = await check_if_mkc_user_id_used(mkc_user_id)
         if x:
@@ -203,7 +149,6 @@ class VerifyCog(commands.Cog):
                 f"``Error 10:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."
             )
             verify_description = vlog_msg.error4
-            verify_color = Color.red()
             await send_to_verification_log(
                 self.client,
                 ctx,
@@ -212,6 +157,8 @@ class VerifyCog(commands.Cog):
             )
             return
         else:
+            # All clear. Roll out.
+            verify_description = vlog_msg.success
             member = await get_lounge_guild(self.client).fetch_member(ctx.author.id)
             x = await create_player(self.client, member, mkc_user_id, country_code)
             try:
