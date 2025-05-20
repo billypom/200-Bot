@@ -110,7 +110,7 @@ class VerifyCog(commands.Cog):
             )
             return
 
-        discord_id = data["discord"]["discord_id"]
+        discord_id = int(data["discord"]["discord_id"])
 
         if discord_id != ctx.author.id:
             verify_description = (
