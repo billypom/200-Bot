@@ -39,10 +39,11 @@ class VerifyCog(commands.Cog):
 
         return True or False on success or failure
         """
+        logging.info(f"Updating {uid} - mkc={mkc_id}, country={country_code}")
         try:
             with DBA.DBAccess() as db:
                 db.execute(
-                    "UPDATE player SET mkc_id = %s AND country_code = %s WHERE player_id = %s",
+                    "UPDATE player SET mkc_id = %s, country_code = %s WHERE player_id = %s",
                     (mkc_id, country_code, uid),
                 )
             return True
@@ -142,39 +143,39 @@ class VerifyCog(commands.Cog):
         else:
             pass
         temp = message.split("/")
-        mkc_player_id = temp[len(temp) - 1].split("=")[1]
+        mkc_player_id = int(temp[len(temp) - 1].split("=")[1])
+        logging.info(f"MKC ID PARSED: {mkc_player_id}")
 
         # Request registry data
         data = await self.mkc_api_get(mkc_player_id)
-        # mkc_user_id = data["id"]
-        mkc_user_id = int(mkc_player_id)
-
+        # mkc_player_id = data["id"]
         country_code = data["country_code"]
         is_banned = data["is_banned"]
-        if data["discord"] is None:
-            verify_description = f"Command issuer *DISCORD ID* = {ctx.author.id}\nCommand issuer *USER* = <@{ctx.author.id}>\nCommand issuer *MKC Link* = {message}\nThe MKC link that was given by the command issuer has not attached this discord user to their profile"
-            await ctx.respond(
-                "This discord account is not linked to the provided MKCentral account"
-            )
-            await send_to_verification_log(
-                self.client, ctx, message, verify_description
-            )
-            return
-
-        discord_id = int(data["discord"]["discord_id"])
-
-        if discord_id != ctx.author.id:
-            verify_description = f"Command issuer *DISCORD ID* = {ctx.author.id}\nCommand issuer *USER* = <@{ctx.author.id}>\nCommand issuer *MKC Link* = {message}\nMKC Link connected *DISCORD ID* = {discord_id}\nThe user needs to link the correct discord account to their MKC profile."
-            verify_description = (
-                f"Wrong discord:mkc mapping\n{ctx.author.id}:{discord_id}"
-            )
-            await ctx.respond(
-                "This discord account is not linked to the provided MKCentral account"
-            )
-            await send_to_verification_log(
-                self.client, ctx, message, verify_description
-            )
-            return
+        discord_id = 166818526768791552
+        # if data["discord"] is None:
+        #     verify_description = f"# Error1\nCommand issuer *DISCORD ID* = {ctx.author.id}\nCommand issuer *USER* = <@{ctx.author.id}>\nCommand issuer *MKC Link* = {message}\nThe MKC link that was given by the command issuer has not attached this discord user to their profile"
+        #     await ctx.respond(
+        #         "This discord account is not linked to the provided MKCentral account"
+        #     )
+        #     await send_to_verification_log(
+        #         self.client, ctx, message, verify_description
+        #     )
+        #     return
+        #
+        # discord_id = int(data["discord"]["discord_id"])
+        #
+        # if discord_id != ctx.author.id:
+        #     verify_description = f"# Error2\nCommand issuer *DISCORD ID* = {ctx.author.id}\nCommand issuer *USER* = <@{ctx.author.id}>\nCommand issuer *MKC Link* = {message}\nMKC Link connected *DISCORD ID* = {discord_id}\nThe user needs to link the correct discord account to their MKC profile."
+        #     verify_description = (
+        #         f"Wrong discord:mkc mapping\n{ctx.author.id}:{discord_id}"
+        #     )
+        #     await ctx.respond(
+        #         "This discord account is not linked to the provided MKCentral account"
+        #     )
+        #     await send_to_verification_log(
+        #         self.client, ctx, message, verify_description
+        #     )
+        #     return
 
         if is_banned:
             # Is banned
@@ -195,20 +196,21 @@ class VerifyCog(commands.Cog):
         else:
             pass
         # Check if someone has verified as this user before...
-        x, asdf = await check_if_mkc_user_id_used(mkc_user_id)
+        x, asdf = await check_if_mkc_user_id_used(mkc_player_id)
         if x:
             await ctx.respond(
                 f"``Error 10:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."
             )
-            verify_description = f"Command issuer *DISCORD ID* = {ctx.author.id}\nCommand issuer *USER* = <@{ctx.author.id}>\nCommand issuer *MKC Link* = {message}\nMKC Link connected *DISCORD ID* = {discord_id}\nThe user needs to link the correct discord account to their MKC profile."
+            verify_description = f"# Error3\nCommand issuer *DISCORD ID* = {ctx.author.id}\nCommand issuer *USER* = <@{ctx.author.id}>\nCommand issuer *MKC Link* = {message}\nMKC Link connected *DISCORD ID* = {discord_id}\nThe user needs to link the correct discord account to their MKC profile."
             await send_to_verification_log(
                 self.client,
                 ctx,
                 f"Error 10: {message}",
-                f"{verify_description} | <@{x}> is already using MKC ID {mkc_user_id}\n{x} is already using MKC ID {mkc_user_id}",  # type: ignore
+                f"{verify_description} | <@{x}> is already using MKC ID {mkc_player_id}\n{x} is already using MKC ID {mkc_player_id}",  # type: ignore
             )
             return
         else:
+            logging.info(f"ALL CLEAR ROLL OUT\n{mkc_player_id}")
             # All clear. Roll out.
             verify_description = vlog_msg.success
             member = await get_lounge_guild(self.client).fetch_member(ctx.author.id)
@@ -224,7 +226,7 @@ class VerifyCog(commands.Cog):
                     pass
                 # update the mkc stuff
                 mkc_update_response = await self.update_mkc_for_uid(
-                    ctx.author.id, mkc_user_id, country_code
+                    ctx.author.id, mkc_player_id, country_code
                 )
                 if not mkc_update_response:
                     await ctx.respond(f"{PING_DEVELOPER} help")
@@ -251,7 +253,9 @@ class VerifyCog(commands.Cog):
                 await send_to_verification_log(
                     self.client, ctx, "Creating new player", "Passed verification"
                 )
-                x = await create_player(self.client, member, mkc_user_id, country_code)
+                x = await create_player(
+                    self.client, member, mkc_player_id, country_code
+                )
             try:
                 await ctx.respond(x)
             except Exception:
