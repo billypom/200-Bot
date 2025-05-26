@@ -102,6 +102,12 @@ class VerifyCog(commands.Cog):
         if "mariokartcentral" in message:
             await ctx.respond("Wrong website. Use https://mkcentral.com")
             return
+        if "mkcentral.com" not in message:
+            await ctx.respond("Please provide a MKCentral profile link")
+            return
+        if "/registry/players" not in message:
+            await ctx.respond("Please provide a MKCentral profile link")
+            return
         uid_exists = await check_if_uid_exists(ctx.author.id)
         has_mkc_account = await self.check_if_uid_has_mkc(ctx.author.id)
         if uid_exists and has_mkc_account:
