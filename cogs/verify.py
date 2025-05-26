@@ -13,7 +13,7 @@ from helpers.senders import send_to_verification_log
 from helpers.checkers import check_if_uid_is_lounge_banned
 from helpers.checkers import check_if_uid_exists
 from helpers.checkers import check_if_mkc_user_id_used
-from constants import LOUNGE, SUPPORT_CHANNEL_ID
+from constants import LOUNGE, PING_DEVELOPER, SUPPORT_CHANNEL_ID
 import logging
 import configparser
 from typing import TYPE_CHECKING
@@ -32,6 +32,23 @@ class VerifyCog(commands.Cog):
         self.seconds_since_last_login_delta_limit = config_file["LOUNGE"].getint(
             "SECONDS_SINCE_LAST_LOGIN_DELTA_LIMIT"
         )
+
+    async def update_mkc_for_uid(self, uid, mkc_id, country_code):
+        """
+        Updates a uid's mkc_id and country code, for the new website mkcentral.com
+
+        return True or False on success or failure
+        """
+        try:
+            with DBA.DBAccess() as db:
+                db.execute(
+                    "UPDATE player SET mkc_id = %s AND country_code = %s WHERE player_id = %s",
+                    (mkc_id, country_code, uid),
+                )
+            return True
+        except Exception as e:
+            logging.info(f"verify.py, update_mkc_for_uid | {e}")
+            return False
 
     async def mkc_api_get(self, mkc_player_id: int) -> dict:
         """get mkc api data for player"""
@@ -82,9 +99,9 @@ class VerifyCog(commands.Cog):
         - `message` (str): Link to your MKC forum or registry profile"""
 
         await ctx.defer(ephemeral=False)
-        x = await check_if_uid_exists(ctx.author.id)
+        uid_exists = await check_if_uid_exists(ctx.author.id)
         has_mkc_account = await self.check_if_uid_has_mkc(ctx.author.id)
-        if x and has_mkc_account:
+        if uid_exists and has_mkc_account:
             lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
             if lounge_ban:
                 await ctx.respond(f"Unbanned after <t:{lounge_ban}:D>")
@@ -96,7 +113,8 @@ class VerifyCog(commands.Cog):
                 member = await get_lounge_guild(self.client).fetch_member(ctx.author.id)
                 msg_response = f":flag_us:\nWelcome back to 200cc Lounge.\nYou have been given the role: <@&{response[0]}>\n\n:flag_jp:\n`200ccラウンジにおかえり！`\n<@&{response[0]}>`が割り当てられています`"
                 await ctx.respond(msg_response)
-                await member.send(msg_response)
+                dm_response = ":flag_us:\nWelcome back to 200cc Lounge.\n\n:flag_jp:\n200ccラウンジにおかえり！"
+                await member.send(dm_response)
             else:
                 await ctx.respond(
                     f"``Error 29:`` Could not re-enter the lounge. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."
@@ -173,7 +191,37 @@ class VerifyCog(commands.Cog):
             # All clear. Roll out.
             verify_description = vlog_msg.success
             member = await get_lounge_guild(self.client).fetch_member(ctx.author.id)
-            x = await create_player(self.client, member, mkc_user_id, country_code)
+            if uid_exists:
+                lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
+                if lounge_ban:
+                    await ctx.respond(f"Unbanned after <t:{lounge_ban}:D>")
+                    return
+                else:
+                    pass
+                # update the mkc stuff
+                mkc_update_response = await self.update_mkc_for_uid(
+                    ctx.author.id, mkc_user_id, country_code
+                )
+                if not mkc_update_response:
+                    await ctx.respond(f"{PING_DEVELOPER} help")
+                    return
+                # set roles
+                response = await set_uid_roles(self.client, ctx.author.id)
+                if response:
+                    member = await get_lounge_guild(self.client).fetch_member(
+                        ctx.author.id
+                    )
+                    msg_response = f":flag_us:\nWelcome back to 200cc Lounge.\nYou have been given the role: <@&{response[0]}>\n\n:flag_jp:\n`200ccラウンジにおかえり！`\n<@&{response[0]}>`が割り当てられています`"
+                    await ctx.respond(msg_response)
+                    dm_response = ":flag_us:\nWelcome back to 200cc Lounge.\n\n:flag_jp:\n200ccラウンジにおかえり！"
+                    await member.send(dm_response)
+                else:
+                    await ctx.respond(
+                        f"``Error 29:`` Could not re-enter the lounge. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."
+                    )
+                return
+            else:
+                x = await create_player(self.client, member, mkc_user_id, country_code)
             try:
                 await ctx.respond(x)
                 await member.send(x)
