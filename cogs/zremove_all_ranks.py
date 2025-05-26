@@ -27,19 +27,20 @@ class ZRemoveAllRanks(commands.Cog):
         await ctx.defer()
         guild = get_lounge_guild(self.client)
         rank_id_list = await get_rank_id_list()
+        role_list = []
+        for rank in rank_id_list:
+            role_list.append(guild.get_role(rank))
         for member in guild.members:
-            for i in range(len(rank_id_list)):
-                try:
-                    test_role = guild.get_role(rank_id_list[i])
-                    if test_role in member.roles:
-                        await member.remove_roles(test_role)
-                        logging.info(
-                            f"zremove_all_ranks.py | removed {test_role} from {member}"
+            for role in role_list:
+                if role in member.roles:
+                    try:
+                        await member.remove_roles(role)
+                    except Exception as e:
+                        logging.error(
+                            f"zremove_all_ranks | could not remove {role} from {member} | {e}"
                         )
-                except Exception as e:
-                    logging.error(
-                        f"zremove_all_ranks.py | could not apply role to {member.id} | {e}"
-                    )
+            logging.info(f"removed roles from {member}")
+
         await ctx.respond("All player rank roles have been removed")
 
 

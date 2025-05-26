@@ -1,5 +1,6 @@
 from discord import Color, Option
 import json
+import DBA
 import time
 import requests
 import datetime
@@ -8,14 +9,10 @@ from discord.ext import commands
 from helpers import set_uid_roles
 from helpers import create_player
 from helpers.getters import get_lounge_guild
-from helpers.senders import send_to_ip_match_log
 from helpers.senders import send_to_verification_log
 from helpers.checkers import check_if_uid_is_lounge_banned
 from helpers.checkers import check_if_uid_exists
 from helpers.checkers import check_if_mkc_user_id_used
-from helpers.jazzy_mkc import mkc_request_forum_info
-from helpers.jazzy_mkc import mkc_request_registry_info
-from helpers.jazzy_mkc import mkc_request_mkc_player_id
 from constants import LOUNGE, SUPPORT_CHANNEL_ID
 import logging
 import configparser
@@ -53,6 +50,20 @@ class VerifyCog(commands.Cog):
             print(e)
             return {}
 
+    async def check_if_uid_has_mkc(self, uid: int) -> bool:
+        """Check if this uid has a mkc id attached"""
+        try:
+            with DBA.DBAccess() as db:
+                mkc_id = db.query(
+                    "SELECT mkc_id FROM player WHERE player_id = %s;", (uid,)
+                )[0][0]  # type: ignore
+                if int(mkc_id) > 0:
+                    return True
+                else:
+                    return False
+        except Exception:
+            return False
+
     @commands.slash_command(
         name="verify", description="Verify your MKC account", guild_ids=LOUNGE
     )
@@ -72,7 +83,8 @@ class VerifyCog(commands.Cog):
 
         await ctx.defer(ephemeral=False)
         x = await check_if_uid_exists(ctx.author.id)
-        if x:
+        has_mkc_account = await self.check_if_uid_has_mkc(ctx.author.id)
+        if x and has_mkc_account:
             lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
             if lounge_ban:
                 await ctx.respond(f"Unbanned after <t:{lounge_ban}:D>")
@@ -101,7 +113,7 @@ class VerifyCog(commands.Cog):
         country_code = data["country_code"]
         is_banned = data["is_banned"]
         if data["discord"] is None:
-            verify_description = "Discord ID does not exist on MKC profile"
+            verify_description = f"Command issuer *DISCORD ID* = {ctx.author.id}\nCommand issuer *USER* = <@{ctx.author.id}>\nCommand issuer *MKC Link* = {message}\nThe MKC link that was given by the command issuer has not attached this discord user to their profile"
             await ctx.respond(
                 "This discord account is not linked to the provided MKCentral account"
             )
@@ -113,6 +125,7 @@ class VerifyCog(commands.Cog):
         discord_id = int(data["discord"]["discord_id"])
 
         if discord_id != ctx.author.id:
+            verify_description = f"Command issuer *DISCORD ID* = {ctx.author.id}\nCommand issuer *USER* = <@{ctx.author.id}>\nCommand issuer *MKC Link* = {message}\nMKC Link connected *DISCORD ID* = {discord_id}\nThe user needs to link the correct discord account to their MKC profile."
             verify_description = (
                 f"Wrong discord:mkc mapping\n{ctx.author.id}:{discord_id}"
             )
@@ -128,7 +141,7 @@ class VerifyCog(commands.Cog):
             # Is banned
             verify_description = vlog_msg.error3
             await ctx.respond(
-                "``Error 7:`` Oops! Something went wrong. Check your link or try again later"
+                "You are MKC banned and cannot participate in 200cc Lounge"
             )
             await send_to_verification_log(
                 self.client, ctx, message, verify_description
@@ -143,17 +156,17 @@ class VerifyCog(commands.Cog):
         else:
             pass
         # Check if someone has verified as this user before...
-        x = await check_if_mkc_user_id_used(mkc_user_id)
+        x, asdf = await check_if_mkc_user_id_used(mkc_user_id)
         if x:
             await ctx.respond(
                 f"``Error 10:`` Oops! Something went wrong. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."
             )
-            verify_description = vlog_msg.error4
+            verify_description = f"Command issuer *DISCORD ID* = {ctx.author.id}\nCommand issuer *USER* = <@{ctx.author.id}>\nCommand issuer *MKC Link* = {message}\nMKC Link connected *DISCORD ID* = {discord_id}\nThe user needs to link the correct discord account to their MKC profile."
             await send_to_verification_log(
                 self.client,
                 ctx,
                 f"Error 10: {message}",
-                f"{verify_description} | Somebody is already using MKC **FORUM** ID {mkc_user_id}",  # type: ignore
+                f"{verify_description} | <@{x}> is already using MKC ID {mkc_user_id}\n{x} is already using MKC ID {mkc_user_id}",  # type: ignore
             )
             return
         else:
