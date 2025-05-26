@@ -27,13 +27,17 @@ async def set_uid_roles(client: "Bot", uid: int) -> tuple[int, str] | tuple[None
 
     try:  # Edit their discord nickname
         with DBA.DBAccess() as db:
-            player_name = db.query(
-                "SELECT player_name FROM player WHERE player_id = %s;",
+            data = db.query(
+                "SELECT player_name, mkc_id FROM player WHERE player_id = %s;",
                 (uid,),
-            )[0][0]  # type: ignore
+            )[0]  # type: ignore
+            player_name = data[0]
+            mkc_id = int(data[1])
     except Exception as e:
         # member not in leaderboard
         # await send_raw_to_debug_channel(client, f'{uid} not found in leaderboard. Not setting roles', e)
+        return None, None
+    if mkc_id == 0:
         return None, None
     try:
         await member.edit(nick=str(player_name))
