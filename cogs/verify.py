@@ -123,7 +123,10 @@ class VerifyCog(commands.Cog):
                 msg_response = f":flag_us:\nWelcome back to 200cc Lounge.\nYou have been given the role: <@&{response[0]}>\n\n:flag_jp:\n`200ccラウンジにおかえり！`\n<@&{response[0]}>`が割り当てられています`"
                 await ctx.respond(msg_response)
                 dm_response = ":flag_us:\nWelcome back to 200cc Lounge.\n\n:flag_jp:\n200ccラウンジにおかえり！"
-                await member.send(dm_response)
+                try:
+                    await member.send(dm_response)
+                except Exception:
+                    pass
             else:
                 await ctx.respond(
                     f"``Error 29:`` Could not re-enter the lounge. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."
@@ -223,7 +226,10 @@ class VerifyCog(commands.Cog):
                     msg_response = f":flag_us:\nWelcome back to 200cc Lounge.\nYou have been given the role: <@&{response[0]}>\n\n:flag_jp:\n`200ccラウンジにおかえり！`\n<@&{response[0]}>`が割り当てられています`"
                     await ctx.respond(msg_response)
                     dm_response = ":flag_us:\nWelcome back to 200cc Lounge.\n\n:flag_jp:\n200ccラウンジにおかえり！"
-                    await member.send(dm_response)
+                    try:
+                        await member.send(dm_response)
+                    except Exception:
+                        pass
                 else:
                     await ctx.respond(
                         f"``Error 29:`` Could not re-enter the lounge. Try again later or make a <#{SUPPORT_CHANNEL_ID}> ticket for assistance."
@@ -233,9 +239,12 @@ class VerifyCog(commands.Cog):
                 x = await create_player(self.client, member, mkc_user_id, country_code)
             try:
                 await ctx.respond(x)
-                await member.send(x)
             except Exception:
                 await ctx.respond("oops")
+            try:
+                await member.send(x)
+            except Exception:
+                pass
             await send_to_verification_log(
                 self.client, ctx, message, verify_description
             )

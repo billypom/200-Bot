@@ -205,9 +205,12 @@ async def on_raw_reaction_add(payload):
                         )
                         staff_member: Member | None = guild.get_member(client.user.id)
                         if staff_member is not None:
-                            await staff_member.send(
-                                f"The name change to [{message_ids[i][2]}] requested by user [{message_ids[i][1]}] was automatically denied because they are not in the 200 Lounge server."
-                            )
+                            try:
+                                await staff_member.send(
+                                    f"The name change to [{message_ids[i][2]}] requested by user [{message_ids[i][1]}] was automatically denied because they are not in the 200 Lounge server."
+                                )
+                            except Exception:
+                                pass
                     else:
                         # 1. DM player
                         try:
@@ -237,9 +240,12 @@ async def on_raw_reaction_add(payload):
                         )
                         # Delete the embed message
                     member = guild.get_member(message_ids[i][1])  # type: ignore
-                    await member.send(  # type: ignore
-                        f"Your name change [{message_ids[i][2]}] has been denied."  # type: ignore
-                    )
+                    try:
+                        await member.send(  # type: ignore
+                            f"Your name change [{message_ids[i][2]}] has been denied."  # type: ignore
+                        )
+                    except Exception:
+                        pass
                     await message.delete()
                 # Any other reaction - Force an exception
                 else:
