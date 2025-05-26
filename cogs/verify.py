@@ -99,6 +99,9 @@ class VerifyCog(commands.Cog):
         - `message` (str): Link to your MKC forum or registry profile"""
 
         await ctx.defer(ephemeral=False)
+        if "mariokartcentral" in message:
+            await ctx.respond("Wrong website. Use https://mkcentral.com")
+            return
         uid_exists = await check_if_uid_exists(ctx.author.id)
         has_mkc_account = await self.check_if_uid_has_mkc(ctx.author.id)
         if uid_exists and has_mkc_account:
