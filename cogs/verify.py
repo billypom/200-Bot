@@ -108,9 +108,16 @@ class VerifyCog(commands.Cog):
         if "/registry/players" not in message:
             await ctx.respond("Please provide a MKCentral profile link")
             return
+
         uid_exists = await check_if_uid_exists(ctx.author.id)
         has_mkc_account = await self.check_if_uid_has_mkc(ctx.author.id)
         if uid_exists and has_mkc_account:
+            await send_to_verification_log(
+                self.client,
+                ctx,
+                "UID exists and already has MKC linked",
+                "No need to verify",
+            )
             lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
             if lounge_ban:
                 await ctx.respond(f"Unbanned after <t:{lounge_ban}:D>")
@@ -139,7 +146,9 @@ class VerifyCog(commands.Cog):
 
         # Request registry data
         data = await self.mkc_api_get(mkc_player_id)
-        mkc_user_id = data["id"]
+        # mkc_user_id = data["id"]
+        mkc_user_id = int(mkc_player_id)
+
         country_code = data["country_code"]
         is_banned = data["is_banned"]
         if data["discord"] is None:
@@ -204,6 +213,9 @@ class VerifyCog(commands.Cog):
             verify_description = vlog_msg.success
             member = await get_lounge_guild(self.client).fetch_member(ctx.author.id)
             if uid_exists:
+                await send_to_verification_log(
+                    self.client, ctx, "UID already exists", "Passed verification"
+                )
                 lounge_ban = await check_if_uid_is_lounge_banned(ctx.author.id)
                 if lounge_ban:
                     await ctx.respond(f"Unbanned after <t:{lounge_ban}:D>")
@@ -236,6 +248,9 @@ class VerifyCog(commands.Cog):
                     )
                 return
             else:
+                await send_to_verification_log(
+                    self.client, ctx, "Creating new player", "Passed verification"
+                )
                 x = await create_player(self.client, member, mkc_user_id, country_code)
             try:
                 await ctx.respond(x)
