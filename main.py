@@ -257,17 +257,17 @@ async def on_raw_reaction_add(payload):
     return
 
 
-@client.event
-async def on_member_join(member):
-    """Built-in function, runs when a user joins the guild"""
-    # Try to set roles on join
-    try:
-        x = await set_uid_roles(client, member.id)
-        if not x:
-            return
-    except Exception as e:
-        logging.error(f"on_member_join exception: {e}")
-        return
+# @client.event
+# async def on_member_join(member):
+#     """Built-in function, runs when a user joins the guild"""
+# Try to set roles on join
+# try:
+#     x = await set_uid_roles(client, member.id)
+#     if not x:
+#         return
+# except Exception as e:
+#     logging.error(f"on_member_join exception: {e}")
+#     return
 
 
 if __name__ == "__main__":
